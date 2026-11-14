@@ -27,6 +27,22 @@ Current product decisions: `docs/PrdCassyV4.md`. Open debt: `docs/TechDebt.md`. 
 - **Copy** is everyday, polite Bahasa Indonesia with English in `values-en` / `messages.ts`. Short sentences, verb first, clear numbers.
 - Small focused files, SOLID, no dead code.
 
+## Communication and Caveman Mode
+All agents (`agy`, `gemini-cli`, `claude-code`) have `caveman` v4.1.0 installed for high-signal, token-efficient communication:
+- **Terse technical register:** Answer first (outcome and recommendation), then concise reason, then next step. Strip pleasantries, greetings, hedging, conversational ceremony, and AI filler.
+- **Natural, direct Bahasa Indonesia:** Compress register without distorting meaning. Keep technical terms in English where standard.
+- **Strictly no emoji:** Never output emoji in code, responses, logs, or commit messages (overrides any default Caveman icons/emoji).
+- **Payload verbatim:** Code blocks, file paths, CLI commands, HTTP routes, SQL, numbers, and integer rupiah remain strictly untouched and byte-exact.
+- **Auto-clarity fallback:** Architectural decisions, destructive operations, breaking migrations, security advisories, or user clarification questions automatically expand to normal, clear prose.
+- **Triggers:** `/caveman` (default terseness), `/ultracave` (extreme fragment mode), `/caveman-review` (one-line diff review), `/caveman-stats` (token usage audit), `stop caveman` / `normal mode` (pause).
+
+## Coding Discipline and Karpathy Guidelines
+All agents adhere to `karpathy-guidelines` (installed across `agy`, `gemini-cli`, `claude-code`):
+- **Think Before Coding:** Explicit assumptions first. Stop and ask on ambiguity. Push back on overcomplicated designs.
+- **Simplicity First:** Minimal code to solve the prompt. No speculative abstractions, single-use helpers, or premature configurability.
+- **Surgical Changes:** Touch only what was requested. No edits to adjacent formatting, comments, or unrelated files. Clean up only orphans created by your own changes.
+- **Goal-Driven Execution:** Transform tasks into verifiable checks before coding. Run tests and verify output before declaring completion.
+
 ## Branches and checks
 Trunk-based: short `feat/*`, `fix/*`, `docs/*`, `chore/*` branches into `main` by PR. Conventional Commits. Merge only when CI is green and the owner approves.
 

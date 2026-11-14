@@ -6,13 +6,9 @@
 
     <!-- Navigation & Categories -->
     <string name="category_all">All Items</string>
-    <string name="category_signature">Signature</string>
-    <string name="category_espresso">Espresso</string>
-    <string name="category_manual_brew">Manual Brew</string>
-    <string name="category_pastry">Pastry</string>
-    <string name="category_non_coffee">Non-Coffee</string>
-    <string name="category_meals">Meals</string>
-    <string name="category_beans">Beans &amp; Bottle</string>
+    <string name="a11y_close_dialog">Close dialog</string>
+    <string name="a11y_refresh">Refresh data</string>
+    <string name="a11y_printer_settings">Printer settings</string>
 
     <!-- Hardware Status -->
     <string name="lan_status_ok">LAN 9100: OK</string>
@@ -264,14 +260,60 @@
     <string name="cms_btn_saving">Saving Display…</string>
     <string name="cms_btn_save">Save Guest Branding</string>
     <string name="cms_preview_heading">Live Guest Preview</string>
-    <string name="cms_preview_cat_1">Specialty Coffee</string>
+    <string name="cms_preview_cat_1">House Specials</string>
     <string name="cms_preview_cat_2">Pastry &amp; Bakery</string>
-    <string name="cms_preview_item_name">Espresso Single Origin</string>
-    <string name="cms_preview_item_price">IDR 28,000</string>
-    <string name="cms_preview_cart_count">1 Item • IDR 28,000</string>
+    <string name="cms_preview_item_name">Grilled Chicken Rice Set</string>
+    <string name="cms_preview_item_price">IDR 32,000</string>
+    <string name="cms_preview_cart_count">1 Item • IDR 32,000</string>
     <string name="cms_preview_cart_cta">View Cart</string>
     <string name="cms_preview_powered_by">Powered by Cassy</string>
     <string name="cms_preview_white_label">Self-Order at Table</string>
+
+    <!-- Server Config & Pairing Additions -->
+    <string name="server_config_subtitle">Set the active Cassy backend API endpoint for this cashier tablet.</string>
+    <string name="server_config_presets_label">Quick Presets</string>
+    <string name="server_config_preset_demo">Demo HTTPS</string>
+    <string name="server_config_preset_emulator">Local Emulator</string>
+    <string name="server_config_test_btn">Test Server Connection</string>
+    <string name="server_config_testing">Checking connection…</string>
+    <string name="server_config_test_ok">Server reachable (%1$s)</string>
+    <string name="server_config_test_fail">Server unreachable: %1$s</string>
+    <string name="server_config_saved">Server endpoint saved.</string>
+    <string name="server_config_guide_title">Endpoint Guide</string>
+    <string name="server_config_guide_body">Use a public HTTPS URL on physical tablets and http://10.0.2.2:8080 on local emulators.</string>
+    <string name="pairing_brand_tagline">Indonesian F&amp;B Ordering &amp; POS</string>
+    <string name="pairing_highlight_1">Live menu, table, and tax sync directly from the store server.</string>
+    <string name="pairing_highlight_2">Supports Midtrans dynamic QRIS and LAN 9100 thermal printing.</string>
+    <string name="pairing_highlight_3">Staff credentials are encrypted locally on this device.</string>
+    <string name="pairing_camera_title">Point camera at Staff Device QR</string>
+    <string name="pairing_camera_hint">Use the official QR from Owner Dashboard to fill store slug and credentials automatically.</string>
+    <string name="pairing_err_qr_empty">QR Code is empty or unreadable.</string>
+    <string name="pairing_err_qr_format">Invalid QR format. Scan the official device QR from Owner Dashboard.</string>
+    <string name="pairing_err_auth_failed">Staff authentication failed.</string>
+
+    <!-- Catalog Management Form Additions -->
+    <string name="catalog_categories_header">Menu Categories</string>
+    <string name="catalog_field_category_name">Category Name</string>
+    <string name="catalog_field_display_order">Display Order</string>
+    <string name="catalog_field_product_name">Item Name</string>
+    <string name="catalog_field_description">Description</string>
+    <string name="catalog_field_base_price">Base Price (IDR)</string>
+    <string name="catalog_field_station">Prep Station</string>
+    <string name="catalog_station_bar">Bar / Drinks</string>
+    <string name="catalog_station_kitchen">Kitchen / Food</string>
+    <string name="catalog_station_none">No Station</string>
+    <string name="catalog_field_type">Item Type</string>
+    <string name="catalog_type_prepared">Prepared</string>
+    <string name="catalog_type_ready">Ready to Serve</string>
+    <string name="catalog_field_category">Category</string>
+    <string name="catalog_meta_format">IDR %1$s | %2$s | %3$d variants</string>
+    <string name="catalog_variant_default">%1$s (Default)</string>
+    <string name="catalog_variant_name_label">Variant Name (e.g. Large / Hot)</string>
+    <string name="catalog_variant_price_label">Variant Price (IDR)</string>
+    <string name="catalog_variant_btn_add">Add Variant</string>
+    <string name="catalog_variant_btn_update">Update Variant</string>
+    <string name="catalog_variant_edit">Edit Variant</string>
+    <string name="cash_chip_rp">IDR %1$s</string>
 
     <!-- Service Mode Tab -->
     <string name="service_section_title">Service Mode &amp; Table Policy</string>
@@ -312,5 +354,14 @@
     <string name="printer_btn_test">Test Cashier Connection</string>
     <string name="printer_btn_save">Save Printer Settings</string>
     <string name="printer_btn_saving">Saving Printers…</string>
+
+    <!-- POS & Shift Overhaul Additions -->
+    <string name="shift_banner_id_format">SHIFT #%1$s</string>
+    <string name="shift_preset_rb">%1$dk</string>
+    <string name="shift_xreport_empty">X-Report data is not available yet.</string>
+    <string name="order_table_tap_hint">Tap to set table number</string>
+    <string name="catalog_category_count">(%1$d)</string>
+    <string name="btn_decrease_qty_symbol">-</string>
+    <string name="btn_increase_qty_symbol">+</string>
 </resources>
 

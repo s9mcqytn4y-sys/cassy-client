@@ -1,5 +1,7 @@
 package com.azuredevid.cassy.ui.shift
 
+import androidx.compose.runtime.Immutable
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
@@ -15,6 +17,7 @@ import com.azuredevid.cassy.domain.model.XReport
 import com.azuredevid.cassy.domain.model.ZReport
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
 import com.azuredevid.cassy.domain.repository.ShiftRepository
+import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -25,6 +28,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
+@Immutable
 data class ShiftUiState(
     val isLoading: Boolean = false,
     val drawers: List<CashDrawer> = emptyList(),
@@ -69,7 +73,10 @@ data class ShiftUiState(
 )
 
 sealed interface ShiftUiEffect {
-    data class ShowToast(val message: String) : ShiftUiEffect
+    data class ShowToast(
+        val message: String,
+        val tone: CassyToastTone = CassyToastTone.INFO
+    ) : ShiftUiEffect
     data object PromptOpenShift : ShiftUiEffect
     data class ShiftOpenedSuccessfully(val shift: Shift) : ShiftUiEffect
     data class ShiftClosedSuccessfully(val report: ZReport) : ShiftUiEffect
@@ -80,10 +87,13 @@ class ShiftViewModel(
     private val printerSettings: PrinterSettingsRepository,
     private val sessionManager: SessionManager? = null,
     private val printerManager: PrinterPort9100Manager = PrinterPort9100Manager(),
-    private val thermalBuilder: ShiftReportThermalBuilder = ShiftReportThermalBuilder()
+    private val thermalBuilder: ShiftReportThermalBuilder = ShiftReportThermalBuilder(),
+    private val savedStateHandle: SavedStateHandle = SavedStateHandle()
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ShiftUiState())
+    private val _uiState = MutableStateFlow(
+        ShiftUiState(selectedDrawerId = savedStateHandle.get<String>(KEY_SELECTED_DRAWER))
+    )
     val uiState: StateFlow<ShiftUiState> = _uiState.asStateFlow()
 
     private val _effects = MutableSharedFlow<ShiftUiEffect>()
@@ -92,6 +102,7 @@ class ShiftViewModel(
     companion object {
         const val VARIANCE_TOLERANCE_RUPIAH = 50_000L
         private const val CODE_VARIANCE_EXCEEDS_TOLERANCE = "VARIANCE_EXCEEDS_TOLERANCE"
+        private const val KEY_SELECTED_DRAWER = "shift_selected_drawer"
     }
 
     init {
@@ -142,6 +153,7 @@ class ShiftViewModel(
     }
 
     fun onDrawerSelected(drawerId: String) {
+        savedStateHandle[KEY_SELECTED_DRAWER] = drawerId
         _uiState.update { it.copy(selectedDrawerId = drawerId) }
         loadCurrentShift()
     }

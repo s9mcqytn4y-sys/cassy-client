@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Cassy" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Cassy" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/cassy_putih_tulang</item>
+        <item name="android:statusBarColor">@color/cassy_pandan</item>
+    </style>
+
+    <style name="Theme.Cassy.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/cassy_putih_tulang</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.Cassy</item>
+    </style>
+
     <style name="Theme.MyCaffe" parent="Theme.Cassy" />
 </resources>
-

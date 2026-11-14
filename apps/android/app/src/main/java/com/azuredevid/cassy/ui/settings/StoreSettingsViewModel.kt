@@ -1,5 +1,7 @@
 package com.azuredevid.cassy.ui.settings
 
+import androidx.compose.runtime.Immutable
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
@@ -21,6 +23,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Immutable
 data class StoreSettingsUiState(
     val isLoading: Boolean = false,
     val selectedTabIndex: Int = 0,
@@ -167,10 +170,15 @@ class StoreSettingsViewModel(
     private val repository: StoreGovernanceRepository,
     private val sessionManager: SessionManager,
     private val printerSettings: PrinterSettingsRepository,
-    private val printerManager: PrinterPort9100Manager = PrinterPort9100Manager()
+    private val printerManager: PrinterPort9100Manager = PrinterPort9100Manager(),
+    private val savedStateHandle: SavedStateHandle = SavedStateHandle()
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(StoreSettingsUiState())
+    private val _uiState = MutableStateFlow(
+        StoreSettingsUiState(
+            selectedTabIndex = (savedStateHandle.get<Int>(KEY_SELECTED_TAB) ?: 0).coerceIn(0, 3)
+        )
+    )
     val uiState: StateFlow<StoreSettingsUiState> = _uiState.asStateFlow()
 
     private val _effects = MutableSharedFlow<StoreSettingsUiEffect>()
@@ -257,7 +265,11 @@ class StoreSettingsViewModel(
 
     fun onEvent(event: StoreSettingsUiEvent) {
         when (event) {
-            is StoreSettingsUiEvent.SelectTab -> _uiState.update { it.copy(selectedTabIndex = event.tabIndex) }
+            is StoreSettingsUiEvent.SelectTab -> {
+                val bounded = event.tabIndex.coerceIn(0, 3)
+                savedStateHandle[KEY_SELECTED_TAB] = bounded
+                _uiState.update { it.copy(selectedTabIndex = bounded) }
+            }
 
             is StoreSettingsUiEvent.UpdateMerchantId -> _uiState.update { it.copy(merchantId = event.value) }
             is StoreSettingsUiEvent.UpdateClientKey -> _uiState.update { it.copy(clientKey = event.value) }
@@ -531,5 +543,9 @@ class StoreSettingsViewModel(
             }
             _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg))
         }
+    }
+
+    private companion object {
+        const val KEY_SELECTED_TAB = "store_settings_selected_tab"
     }
 }

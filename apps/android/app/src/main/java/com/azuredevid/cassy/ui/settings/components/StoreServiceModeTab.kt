@@ -6,9 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,12 +17,10 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -43,6 +39,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.azuredevid.cassy.R
 import com.azuredevid.cassy.domain.model.QRServiceMode
+import com.azuredevid.cassy.ui.designsystem.CassyCard
+import com.azuredevid.cassy.ui.designsystem.CassyDimens
+import com.azuredevid.cassy.ui.designsystem.CassyPrimaryButton
+import com.azuredevid.cassy.ui.designsystem.CassySecondaryButton
+import com.azuredevid.cassy.ui.designsystem.CassySectionHeader
 import com.azuredevid.cassy.ui.settings.StoreSettingsUiEvent
 import com.azuredevid.cassy.ui.settings.StoreSettingsUiState
 import com.azuredevid.cassy.ui.theme.statusWarnBg
@@ -60,63 +61,27 @@ fun StoreServiceModeTab(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(20.dp)
+            .padding(CassyDimens.SpaceXl)
             .verticalScroll(scrollState),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceLg)
     ) {
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = colors.surface,
-            border = BorderStroke(1.dp, colors.outline),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.service_section_title),
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = colors.onSurface
-                    )
-                )
-                Text(
-                    text = stringResource(R.string.service_section_desc),
-                    style = MaterialTheme.typography.bodySmall.copy(color = colors.onSurfaceVariant)
-                )
-            }
+        CassyCard {
+            CassySectionHeader(
+                title = stringResource(R.string.service_section_title),
+                subtitle = stringResource(R.string.service_section_desc)
+            )
         }
 
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = colors.surface,
-            border = BorderStroke(1.dp, colors.outline),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.service_qr_mode_title),
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = colors.onSurface
-                    )
-                )
-                Text(
-                    text = stringResource(R.string.service_qr_mode_desc),
-                    style = MaterialTheme.typography.bodySmall.copy(color = colors.onSurfaceVariant)
+        CassyCard {
+            Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd)) {
+                CassySectionHeader(
+                    title = stringResource(R.string.service_qr_mode_title),
+                    subtitle = stringResource(R.string.service_qr_mode_desc)
                 )
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd)
                 ) {
                     ServiceModeOptionCard(
                         title = stringResource(R.string.service_mode_table_title),
@@ -125,7 +90,6 @@ fun StoreServiceModeTab(
                         onSelect = { onEvent(StoreSettingsUiEvent.SetServiceMode(QRServiceMode.TABLE)) },
                         modifier = Modifier.weight(1f)
                     )
-
                     ServiceModeOptionCard(
                         title = stringResource(R.string.service_mode_pickup_title),
                         description = stringResource(R.string.service_mode_pickup_desc),
@@ -138,29 +102,21 @@ fun StoreServiceModeTab(
         }
 
         val pauseTitle = stringResource(R.string.service_pause_title)
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = if (state.qrOrderingPaused) statusWarnBg() else colors.surface,
-            border = BorderStroke(
-                1.dp,
-                if (state.qrOrderingPaused) statusWarnFg() else colors.outline
-            ),
-            modifier = Modifier.fillMaxWidth()
+        CassyCard(
+            containerColor = if (state.qrOrderingPaused) statusWarnBg() else colors.surface,
+            borderColor = if (state.qrOrderingPaused) statusWarnFg() else colors.outline
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = pauseTitle,
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = if (state.qrOrderingPaused) statusWarnFg() else colors.onSurface
-                        )
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = if (state.qrOrderingPaused) statusWarnFg() else colors.onSurface
                     )
                     Text(
                         text = stringResource(
@@ -170,9 +126,8 @@ fun StoreServiceModeTab(
                                 R.string.service_pause_idle_desc
                             }
                         ),
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = if (state.qrOrderingPaused) statusWarnFg() else colors.onSurfaceVariant
-                        )
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (state.qrOrderingPaused) statusWarnFg() else colors.onSurfaceVariant
                     )
                 }
 
@@ -184,32 +139,19 @@ fun StoreServiceModeTab(
                         checkedTrackColor = statusWarnFg()
                     ),
                     modifier = Modifier
-                        .padding(start = 8.dp)
-                        .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+                        .padding(start = CassyDimens.SpaceSm)
+                        .defaultMinSize(
+                            minWidth = CassyDimens.TouchTargetMin,
+                            minHeight = CassyDimens.TouchTargetMin
+                        )
                         .semantics { contentDescription = pauseTitle }
                 )
             }
         }
 
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = colors.surface,
-            border = BorderStroke(1.dp, colors.outline),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.service_table_limit_title),
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = colors.onSurface
-                    )
-                )
+        CassyCard {
+            Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd)) {
+                CassySectionHeader(title = stringResource(R.string.service_table_limit_title))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -219,58 +161,50 @@ fun StoreServiceModeTab(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = stringResource(R.string.service_table_limit_label),
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                color = colors.onSurface
-                            )
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold
                         )
                         Text(
                             text = if (state.tableTimeLimitMinutes == 0) {
                                 stringResource(R.string.service_table_limit_unlimited)
                             } else {
-                                stringResource(R.string.service_table_limit_minutes, state.tableTimeLimitMinutes)
+                                stringResource(
+                                    R.string.service_table_limit_minutes,
+                                    state.tableTimeLimitMinutes
+                                )
                             },
-                            style = MaterialTheme.typography.bodySmall.copy(color = colors.onSurfaceVariant)
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.onSurfaceVariant
                         )
                     }
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
                     ) {
-                        OutlinedButton(
+                        CassySecondaryButton(
+                            text = "-15",
                             onClick = {
                                 val newLimit = (state.tableTimeLimitMinutes - 15).coerceAtLeast(0)
                                 onEvent(StoreSettingsUiEvent.UpdateTableTimeLimit(newLimit))
                             },
-                            enabled = state.tableTimeLimitMinutes > 0,
-                            modifier = Modifier.size(width = 48.dp, height = 48.dp),
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-                            Text("-15", style = MaterialTheme.typography.labelSmall)
-                        }
-
+                            enabled = state.tableTimeLimitMinutes > 0
+                        )
                         Text(
                             text = stringResource(R.string.service_table_limit_chip, state.tableTimeLimitMinutes),
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = colors.onSurface
-                            ),
-                            modifier = Modifier.width(64.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.width(68.dp),
                             textAlign = TextAlign.Center
                         )
-
-                        OutlinedButton(
+                        CassySecondaryButton(
+                            text = "+15",
                             onClick = {
                                 val newLimit = (state.tableTimeLimitMinutes + 15).coerceAtMost(240)
                                 onEvent(StoreSettingsUiEvent.UpdateTableTimeLimit(newLimit))
                             },
-                            enabled = state.tableTimeLimitMinutes < 240,
-                            modifier = Modifier.size(width = 48.dp, height = 48.dp),
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-                            Text("+15", style = MaterialTheme.typography.labelSmall)
-                        }
+                            enabled = state.tableTimeLimitMinutes < 240
+                        )
                     }
                 }
 
@@ -284,17 +218,16 @@ fun StoreServiceModeTab(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = stringResource(R.string.service_table_warning_label),
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                color = colors.onSurface
-                            )
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold
                         )
                         Text(
                             text = stringResource(
                                 R.string.service_table_warning_desc,
                                 state.tableTimerWarningMinutes
                             ),
-                            style = MaterialTheme.typography.bodySmall.copy(color = colors.onSurfaceVariant)
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.onSurfaceVariant
                         )
                     }
                     Text(
@@ -302,39 +235,22 @@ fun StoreServiceModeTab(
                             R.string.service_table_warning_value,
                             state.tableTimerWarningMinutes
                         ),
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = colors.onSurface
-                        )
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
         }
 
-        Button(
+        CassyPrimaryButton(
+            text = stringResource(
+                if (state.isSavingSettings) R.string.service_btn_saving else R.string.service_btn_save
+            ),
             onClick = { onEvent(StoreSettingsUiEvent.SaveStoreSettings) },
-            enabled = !state.isSavingSettings,
-            modifier = Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = 48.dp),
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = colors.primary,
-                contentColor = colors.onPrimary
-            )
-        ) {
-            if (state.isSavingSettings) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp,
-                    color = colors.onPrimary
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.service_btn_saving))
-            } else {
-                Text(stringResource(R.string.service_btn_save))
-            }
-        }
+            loading = state.isSavingSettings,
+            icon = Icons.Rounded.Save,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
@@ -349,14 +265,14 @@ private fun ServiceModeOptionCard(
     val colors = MaterialTheme.colorScheme
     Surface(
         modifier = modifier
-            .defaultMinSize(minHeight = 48.dp)
-            .clip(RoundedCornerShape(10.dp))
+            .defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
+            .clip(RoundedCornerShape(CassyDimens.RadiusCard))
             .selectable(
                 selected = selected,
                 role = Role.RadioButton,
                 onClick = onSelect
             ),
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(CassyDimens.RadiusCard),
         color = if (selected) colors.surfaceVariant else colors.surface,
         border = BorderStroke(
             if (selected) 2.dp else 1.dp,
@@ -366,8 +282,8 @@ private fun ServiceModeOptionCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(CassyDimens.SpaceLg),
+            verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -376,10 +292,8 @@ private fun ServiceModeOptionCard(
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = colors.onSurface
-                    )
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold
                 )
                 Box(
                     modifier = Modifier
@@ -401,7 +315,8 @@ private fun ServiceModeOptionCard(
             }
             Text(
                 text = description,
-                style = MaterialTheme.typography.bodySmall.copy(color = colors.onSurfaceVariant)
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.onSurfaceVariant
             )
         }
     }
