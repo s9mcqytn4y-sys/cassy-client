@@ -1,15 +1,34 @@
 package com.azuredevid.cassy.ui.pos.components
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.MenuBook
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -19,18 +38,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.azuredevid.cassy.R
 import com.azuredevid.cassy.data.model.CatalogProduct
-import com.azuredevid.cassy.ui.theme.statusErrBg
-import com.azuredevid.cassy.ui.theme.statusErrFg
-import com.azuredevid.cassy.ui.theme.statusOkBg
-import com.azuredevid.cassy.ui.theme.statusOkFg
+import com.azuredevid.cassy.ui.designsystem.CassyDimens
+import com.azuredevid.cassy.ui.designsystem.CassySecondaryButton
+import com.azuredevid.cassy.ui.designsystem.CassyStatusBadge
+import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 
 /**
- * Panel 1: Vertical Navigation Rail (10% screen width in Landscape POS).
- * Displays app monogram, category navigation, LAN printer status, and quick settings routes.
- * Accessible with WCAG 2.2 AA compliant semantics and touch targets.
+ * Panel 1: Left Navigation Rail (category filter tabs, LAN status badge, quick utility navigation).
  */
 @Composable
 fun PosNavRail(
@@ -52,62 +68,70 @@ fun PosNavRail(
             .width(railWidth)
             .fillMaxHeight(),
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp
+        tonalElevation = 1.dp
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(vertical = 12.dp, horizontal = 6.dp),
+                .fillMaxHeight()
+                .padding(CassyDimens.SpaceSm),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm),
                 modifier = Modifier.weight(1f)
             ) {
-                // Cassy Monogram / App Title with A11y Semantics
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.primary,
+                Image(
+                    painter = painterResource(R.drawable.ic_cassy_monogram),
+                    contentDescription = logoDesc,
                     modifier = Modifier
                         .size(44.dp)
+                        .clip(RoundedCornerShape(CassyDimens.RadiusButton))
                         .semantics { contentDescription = logoDesc }
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "C",
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 22.sp
-                        )
-                    }
-                }
+                )
 
                 Text(
                     text = stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
 
-                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = CassyDimens.SpaceXs),
+                    color = MaterialTheme.colorScheme.outline
+                )
 
-                // Category Buttons
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(categories) { (catId, label) ->
+                    items(categories, key = { (catId, _) -> catId }) { (catId, label) ->
                         val isSelected = selectedCategoryId == catId
-                        val itemCount = if (catId == "all") allProducts.size else allProducts.count { it.categoryId == catId }
+                        val itemCount = if (catId == "all") {
+                            allProducts.size
+                        } else {
+                            allProducts.count { it.categoryId == catId }
+                        }
 
                         Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                            shape = RoundedCornerShape(CassyDimens.RadiusButton),
+                            color = if (isSelected) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                            },
+                            border = if (isSelected) {
+                                null
+                            } else {
+                                BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .defaultMinSize(minHeight = 48.dp)
+                                .defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
                                 .selectable(
                                     selected = isSelected,
                                     role = Role.Tab,
@@ -117,22 +141,33 @@ fun PosNavRail(
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.padding(vertical = 6.dp, horizontal = 4.dp)
+                                modifier = Modifier.padding(
+                                    vertical = CassyDimens.SpaceXs,
+                                    horizontal = CassyDimens.SpaceXs
+                                )
                             ) {
                                 Text(
                                     text = label,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = if (isSelected) {
+                                        MaterialTheme.colorScheme.onPrimary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface
+                                    },
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
                                     textAlign = TextAlign.Center
                                 )
                                 if (itemCount > 0) {
                                     Text(
-                                        text = "($itemCount)",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
+                                        text = stringResource(R.string.catalog_category_count, itemCount),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (isSelected) {
+                                            MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        }
                                     )
                                 }
                             }
@@ -141,54 +176,72 @@ fun PosNavRail(
                 }
             }
 
-            // Bottom Actions: LAN Status Chip, Settings (BYOK) & Pairing
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                val lanText = if (isPrinterOnline) stringResource(R.string.lan_status_ok) else stringResource(R.string.lan_status_off)
-                Surface(
-                    shape = RoundedCornerShape(4.dp),
-                    color = if (isPrinterOnline) statusOkBg() else statusErrBg(),
+                CassyStatusBadge(
+                    text = if (isPrinterOnline) {
+                        stringResource(R.string.lan_status_ok)
+                    } else {
+                        stringResource(R.string.lan_status_off)
+                    },
+                    tone = if (isPrinterOnline) CassyToastTone.SUCCESS else CassyToastTone.ERROR,
                     modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = lanText,
-                        color = if (isPrinterOnline) statusOkFg() else statusErrFg(),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(vertical = 6.dp),
-                        textAlign = TextAlign.Center
-                    )
-                }
+                )
 
-                OutlinedButton(
+                CassySecondaryButton(
+                    text = stringResource(R.string.catalog_nav_label),
                     onClick = onNavigateToCatalog,
-                    contentPadding = PaddingValues(2.dp),
-                    modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)
-                ) {
-                    Text(stringResource(R.string.catalog_nav_label), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                }
+                    icon = Icons.AutoMirrored.Rounded.MenuBook,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)
                 ) {
                     OutlinedButton(
                         onClick = onNavigateToSettings,
-                        contentPadding = PaddingValues(2.dp),
-                        modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
+                        shape = RoundedCornerShape(CassyDimens.RadiusButton),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
                     ) {
-                        Text(stringResource(R.string.btn_byok_settings), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = stringResource(R.string.btn_byok_settings),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
 
                     OutlinedButton(
                         onClick = onNavigateToPairing,
-                        contentPadding = PaddingValues(2.dp),
-                        modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp)
+                        shape = RoundedCornerShape(CassyDimens.RadiusButton),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
                     ) {
-                        Text(stringResource(R.string.btn_pair_device), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = stringResource(R.string.btn_pair_device),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                 }
             }

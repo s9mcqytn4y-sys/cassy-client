@@ -1,5 +1,7 @@
 package com.azuredevid.cassy.ui.pos
 
+import androidx.compose.runtime.Immutable
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azuredevid.cassy.core.hardware.EscPosReceiptBuilder
@@ -20,6 +22,7 @@ import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import com.azuredevid.cassy.domain.repository.PrinterConfig
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -33,6 +36,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.UUID
 
+@Immutable
 data class PosUiState(
     val categories: List<CatalogCategory> = emptyList(),
     val allProducts: List<CatalogProduct> = emptyList(),
@@ -83,7 +87,10 @@ data class PosUiState(
 }
 
 sealed interface PosUiEffect {
-    data class ShowToast(val message: String) : PosUiEffect
+    data class ShowToast(
+        val message: String,
+        val tone: CassyToastTone = CassyToastTone.INFO
+    ) : PosUiEffect
     data class CashPaymentCompleted(val orderNumber: String) : PosUiEffect
     data class QrisPaymentCompleted(val orderNumber: String) : PosUiEffect
 }
@@ -95,10 +102,25 @@ class PosViewModel(
     private val printerSettings: PrinterSettingsRepository,
     private val sessionManager: SessionManager,
     private val printerManager: PrinterPort9100Manager = PrinterPort9100Manager(),
-    private val realtimeClient: CassyRealtimeClient? = null
+    private val realtimeClient: CassyRealtimeClient? = null,
+    private val savedStateHandle: SavedStateHandle = SavedStateHandle()
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(PosUiState())
+    private companion object {
+        const val KEY_SELECTED_CATEGORY = "pos_selected_category"
+        const val KEY_SEARCH_QUERY = "pos_search_query"
+        const val KEY_ORDER_TYPE = "pos_order_type"
+        const val KEY_TABLE_NAME = "pos_table_name"
+    }
+
+    private val _uiState = MutableStateFlow(
+        PosUiState(
+            selectedCategoryId = savedStateHandle.get<String>(KEY_SELECTED_CATEGORY) ?: "all",
+            searchQuery = savedStateHandle.get<String>(KEY_SEARCH_QUERY).orEmpty(),
+            orderType = savedStateHandle.get<String>(KEY_ORDER_TYPE) ?: "DINE-IN",
+            tableName = savedStateHandle.get<String>(KEY_TABLE_NAME).orEmpty()
+        )
+    )
     val uiState: StateFlow<PosUiState> = _uiState.asStateFlow()
 
     private val _effects = MutableSharedFlow<PosUiEffect>()
@@ -191,18 +213,22 @@ class PosViewModel(
     }
 
     fun selectCategory(categoryId: String) {
+        savedStateHandle[KEY_SELECTED_CATEGORY] = categoryId
         _uiState.update { it.copy(selectedCategoryId = categoryId) }
     }
 
     fun updateSearchQuery(query: String) {
+        savedStateHandle[KEY_SEARCH_QUERY] = query
         _uiState.update { it.copy(searchQuery = query) }
     }
 
     fun updateTableName(tableName: String) {
         if (_uiState.value.isCartLocked) return
+        val trimmed = tableName.trim()
+        savedStateHandle[KEY_TABLE_NAME] = trimmed
         _uiState.update {
             it.copy(
-                tableName = tableName.trim(),
+                tableName = trimmed,
                 pendingOrder = null,
                 pendingOrderIdempotencyKey = null
             )
@@ -213,9 +239,12 @@ class PosViewModel(
         if (_uiState.value.isCartLocked) return
         _uiState.update {
             val next = if (it.orderType == "DINE-IN") "TAKEAWAY" else "DINE-IN"
+            val nextTable = if (next == "TAKEAWAY") "" else it.tableName
+            savedStateHandle[KEY_ORDER_TYPE] = next
+            savedStateHandle[KEY_TABLE_NAME] = nextTable
             it.copy(
                 orderType = next,
-                tableName = if (next == "TAKEAWAY") "" else it.tableName,
+                tableName = nextTable,
                 pendingOrder = null,
                 pendingOrderIdempotencyKey = null
             )

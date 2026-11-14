@@ -1,5 +1,7 @@
 package com.azuredevid.cassy.ui.pairing
 
+import androidx.compose.runtime.Immutable
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azuredevid.cassy.domain.repository.AuthRepository
@@ -17,6 +19,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
+@Immutable
 data class StorePairingUiState(
     val storeSlug: String = "",
     val email: String = "",
@@ -46,10 +49,16 @@ sealed interface StorePairingUiEffect {
 }
 
 class StorePairingViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val savedStateHandle: SavedStateHandle = SavedStateHandle()
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(StorePairingUiState())
+    private val _uiState = MutableStateFlow(
+        StorePairingUiState(
+            storeSlug = savedStateHandle.get<String>(KEY_STORE_SLUG).orEmpty(),
+            email = savedStateHandle.get<String>(KEY_EMAIL).orEmpty()
+        )
+    )
     val uiState: StateFlow<StorePairingUiState> = _uiState.asStateFlow()
 
     private val _effects = MutableSharedFlow<StorePairingUiEffect>()
@@ -57,11 +66,17 @@ class StorePairingViewModel(
 
     fun onEvent(event: StorePairingUiEvent) {
         when (event) {
-            is StorePairingUiEvent.UpdateStoreSlug -> _uiState.update {
-                it.copy(storeSlug = event.value, storeSlugError = null, formError = null)
+            is StorePairingUiEvent.UpdateStoreSlug -> {
+                savedStateHandle[KEY_STORE_SLUG] = event.value
+                _uiState.update {
+                    it.copy(storeSlug = event.value, storeSlugError = null, formError = null)
+                }
             }
-            is StorePairingUiEvent.UpdateEmail -> _uiState.update {
-                it.copy(email = event.value, emailError = null, formError = null)
+            is StorePairingUiEvent.UpdateEmail -> {
+                savedStateHandle[KEY_EMAIL] = event.value
+                _uiState.update {
+                    it.copy(email = event.value, emailError = null, formError = null)
+                }
             }
             is StorePairingUiEvent.UpdatePin -> {
                 val digits = event.value.filter { ch -> ch.isDigit() }.take(6)
@@ -78,7 +93,7 @@ class StorePairingViewModel(
     private fun parseQrPayload(rawPayload: String) {
         val trimmed = rawPayload.trim()
         if (trimmed.isBlank()) {
-            _uiState.update { it.copy(formError = "QR Code kosong atau tidak terbaca.") }
+            _uiState.update { it.copy(formError = ERR_QR_EMPTY) }
             return
         }
 
@@ -93,13 +108,17 @@ class StorePairingViewModel(
 
         if (parsed != null && (parsed.first.isNotBlank() || parsed.third.isNotBlank() || parsed.second.second.isNotBlank())) {
             _uiState.update { current ->
+                val resolvedSlug = parsed.first.ifBlank { current.storeSlug }
+                val resolvedEmail = parsed.second.first.ifBlank { current.email }
+                savedStateHandle[KEY_STORE_SLUG] = resolvedSlug
+                savedStateHandle[KEY_EMAIL] = resolvedEmail
                 current.copy(
-                    storeSlug = parsed.first.ifBlank { current.storeSlug },
-                    email = parsed.second.first.ifBlank { current.email },
+                    storeSlug = resolvedSlug,
+                    email = resolvedEmail,
                     badge = parsed.second.second.ifBlank { current.badge },
                     deviceCredential = parsed.third.ifBlank { current.deviceCredential },
                     isCameraActive = false,
-                    qrScannedInfo = "QR terdeteksi. Masukkan PIN 6 digit staf untuk masuk.",
+                    qrScannedInfo = INFO_QR_SCANNED,
                     storeSlugError = null,
                     emailError = null,
                     formError = null
@@ -109,7 +128,7 @@ class StorePairingViewModel(
             _uiState.update {
                 it.copy(
                     isCameraActive = false,
-                    formError = "Format QR tidak valid. Pindai QR perangkat/badge resmi dari Dashboard Pemilik."
+                    formError = ERR_QR_FORMAT
                 )
             }
         }
@@ -127,13 +146,13 @@ class StorePairingViewModel(
         var pinErr: String? = null
 
         if (slug.isBlank() && badge.isBlank()) {
-            slugErr = "Kode toko wajib diisi."
+            slugErr = ERR_SLUG_REQUIRED
         }
         if (email.isBlank() && badge.isBlank()) {
-            emailErr = "Email staf wajib diisi."
+            emailErr = ERR_EMAIL_REQUIRED
         }
         if (pin.length != 6 || !pin.all { it.isDigit() }) {
-            pinErr = "PIN staf wajib 6 digit angka."
+            pinErr = ERR_PIN_INVALID
         }
 
         if (slugErr != null || emailErr != null || pinErr != null) {
@@ -173,7 +192,7 @@ class StorePairingViewModel(
                         it.copy(
                             isSubmitting = false,
                             pin = "",
-                            formError = err.message ?: "Autentikasi staf gagal."
+                            formError = err.message ?: ERR_AUTH_FAILED
                         )
                     }
                 }
@@ -187,5 +206,17 @@ class StorePairingViewModel(
             if (!raw.isNullOrEmpty()) return raw
         }
         return ""
+    }
+
+    companion object {
+        private const val KEY_STORE_SLUG = "pairing_store_slug"
+        private const val KEY_EMAIL = "pairing_email"
+        const val ERR_QR_EMPTY = "CODE_QR_EMPTY"
+        const val ERR_QR_FORMAT = "CODE_QR_INVALID"
+        const val INFO_QR_SCANNED = "CODE_QR_SCANNED"
+        const val ERR_SLUG_REQUIRED = "CODE_SLUG_REQUIRED"
+        const val ERR_EMAIL_REQUIRED = "CODE_EMAIL_REQUIRED"
+        const val ERR_PIN_INVALID = "CODE_PIN_INVALID"
+        const val ERR_AUTH_FAILED = "CODE_AUTH_FAILED"
     }
 }

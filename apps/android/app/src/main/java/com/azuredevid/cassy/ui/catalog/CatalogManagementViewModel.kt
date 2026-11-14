@@ -1,5 +1,7 @@
 package com.azuredevid.cassy.ui.catalog
 
+import androidx.compose.runtime.Immutable
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azuredevid.cassy.core.security.SessionManager
@@ -9,6 +11,7 @@ import com.azuredevid.cassy.data.model.CatalogProduct
 import com.azuredevid.cassy.data.model.ProductUpsertInput
 import com.azuredevid.cassy.data.model.VariantUpsertInput
 import com.azuredevid.cassy.domain.repository.CatalogRepository
+import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,6 +24,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@Immutable
 data class CatalogManagementUiState(
     val categories: List<CatalogCategory> = emptyList(),
     val products: List<CatalogProduct> = emptyList(),
@@ -48,7 +52,10 @@ data class CatalogManagementUiState(
 }
 
 sealed interface CatalogManagementUiEffect {
-    data class ShowMessage(val message: String) : CatalogManagementUiEffect
+    data class ShowMessage(
+        val message: String,
+        val tone: CassyToastTone = CassyToastTone.INFO
+    ) : CatalogManagementUiEffect
     data object ProductSaved : CatalogManagementUiEffect
     data object VariantSaved : CatalogManagementUiEffect
 }
@@ -56,10 +63,16 @@ sealed interface CatalogManagementUiEffect {
 class CatalogManagementViewModel(
     private val catalogRepository: CatalogRepository,
     private val sessionManager: SessionManager,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val savedStateHandle: SavedStateHandle = SavedStateHandle()
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(CatalogManagementUiState())
+    private val _uiState = MutableStateFlow(
+        CatalogManagementUiState(
+            selectedCategoryId = savedStateHandle.get<String>(KEY_SELECTED_CAT) ?: "all",
+            searchQuery = savedStateHandle.get<String>(KEY_SEARCH_QUERY).orEmpty()
+        )
+    )
     val uiState: StateFlow<CatalogManagementUiState> = _uiState.asStateFlow()
 
     private val _effects = MutableSharedFlow<CatalogManagementUiEffect>()
@@ -110,10 +123,12 @@ class CatalogManagementViewModel(
     }
 
     fun selectCategory(categoryId: String) {
+        savedStateHandle[KEY_SELECTED_CAT] = categoryId
         _uiState.update { it.copy(selectedCategoryId = categoryId) }
     }
 
     fun updateSearchQuery(query: String) {
+        savedStateHandle[KEY_SEARCH_QUERY] = query
         _uiState.update { it.copy(searchQuery = query) }
     }
 
@@ -356,6 +371,8 @@ class CatalogManagementViewModel(
     }
 
     private companion object {
+        private const val KEY_SELECTED_CAT = "catalog_selected_category_id"
+        private const val KEY_SEARCH_QUERY = "catalog_search_query"
         private const val MAX_RAW_IMAGE_BYTES = 10 * 1024 * 1024
     }
 }

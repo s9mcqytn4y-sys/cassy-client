@@ -1,17 +1,40 @@
 package com.azuredevid.cassy.ui.pos.components
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Payments
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.azuredevid.cassy.R
+import com.azuredevid.cassy.ui.designsystem.CassyDimens
+import com.azuredevid.cassy.ui.designsystem.CassyErrorBanner
+import com.azuredevid.cassy.ui.designsystem.CassyModalDialog
+import com.azuredevid.cassy.ui.designsystem.CassyPrimaryButton
+import com.azuredevid.cassy.ui.designsystem.CassySecondaryButton
+import com.azuredevid.cassy.ui.designsystem.CassyTextField
+import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import com.azuredevid.cassy.ui.theme.statusErrBg
 import com.azuredevid.cassy.ui.theme.statusErrFg
 import com.azuredevid.cassy.ui.theme.statusOkBg
@@ -19,7 +42,7 @@ import com.azuredevid.cassy.ui.theme.statusOkFg
 import java.text.NumberFormat
 
 /**
- * Cash settlement modal with preset chips, manual tender input, and server-backed submit state.
+ * Cash settlement modal with full rupiah preset chips, manual tender input, and server-backed submit.
  */
 @Composable
 fun PosCashModal(
@@ -34,136 +57,139 @@ fun PosCashModal(
     val tenderedLong = cashTenderedStr.toLongOrNull() ?: 0L
     val change = tenderedLong - grandTotal
     val isSufficient = tenderedLong >= grandTotal
+    val formattedTotal = stringResource(R.string.cash_chip_rp, rupiahFormat.format(grandTotal))
+    val quickDenoms = remember { listOf(50_000L, 100_000L, 200_000L) }
 
-    AlertDialog(
-        onDismissRequest = { if (!isSubmitting) onDismiss() },
-        title = {
-            Text(stringResource(R.string.modal_cash_title), fontWeight = FontWeight.Bold)
-        },
-        text = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.modal_cash_total, "Rp ${rupiahFormat.format(grandTotal)}"),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                Text(stringResource(R.string.modal_cash_quick_prompt), style = MaterialTheme.typography.labelSmall)
-
-                // Quick Cash Chips (Min Height 48dp)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = { cashTenderedStr = grandTotal.toString() },
-                        modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp),
-                        contentPadding = PaddingValues(2.dp)
-                    ) {
-                        Text(stringResource(R.string.chip_exact_cash), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                    }
-
-                    OutlinedButton(
-                        onClick = { cashTenderedStr = "50000" },
-                        modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp),
-                        contentPadding = PaddingValues(2.dp)
-                    ) {
-                        Text("50k", style = MaterialTheme.typography.labelSmall)
-                    }
-
-                    OutlinedButton(
-                        onClick = { cashTenderedStr = "100000" },
-                        modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp),
-                        contentPadding = PaddingValues(2.dp)
-                    ) {
-                        Text("100k", style = MaterialTheme.typography.labelSmall)
-                    }
-
-                    OutlinedButton(
-                        onClick = { cashTenderedStr = "200000" },
-                        modifier = Modifier.weight(1f).defaultMinSize(minHeight = 48.dp),
-                        contentPadding = PaddingValues(2.dp)
-                    ) {
-                        Text("200k", style = MaterialTheme.typography.labelSmall)
-                    }
-                }
-
-                // Nominal Input
-                OutlinedTextField(
-                    value = cashTenderedStr,
-                    onValueChange = { cashTenderedStr = it.filter { char -> char.isDigit() } },
-                    label = { Text(stringResource(R.string.input_cash_tendered_label)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                // Kembalian Banner
-                Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = if (isSufficient) statusOkBg() else statusErrBg(),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(10.dp)) {
-                        if (isSufficient) {
-                            Text(
-                                text = stringResource(R.string.change_label, "Rp ${rupiahFormat.format(change)}"),
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontFamily = FontFamily.Monospace,
-                                color = statusOkFg()
-                            )
-                        } else {
-                            Text(
-                                text = stringResource(R.string.insufficient_cash, "Rp ${rupiahFormat.format(grandTotal - tenderedLong)}"),
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = statusErrFg()
-                            )
-                        }
-                    }
-                }
-
-                if (!errorMessage.isNullOrBlank()) {
-                    Text(
-                        text = errorMessage,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = statusErrFg(),
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onConfirmCashPayment(tenderedLong, change) },
-                enabled = isSufficient && !isSubmitting,
-                modifier = Modifier.defaultMinSize(minHeight = 48.dp)
-            ) {
-                if (isSubmitting) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(stringResource(R.string.btn_complete_and_print), fontWeight = FontWeight.Bold)
-                }
-            }
-        },
-        dismissButton = {
-            OutlinedButton(
+    CassyModalDialog(
+        title = stringResource(R.string.modal_cash_title),
+        subtitle = stringResource(R.string.modal_cash_total, formattedTotal),
+        icon = Icons.Rounded.Payments,
+        maxWidth = CassyDimens.ModalWidthStandard,
+        dismissEnabled = !isSubmitting,
+        onDismissRequest = onDismiss,
+        footer = {
+            CassySecondaryButton(
+                text = stringResource(R.string.btn_cancel),
                 onClick = onDismiss,
                 enabled = !isSubmitting,
-                modifier = Modifier.defaultMinSize(minHeight = 48.dp)
-            ) {
-                Text(stringResource(R.string.btn_cancel))
+                modifier = Modifier.weight(1f)
+            )
+            CassyPrimaryButton(
+                text = stringResource(R.string.btn_complete_and_print),
+                onClick = { onConfirmCashPayment(tenderedLong, change) },
+                enabled = isSufficient,
+                loading = isSubmitting,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    ) {
+        Text(
+            text = stringResource(R.string.modal_cash_quick_prompt),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)
+        ) {
+            CashChipButton(
+                label = stringResource(R.string.chip_exact_cash),
+                selected = tenderedLong == grandTotal,
+                onClick = { cashTenderedStr = grandTotal.toString() },
+                modifier = Modifier.weight(1f)
+            )
+            quickDenoms.forEach { preset ->
+                CashChipButton(
+                    label = stringResource(R.string.cash_chip_rp, rupiahFormat.format(preset)),
+                    selected = tenderedLong == preset,
+                    onClick = { cashTenderedStr = preset.toString() },
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
-    )
+
+        CassyTextField(
+            value = cashTenderedStr,
+            onValueChange = { cashTenderedStr = it.filter { ch -> ch.isDigit() } },
+            label = stringResource(R.string.input_cash_tendered_label),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+
+        Surface(
+            shape = RoundedCornerShape(CassyDimens.RadiusCard),
+            color = if (isSufficient) statusOkBg() else statusErrBg(),
+            border = BorderStroke(
+                1.dp,
+                (if (isSufficient) statusOkFg() else statusErrFg()).copy(alpha = 0.25f)
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(CassyDimens.SpaceMd)) {
+                if (isSufficient) {
+                    Text(
+                        text = stringResource(
+                            R.string.change_label,
+                            stringResource(R.string.cash_chip_rp, rupiahFormat.format(change))
+                        ),
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = statusOkFg()
+                    )
+                } else {
+                    Text(
+                        text = stringResource(
+                            R.string.insufficient_cash,
+                            stringResource(R.string.cash_chip_rp, rupiahFormat.format(grandTotal - tenderedLong))
+                        ),
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = statusErrFg()
+                    )
+                }
+            }
+        }
+
+        if (!errorMessage.isNullOrBlank()) {
+            CassyErrorBanner(message = errorMessage, tone = CassyToastTone.ERROR)
+        }
+    }
+}
+
+@Composable
+private fun CashChipButton(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedButton(
+        onClick = onClick,
+        shape = RoundedCornerShape(CassyDimens.RadiusButton),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = if (selected) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surface
+            },
+            contentColor = if (selected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            }
+        ),
+        border = BorderStroke(
+            width = if (selected) 1.5.dp else 1.dp,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+        ),
+        contentPadding = PaddingValues(horizontal = CassyDimens.SpaceXs, vertical = CassyDimens.SpaceXs),
+        modifier = modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1
+        )
+    }
 }

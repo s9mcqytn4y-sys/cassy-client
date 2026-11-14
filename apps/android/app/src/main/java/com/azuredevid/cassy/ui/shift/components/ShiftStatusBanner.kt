@@ -1,20 +1,34 @@
 package com.azuredevid.cassy.ui.shift.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ReceiptLong
+import androidx.compose.material.icons.rounded.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.LockOpen
+import androidx.compose.material.icons.rounded.SwapHoriz
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.azuredevid.cassy.R
 import com.azuredevid.cassy.domain.model.Shift
-import com.azuredevid.cassy.ui.theme.statusErrFg
+import com.azuredevid.cassy.ui.designsystem.CassyDangerButton
+import com.azuredevid.cassy.ui.designsystem.CassyDimens
+import com.azuredevid.cassy.ui.designsystem.CassyPrimaryButton
+import com.azuredevid.cassy.ui.designsystem.CassySecondaryButton
+import com.azuredevid.cassy.ui.designsystem.CassyStatusBadge
+import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import com.azuredevid.cassy.ui.theme.statusOkBg
 import com.azuredevid.cassy.ui.theme.statusOkFg
 import com.azuredevid.cassy.ui.theme.statusWarnBg
@@ -33,46 +47,39 @@ fun ShiftStatusBanner(
     modifier: Modifier = Modifier
 ) {
     val rupiahFormatter = NumberFormat.getIntegerInstance(Locale("id", "ID"))
-    val colors = MaterialTheme.colorScheme
-    val okBg = statusOkBg()
-    val okFg = statusOkFg()
-    val warnBg = statusWarnBg()
-    val warnFg = statusWarnFg()
-    val errFg = statusErrFg()
 
     if (isShiftOpen && currentShift != null) {
+        val okFg = statusOkFg()
         Surface(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 6.dp),
-            shape = RoundedCornerShape(10.dp),
-            color = okBg,
-            border = BorderStroke(1.dp, okFg.copy(alpha = 0.3f))
+                .padding(horizontal = CassyDimens.SpaceMd, vertical = CassyDimens.SpaceXs),
+            shape = RoundedCornerShape(CassyDimens.RadiusCard),
+            color = statusOkBg(),
+            border = BorderStroke(1.dp, okFg.copy(alpha = 0.28f))
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                    .padding(horizontal = CassyDimens.SpaceMd, vertical = CassyDimens.SpaceSm),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .background(okFg, RoundedCornerShape(6.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        val shortId = if (currentShift.id.length > 6) currentShift.id.take(6).uppercase() else currentShift.id.uppercase()
-                        Text(
-                            text = "SHIFT #$shortId",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = colors.surface
-                        )
+                    val shortId = if (currentShift.id.length > 6) {
+                        currentShift.id.take(6).uppercase()
+                    } else {
+                        currentShift.id.uppercase()
                     }
+                    CassyStatusBadge(
+                        text = stringResource(R.string.shift_banner_id_format, shortId),
+                        tone = CassyToastTone.SUCCESS,
+                        icon = Icons.Rounded.AccountBalanceWallet
+                    )
 
                     Column {
                         val cashierName = currentShift.openedByName.ifBlank {
@@ -80,7 +87,7 @@ fun ShiftStatusBanner(
                         }
                         Text(
                             text = stringResource(R.string.shift_banner_cashier_label, cashierName),
-                            fontSize = 13.sp,
+                            style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.SemiBold,
                             color = okFg
                         )
@@ -90,114 +97,72 @@ fun ShiftStatusBanner(
                                     R.string.shift_banner_expected_cash,
                                     rupiahFormatter.format(currentShift.expectedCash)
                                 ),
-                                fontSize = 11.sp,
+                                style = MaterialTheme.typography.labelSmall,
                                 color = okFg.copy(alpha = 0.85f)
                             )
                         }
                     }
                 }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(
+                Row(horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)) {
+                    CassySecondaryButton(
+                        text = stringResource(R.string.shift_banner_xreport_btn),
                         onClick = onXReportClick,
-                        modifier = Modifier.defaultMinSize(minHeight = 48.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.onSurface),
-                        border = BorderStroke(1.dp, colors.outline)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.shift_banner_xreport_btn),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-
-                    OutlinedButton(
+                        icon = Icons.AutoMirrored.Rounded.ReceiptLong,
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                    CassySecondaryButton(
+                        text = stringResource(R.string.shift_banner_movement_btn),
                         onClick = onCashMovementClick,
-                        modifier = Modifier.defaultMinSize(minHeight = 48.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.onSurface),
-                        border = BorderStroke(1.dp, colors.outline)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.shift_banner_movement_btn),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-
-                    OutlinedButton(
-                        onClick = onCloseShiftClick,
-                        modifier = Modifier.defaultMinSize(minHeight = 48.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = errFg),
-                        border = BorderStroke(1.dp, errFg.copy(alpha = 0.5f))
-                    ) {
-                        Text(
-                            text = stringResource(R.string.shift_banner_close_btn),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
+                        icon = Icons.Rounded.SwapHoriz,
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                    CassyDangerButton(
+                        text = stringResource(R.string.shift_banner_close_btn),
+                        onClick = onCloseShiftClick
+                    )
                 }
             }
         }
     } else {
+        val warnFg = statusWarnFg()
         Surface(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 6.dp),
-            shape = RoundedCornerShape(10.dp),
-            color = warnBg,
-            border = BorderStroke(1.dp, warnFg.copy(alpha = 0.3f))
+                .padding(horizontal = CassyDimens.SpaceMd, vertical = CassyDimens.SpaceXs),
+            shape = RoundedCornerShape(CassyDimens.RadiusCard),
+            color = statusWarnBg(),
+            border = BorderStroke(1.dp, warnFg.copy(alpha = 0.28f))
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                    .padding(horizontal = CassyDimens.SpaceMd, vertical = CassyDimens.SpaceSm),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .background(warnFg, RoundedCornerShape(6.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.shift_banner_closed_badge),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = colors.surface
-                        )
-                    }
-
+                    CassyStatusBadge(
+                        text = stringResource(R.string.shift_banner_closed_badge),
+                        tone = CassyToastTone.WARNING
+                    )
                     Text(
                         text = stringResource(R.string.shift_banner_closed_hint),
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Medium,
                         color = warnFg
                     )
                 }
 
-                Button(
+                CassyPrimaryButton(
+                    text = stringResource(R.string.shift_banner_open_btn),
                     onClick = onOpenShiftClick,
-                    modifier = Modifier.defaultMinSize(minHeight = 48.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.primary,
-                        contentColor = colors.onPrimary
-                    )
-                ) {
-                    Text(
-                        text = stringResource(R.string.shift_banner_open_btn),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                    icon = Icons.Rounded.LockOpen
+                )
             }
         }
     }
