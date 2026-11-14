@@ -5,9 +5,13 @@ import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.os.Build
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
 data class DiscoveredPrinter(
     val name: String,
@@ -20,7 +24,10 @@ data class DiscoveredPrinter(
  * to automatically scan LAN thermal printers (_pdl-datastream._tcp / _printer._tcp) on port 9100.
  * Compliant with Android 14+ (API 34) registerServiceInfoCallback with safe backward compatibility.
  */
-class LanPrinterDiscoveryManager(private val context: Context) {
+class LanPrinterDiscoveryManager(
+    private val context: Context,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+) {
 
     private val nsdManager: NsdManager by lazy {
         context.getSystemService(Context.NSD_SERVICE) as NsdManager
@@ -112,43 +119,41 @@ class LanPrinterDiscoveryManager(private val context: Context) {
     fun discoverPrintersViaUdp(
         targetPort: Int = 9100,
         broadcastTimeoutMs: Int = 2000
-    ): Flow<DiscoveredPrinter> = kotlinx.coroutines.flow.flow {
-        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            val probePacket = byteArrayOf(0x1F, 0x1B, 0x1F, 0x00) // Standard POS probe header
-            try {
-                java.net.DatagramSocket().use { socket ->
-                    socket.broadcast = true
-                    socket.soTimeout = broadcastTimeoutMs
+    ): Flow<DiscoveredPrinter> = flow {
+        val probePacket = byteArrayOf(0x1F, 0x1B, 0x1F, 0x00) // Standard POS probe header
+        try {
+            java.net.DatagramSocket().use { socket ->
+                socket.broadcast = true
+                socket.soTimeout = broadcastTimeoutMs
 
-                    val broadcastAddress = java.net.InetAddress.getByName("255.255.255.255")
-                    val packet = java.net.DatagramPacket(probePacket, probePacket.size, broadcastAddress, targetPort)
-                    socket.send(packet)
+                val broadcastAddress = java.net.InetAddress.getByName("255.255.255.255")
+                val packet = java.net.DatagramPacket(probePacket, probePacket.size, broadcastAddress, targetPort)
+                socket.send(packet)
 
-                    val buffer = ByteArray(1024)
-                    val responsePacket = java.net.DatagramPacket(buffer, buffer.size)
+                val buffer = ByteArray(1024)
+                val responsePacket = java.net.DatagramPacket(buffer, buffer.size)
 
-                    val startTime = System.currentTimeMillis()
-                    while (System.currentTimeMillis() - startTime < broadcastTimeoutMs) {
-                        try {
-                            socket.receive(responsePacket)
-                            val host = responsePacket.address.hostAddress
-                            if (host != null) {
-                                emit(
-                                    DiscoveredPrinter(
-                                        name = "UDP Printer ($host)",
-                                        hostAddress = host,
-                                        port = targetPort
-                                    )
+                val startTime = System.currentTimeMillis()
+                while (System.currentTimeMillis() - startTime < broadcastTimeoutMs) {
+                    try {
+                        socket.receive(responsePacket)
+                        val host = responsePacket.address.hostAddress
+                        if (host != null) {
+                            emit(
+                                DiscoveredPrinter(
+                                    name = "UDP Printer ($host)",
+                                    hostAddress = host,
+                                    port = targetPort
                                 )
-                            }
-                        } catch (_: java.net.SocketTimeoutException) {
-                            break
+                            )
                         }
+                    } catch (_: java.net.SocketTimeoutException) {
+                        break
                     }
                 }
-            } catch (_: Exception) {
-                // Safely end flow on socket failure
             }
+        } catch (_: Exception) {
+            // Safely end flow on socket failure
         }
-    }
+    }.flowOn(ioDispatcher)
 }

@@ -109,10 +109,44 @@ val repositoryModule = module {
 }
 
 val viewModelModule = module {
-    viewModel { StorePairingViewModel(get()) }
-    viewModel { ServerConfigViewModel(get()) }
-    viewModel { StoreSettingsViewModel(get(), get(), get(), get()) }
-    viewModel { ShiftViewModel(get(), get(), get(), get(), get()) }
-    viewModel { PosViewModel(get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { CatalogManagementViewModel(get(), get()) }
+    viewModel { StorePairingViewModel(authRepository = get(), savedStateHandle = get()) }
+    viewModel { ServerConfigViewModel(serverSettings = get(), httpClient = get(), savedStateHandle = get()) }
+    viewModel {
+        StoreSettingsViewModel(
+            repository = get(),
+            sessionManager = get(),
+            printerSettings = get(),
+            printerManager = get(),
+            savedStateHandle = get()
+        )
+    }
+    viewModel {
+        ShiftViewModel(
+            shiftRepository = get(),
+            printerSettings = get(),
+            sessionManager = get(),
+            printerManager = get(),
+            thermalBuilder = get(),
+            savedStateHandle = get()
+        )
+    }
+    viewModel {
+        PosViewModel(
+            catalogRepository = get(),
+            orderQuoteRepository = get(),
+            posOrderRepository = get(),
+            printerSettings = get(),
+            sessionManager = get(),
+            printerManager = get(),
+            realtimeClient = get(),
+            savedStateHandle = get()
+        )
+    }
+    viewModel {
+        CatalogManagementViewModel(
+            catalogRepository = get(),
+            sessionManager = get(),
+            savedStateHandle = get()
+        )
+    }
 }

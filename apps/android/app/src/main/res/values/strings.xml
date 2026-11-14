@@ -6,13 +6,9 @@
 
     <!-- Navigation & Categories -->
     <string name="category_all">Semua Menu</string>
-    <string name="category_signature">Signature</string>
-    <string name="category_espresso">Espresso</string>
-    <string name="category_manual_brew">Manual Brew</string>
-    <string name="category_pastry">Pastry</string>
-    <string name="category_non_coffee">Non-Coffee</string>
-    <string name="category_meals">Meals</string>
-    <string name="category_beans">Beans &amp; Bottle</string>
+    <string name="a11y_close_dialog">Tutup dialog</string>
+    <string name="a11y_refresh">Muat ulang data</string>
+    <string name="a11y_printer_settings">Pengaturan printer</string>
 
     <!-- Hardware Status -->
     <string name="lan_status_ok">LAN 9100: OK</string>
@@ -264,14 +260,60 @@
     <string name="cms_btn_saving">Menyimpan Tampilan…</string>
     <string name="cms_btn_save">Simpan Tampilan Tamu</string>
     <string name="cms_preview_heading">Pratinjau Tampilan Tamu</string>
-    <string name="cms_preview_cat_1">Kopi Spesialti</string>
-    <string name="cms_preview_cat_2">Pastry &amp; Roti</string>
-    <string name="cms_preview_item_name">Espresso Single Origin</string>
-    <string name="cms_preview_item_price">Rp 28.000</string>
-    <string name="cms_preview_cart_count">1 Sajian • Rp 28.000</string>
+    <string name="cms_preview_cat_1">Menu Spesial</string>
+    <string name="cms_preview_cat_2">Kue &amp; Kudapan</string>
+    <string name="cms_preview_item_name">Paket Nasi Ayam Bakar</string>
+    <string name="cms_preview_item_price">Rp 32.000</string>
+    <string name="cms_preview_cart_count">1 Sajian • Rp 32.000</string>
     <string name="cms_preview_cart_cta">Lihat Keranjang</string>
     <string name="cms_preview_powered_by">Didukung oleh Cassy</string>
     <string name="cms_preview_white_label">Pemesanan Mandiri Meja</string>
+
+    <!-- Server Config & Pairing Additions -->
+    <string name="server_config_subtitle">Tentukan alamat API backend Cassy yang aktif untuk tablet kasir ini.</string>
+    <string name="server_config_presets_label">Preset Cepat</string>
+    <string name="server_config_preset_demo">Demo HTTPS</string>
+    <string name="server_config_preset_emulator">Emulator Lokal</string>
+    <string name="server_config_test_btn">Uji Koneksi Server</string>
+    <string name="server_config_testing">Memeriksa koneksi…</string>
+    <string name="server_config_test_ok">Server merespons (%1$s)</string>
+    <string name="server_config_test_fail">Server tidak terjangkau: %1$s</string>
+    <string name="server_config_saved">Alamat server tersimpan.</string>
+    <string name="server_config_guide_title">Panduan Alamat Server</string>
+    <string name="server_config_guide_body">Gunakan HTTPS publik untuk tablet fisik dan http://10.0.2.2:8080 untuk emulator lokal.</string>
+    <string name="pairing_brand_tagline">Kasir &amp; Pemesanan F&amp;B Indonesia</string>
+    <string name="pairing_highlight_1">Menu, meja, dan pajak tersinkronisasi langsung dari server gerai.</string>
+    <string name="pairing_highlight_2">Mendukung QRIS dinamis Midtrans serta cetak thermal LAN port 9100.</string>
+    <string name="pairing_highlight_3">Kredensial staf terenkripsi aman di penyimpanan perangkat.</string>
+    <string name="pairing_camera_title">Arahkan kamera ke QR Perangkat</string>
+    <string name="pairing_camera_hint">Gunakan QR resmi dari Dashboard Pemilik agar slug dan kredensial terisi otomatis.</string>
+    <string name="pairing_err_qr_empty">QR Code kosong atau tidak terbaca.</string>
+    <string name="pairing_err_qr_format">Format QR tidak valid. Pindai QR perangkat resmi dari Dashboard Pemilik.</string>
+    <string name="pairing_err_auth_failed">Autentikasi staf gagal.</string>
+
+    <!-- Catalog Management Form Additions -->
+    <string name="catalog_categories_header">Kategori Menu</string>
+    <string name="catalog_field_category_name">Nama Kategori</string>
+    <string name="catalog_field_display_order">Urutan Tampil</string>
+    <string name="catalog_field_product_name">Nama Menu</string>
+    <string name="catalog_field_description">Deskripsi</string>
+    <string name="catalog_field_base_price">Harga Dasar (Rp)</string>
+    <string name="catalog_field_station">Stasiun Dapur</string>
+    <string name="catalog_station_bar">Bar / Minuman</string>
+    <string name="catalog_station_kitchen">Dapur / Makanan</string>
+    <string name="catalog_station_none">Tanpa Stasiun</string>
+    <string name="catalog_field_type">Tipe Sajian</string>
+    <string name="catalog_type_prepared">Diolah</string>
+    <string name="catalog_type_ready">Siap Saji</string>
+    <string name="catalog_field_category">Kategori</string>
+    <string name="catalog_meta_format">Rp %1$s | %2$s | %3$d varian</string>
+    <string name="catalog_variant_default">%1$s (Default)</string>
+    <string name="catalog_variant_name_label">Nama Varian (mis. Besar / Hangat)</string>
+    <string name="catalog_variant_price_label">Harga Varian (Rp)</string>
+    <string name="catalog_variant_btn_add">Tambah Varian</string>
+    <string name="catalog_variant_btn_update">Perbarui Varian</string>
+    <string name="catalog_variant_edit">Ubah Varian</string>
+    <string name="cash_chip_rp">Rp %1$s</string>
 
     <!-- Service Mode Tab -->
     <string name="service_section_title">Mode Layanan &amp; Kebijakan Meja</string>
@@ -312,4 +354,13 @@
     <string name="printer_btn_test">Uji Koneksi Kasir</string>
     <string name="printer_btn_save">Simpan Pengaturan Printer</string>
     <string name="printer_btn_saving">Menyimpan Printer…</string>
+
+    <!-- POS & Shift Overhaul Additions -->
+    <string name="shift_banner_id_format">SHIFT #%1$s</string>
+    <string name="shift_preset_rb">%1$d rb</string>
+    <string name="shift_xreport_empty">Data laporan X belum tersedia.</string>
+    <string name="order_table_tap_hint">Ketuk untuk atur nomor meja</string>
+    <string name="catalog_category_count">(%1$d)</string>
+    <string name="btn_decrease_qty_symbol">-</string>
+    <string name="btn_increase_qty_symbol">+</string>
 </resources>
