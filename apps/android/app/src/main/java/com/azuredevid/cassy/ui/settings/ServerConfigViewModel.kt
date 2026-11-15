@@ -4,7 +4,10 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.azuredevid.cassy.BuildConfig
 import com.azuredevid.cassy.data.repository.ServerSettingsRepository
+import com.azuredevid.cassy.domain.repository.DiscoveredLocalServer
+import com.azuredevid.cassy.domain.repository.LocalServerDiscoveryRepository
 import com.azuredevid.cassy.domain.repository.ServerHealthMonitor
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -27,13 +30,18 @@ data class ServerConfigUiState(
     val urlInput: String = "",
     val urlError: String? = null,
     val isUrlInvalid: Boolean = false,
+    val isCleartextBlockedInProd: Boolean = false,
     val isSaved: Boolean = false,
     val isTesting: Boolean = false,
     val probeStatusOk: Boolean? = null,
     val probeHttpCode: Int? = null,
     val probeLatencyMs: Long? = null,
+    val probeIsTls: Boolean = false,
     val probeErrorMessage: String? = null,
-    val showCleartextWarning: Boolean = false
+    val showCleartextWarning: Boolean = false,
+    val isDiscoveringMdns: Boolean = false,
+    val discoveredServers: List<DiscoveredLocalServer> = emptyList(),
+    val mdnsDiscoveryCompleted: Boolean = false
 )
 
 sealed interface ServerConfigUiEffect {
@@ -44,7 +52,9 @@ class ServerConfigViewModel(
     private val serverSettings: ServerSettingsRepository,
     private val httpClient: HttpClient? = null,
     private val healthMonitor: ServerHealthMonitor? = null,
-    private val savedStateHandle: SavedStateHandle = SavedStateHandle()
+    private val localDiscovery: LocalServerDiscoveryRepository? = null,
+    private val savedStateHandle: SavedStateHandle = SavedStateHandle(),
+    private val enforceHttpsOnly: Boolean = BuildConfig.FLAVOR.equals("prod", ignoreCase = true)
 ) : ViewModel() {
 
     private val initialUrl = savedStateHandle.get<String>(KEY_URL_INPUT)
@@ -66,8 +76,43 @@ class ServerConfigViewModel(
         updateUrlState(value)
     }
 
+    fun clearUrl() {
+        updateUrlState("")
+    }
+
     fun applyPreset(url: String) {
         updateUrlState(url)
+    }
+
+    fun discoverLocalServers() {
+        val discovery = localDiscovery ?: return
+        if (_uiState.value.isDiscoveringMdns) return
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isDiscoveringMdns = true,
+                    mdnsDiscoveryCompleted = false
+                )
+            }
+            val servers = runCatching { discovery.discoverLocalServers() }.getOrDefault(emptyList())
+            val firstUrl = servers.firstOrNull()?.baseUrl
+            _uiState.update { current ->
+                val updatedUrl = firstUrl ?: current.urlInput
+                if (firstUrl != null) {
+                    savedStateHandle[KEY_URL_INPUT] = firstUrl
+                }
+                current.copy(
+                    urlInput = updatedUrl,
+                    isDiscoveringMdns = false,
+                    discoveredServers = servers,
+                    mdnsDiscoveryCompleted = true,
+                    urlError = null,
+                    isUrlInvalid = false,
+                    isCleartextBlockedInProd = false,
+                    showCleartextWarning = isUnlistedCleartextUrl(updatedUrl)
+                )
+            }
+        }
     }
 
     private fun updateUrlState(value: String) {
@@ -77,10 +122,12 @@ class ServerConfigViewModel(
                 urlInput = value,
                 urlError = null,
                 isUrlInvalid = false,
+                isCleartextBlockedInProd = false,
                 isSaved = false,
                 probeStatusOk = null,
                 probeHttpCode = null,
                 probeLatencyMs = null,
+                probeIsTls = false,
                 probeErrorMessage = null,
                 showCleartextWarning = isUnlistedCleartextUrl(value)
             )
@@ -93,12 +140,24 @@ class ServerConfigViewModel(
             _uiState.update {
                 it.copy(
                     isUrlInvalid = true,
+                    isCleartextBlockedInProd = false,
                     urlError = ERR_INVALID_URL
                 )
             }
             return
         }
+        if (enforceHttpsOnly && raw.startsWith("http://", ignoreCase = true)) {
+            _uiState.update {
+                it.copy(
+                    isUrlInvalid = true,
+                    isCleartextBlockedInProd = true,
+                    urlError = ERR_CLEARTEXT_PROD
+                )
+            }
+            return
+        }
         val client = httpClient ?: return
+        val isTls = raw.startsWith("https://", ignoreCase = true)
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
@@ -106,6 +165,7 @@ class ServerConfigViewModel(
                     probeStatusOk = null,
                     probeHttpCode = null,
                     probeLatencyMs = null,
+                    probeIsTls = isTls,
                     probeErrorMessage = null
                 )
             }
@@ -130,6 +190,7 @@ class ServerConfigViewModel(
                             probeStatusOk = ok,
                             probeHttpCode = response.status.value,
                             probeLatencyMs = elapsedMs,
+                            probeIsTls = isTls,
                             probeErrorMessage = if (ok) null else "HTTP ${response.status.value}"
                         )
                     }
@@ -147,6 +208,7 @@ class ServerConfigViewModel(
                             isTesting = false,
                             probeStatusOk = false,
                             probeLatencyMs = null,
+                            probeIsTls = isTls,
                             probeErrorMessage = detail
                         )
                     }
@@ -162,7 +224,18 @@ class ServerConfigViewModel(
             _uiState.update {
                 it.copy(
                     isUrlInvalid = true,
+                    isCleartextBlockedInProd = false,
                     urlError = ERR_INVALID_URL
+                )
+            }
+            return false
+        }
+        if (enforceHttpsOnly && raw.startsWith("http://", ignoreCase = true)) {
+            _uiState.update {
+                it.copy(
+                    isUrlInvalid = true,
+                    isCleartextBlockedInProd = true,
+                    urlError = ERR_CLEARTEXT_PROD
                 )
             }
             return false
@@ -176,6 +249,7 @@ class ServerConfigViewModel(
                 urlInput = normalized,
                 urlError = null,
                 isUrlInvalid = false,
+                isCleartextBlockedInProd = false,
                 isSaved = true,
                 showCleartextWarning = isUnlistedCleartextUrl(normalized)
             )
@@ -203,7 +277,8 @@ class ServerConfigViewModel(
 
     companion object {
         private const val KEY_URL_INPUT = "server_config_url_input"
-        private const val ERR_INVALID_URL = "URL_INVALID"
+        const val ERR_INVALID_URL = "URL_INVALID"
+        const val ERR_CLEARTEXT_PROD = "URL_CLEARTEXT_PROD"
         private const val PROBE_TIMEOUT_MS = 4_500L
         private val ALLOWED_CLEARTEXT_HOSTS = setOf("10.0.2.2", "127.0.0.1", "localhost", "192.168.10.10")
     }

@@ -159,8 +159,8 @@ fun StorePairingHidDialog(
                 isError = isErrorState,
                 supportingText = supportingMessage?.let { msg -> { Text(msg) } },
                 singleLine = false,
-                minLines = 3,
-                maxLines = 5,
+                minLines = 1,
+                maxLines = 3,
                 shape = RoundedCornerShape(CassyDimens.RadiusButton),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = CassyPandan,

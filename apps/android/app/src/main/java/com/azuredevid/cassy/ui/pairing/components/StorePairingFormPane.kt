@@ -180,7 +180,7 @@ fun StorePairingFormPane(
             onValueChange = onSlugChange,
             label = stringResource(R.string.store_slug_label),
             isError = slugError != null,
-            supportingText = slugError,
+            supportingText = slugError ?: stringResource(R.string.auth_store_slug_helper),
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Rounded.Storefront,
@@ -215,7 +215,7 @@ fun StorePairingFormPane(
             onValueChange = onEmailChange,
             label = stringResource(R.string.auth_email_label),
             isError = emailError != null,
-            supportingText = emailError,
+            supportingText = emailError ?: stringResource(R.string.auth_staff_email_helper),
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Rounded.Email,

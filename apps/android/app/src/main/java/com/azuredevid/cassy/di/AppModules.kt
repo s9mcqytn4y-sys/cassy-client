@@ -7,10 +7,12 @@ import com.azuredevid.cassy.core.security.AndroidTinkAeadCipher
 import com.azuredevid.cassy.core.security.BiometricSecurityManager
 import com.azuredevid.cassy.core.security.DataStoreSessionManager
 import com.azuredevid.cassy.core.security.SessionManager
+import com.azuredevid.cassy.data.network.AndroidNsdLocalServerDiscovery
 import com.azuredevid.cassy.data.network.AndroidServerHealthMonitor
 import com.azuredevid.cassy.data.network.CassyHttpClientFactory
 import com.azuredevid.cassy.data.network.CassyRealtimeClient
 import com.azuredevid.cassy.data.repository.DataStorePrinterSettingsRepository
+import com.azuredevid.cassy.data.repository.DataStoreServerSettingsRepository
 import com.azuredevid.cassy.data.repository.KtorAuthRepository
 import com.azuredevid.cassy.data.repository.KtorCatalogRepository
 import com.azuredevid.cassy.data.repository.KtorOrderQuoteRepository
@@ -18,9 +20,9 @@ import com.azuredevid.cassy.data.repository.KtorPosOrderRepository
 import com.azuredevid.cassy.data.repository.KtorShiftRepository
 import com.azuredevid.cassy.data.repository.KtorStoreGovernanceRepository
 import com.azuredevid.cassy.data.repository.ServerSettingsRepository
-import com.azuredevid.cassy.data.repository.SharedPreferencesServerSettingsRepository
 import com.azuredevid.cassy.domain.repository.AuthRepository
 import com.azuredevid.cassy.domain.repository.CatalogRepository
+import com.azuredevid.cassy.domain.repository.LocalServerDiscoveryRepository
 import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
@@ -44,8 +46,9 @@ val appModule = module {
     single<BiometricSecurityManager> { BiometricSecurityManager(androidContext()) }
     single<AeadCipher> { AndroidTinkAeadCipher(androidContext()) }
     single<SessionManager> { DataStoreSessionManager(androidContext(), get()) }
-    single<ServerSettingsRepository> { SharedPreferencesServerSettingsRepository(androidContext()) }
+    single<ServerSettingsRepository> { DataStoreServerSettingsRepository(androidContext()) }
     single<PrinterSettingsRepository> { DataStorePrinterSettingsRepository(androidContext()) }
+    single<LocalServerDiscoveryRepository> { AndroidNsdLocalServerDiscovery(androidContext()) }
 
     single<HttpClient> {
         CassyHttpClientFactory.create(
@@ -131,6 +134,7 @@ val viewModelModule = module {
             serverSettings = get(),
             httpClient = get(),
             healthMonitor = get(),
+            localDiscovery = get(),
             savedStateHandle = get()
         )
     }

@@ -15,12 +15,12 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.azuredevid.cassy.R
 import com.azuredevid.cassy.data.model.CatalogProduct
 import com.azuredevid.cassy.data.model.OrderQuoteItem
@@ -71,8 +71,8 @@ fun PosLandscapeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val rupiahFormat = remember { NumberFormat.getIntegerInstance(Locale("id", "ID")) }
 
-    val posState by posViewModel.uiState.collectAsState()
-    val shiftState by shiftViewModel.uiState.collectAsState()
+    val posState by posViewModel.uiState.collectAsStateWithLifecycle()
+    val shiftState by shiftViewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(shiftViewModel) {
         shiftViewModel.effects.collect { effect ->

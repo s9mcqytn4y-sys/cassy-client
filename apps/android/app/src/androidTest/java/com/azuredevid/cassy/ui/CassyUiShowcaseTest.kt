@@ -417,7 +417,7 @@ class CassyUiShowcaseTest {
 
     @Test
     fun serverConfigScreen_rendersSplitPaneAndPresets() {
-        val vm = ServerConfigViewModel(ShowcaseServerSettingsRepo())
+        val vm = ServerConfigViewModel(ShowcaseServerSettingsRepo(), enforceHttpsOnly = false)
         composeRule.setContent {
             CassyTheme(darkTheme = false) {
                 ServerConfigScreen(viewModel = vm, onNavigateBack = {})
@@ -425,7 +425,10 @@ class CassyUiShowcaseTest {
         }
         composeRule.onNodeWithText(context.getString(R.string.server_config_title)).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.server_config_test_btn)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.server_config_preset_lan)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.server_config_discover_mdns)).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.server_config_preset_demo)).performClick()
+        composeRule.onNodeWithContentDescription(context.getString(R.string.server_config_clear_url_cd)).assertIsDisplayed()
         captureScreen("ServerConfig/ServerConfigDefault")
     }
 

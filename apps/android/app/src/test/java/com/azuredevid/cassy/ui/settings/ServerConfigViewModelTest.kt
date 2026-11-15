@@ -2,6 +2,8 @@ package com.azuredevid.cassy.ui.settings
 
 import androidx.lifecycle.SavedStateHandle
 import com.azuredevid.cassy.data.repository.ServerSettingsRepository
+import com.azuredevid.cassy.domain.repository.DiscoveredLocalServer
+import com.azuredevid.cassy.domain.repository.LocalServerDiscoveryRepository
 import com.azuredevid.cassy.domain.repository.ServerConnectionStatus
 import com.azuredevid.cassy.domain.repository.ServerConnectivityState
 import com.azuredevid.cassy.domain.repository.ServerHealthMonitor
@@ -159,7 +161,7 @@ class ServerConfigViewModelTest {
             override suspend fun probeNow(): ServerConnectivityState =
                 ServerConnectivityState(ServerConnectionStatus.ONLINE)
         }
-        val vm = ServerConfigViewModel(repo, healthMonitor = monitor)
+        val vm = ServerConfigViewModel(repo, healthMonitor = monitor, enforceHttpsOnly = false)
 
         vm.onUrlChanged("https://a")
         assertFalse(vm.save())
@@ -172,5 +174,71 @@ class ServerConfigViewModelTest {
 
         vm.applyPreset("https://demo.abbdullaziz.online")
         assertFalse(vm.uiState.value.showCleartextWarning)
+    }
+
+    @Test
+    fun clearUrl_resetsUrlInputAndProbeState() = runTest(testDispatcher) {
+        val repo = FakeServerSettingsRepository("https://demo.abbdullaziz.online")
+        val vm = ServerConfigViewModel(repo, enforceHttpsOnly = false)
+        assertEquals("https://demo.abbdullaziz.online", vm.uiState.value.urlInput)
+
+        vm.clearUrl()
+        assertEquals("", vm.uiState.value.urlInput)
+        assertEquals(null, vm.uiState.value.probeStatusOk)
+    }
+
+    @Test
+    fun discoverLocalServers_populatesMdnsCandidatesAndAppliesFirstEndpoint() = runTest(testDispatcher) {
+        val repo = FakeServerSettingsRepository("https://demo.abbdullaziz.online")
+        val fakeDiscovery = object : LocalServerDiscoveryRepository {
+            override suspend fun discoverLocalServers(timeoutMs: Long): List<DiscoveredLocalServer> {
+                return listOf(
+                    DiscoveredLocalServer(
+                        serviceName = "Cassy Roastery Senopati LAN",
+                        host = "192.168.1.100",
+                        port = 8080,
+                        baseUrl = "http://192.168.1.100:8080",
+                        isTls = false
+                    ),
+                    DiscoveredLocalServer(
+                        serviceName = "Cassy Backup Appliance TLS",
+                        host = "192.168.1.101",
+                        port = 8443,
+                        baseUrl = "https://192.168.1.101:8443",
+                        isTls = true
+                    )
+                )
+            }
+        }
+
+        val vm = ServerConfigViewModel(
+            serverSettings = repo,
+            localDiscovery = fakeDiscovery,
+            enforceHttpsOnly = false
+        )
+        vm.discoverLocalServers()
+        advanceUntilIdle()
+
+        assertTrue(vm.uiState.value.mdnsDiscoveryCompleted)
+        assertFalse(vm.uiState.value.isDiscoveringMdns)
+        assertEquals(2, vm.uiState.value.discoveredServers.size)
+        assertEquals("http://192.168.1.100:8080", vm.uiState.value.urlInput)
+    }
+
+    @Test
+    fun enforceHttpsOnly_blocksCleartextInProdAndAllowsHttps() = runTest(testDispatcher) {
+        val repo = FakeServerSettingsRepository("https://demo.abbdullaziz.online")
+        val prodVm = ServerConfigViewModel(repo, enforceHttpsOnly = true)
+
+        prodVm.onUrlChanged("http://192.168.1.100:8080")
+        assertFalse(prodVm.save())
+        assertTrue(prodVm.uiState.value.isUrlInvalid)
+        assertTrue(prodVm.uiState.value.isCleartextBlockedInProd)
+        assertEquals(ServerConfigViewModel.ERR_CLEARTEXT_PROD, prodVm.uiState.value.urlError)
+
+        prodVm.onUrlChanged("https://pos-lokal.cassy.local")
+        assertTrue(prodVm.save())
+        assertFalse(prodVm.uiState.value.isCleartextBlockedInProd)
+        assertEquals("https://pos-lokal.cassy.local", repo.getBaseUrl())
     }
 }

@@ -33,16 +33,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.ImageShader
+import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -55,7 +56,6 @@ import com.azuredevid.cassy.domain.repository.ServerConnectionStatus
 import com.azuredevid.cassy.domain.repository.ServerConnectivityState
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
 import com.azuredevid.cassy.ui.theme.BrandPanelBorder
-import com.azuredevid.cassy.ui.theme.BrandPanelMotif
 import com.azuredevid.cassy.ui.theme.BrandPanelPandan
 import com.azuredevid.cassy.ui.theme.BrandPanelSurface
 import com.azuredevid.cassy.ui.theme.BrandStatusCheckingDot
@@ -73,10 +73,13 @@ fun StorePairingBrandPane(
     fillFullHeight: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val doodleBitmap = ImageBitmap.imageResource(id = R.drawable.bg_cassy_cafe_doodle)
+
     Column(
         modifier = modifier
+            .clipToBounds()
             .background(BrandPanelPandan)
-            .cassyCafePatternBackground(BrandPanelMotif)
+            .cassyCafePatternBackground(doodleBitmap)
             .padding(CassyDimens.Space2Xl),
         verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceLg)
     ) {
@@ -246,20 +249,32 @@ private fun ServerStatusChip(
         ServerConnectionStatus.NETWORK_OFFLINE -> {
             BrandStatusOfflineDot to stringResource(R.string.pairing_server_status_network_offline)
         }
+        ServerConnectionStatus.INTERNET_UNVALIDATED -> {
+            BrandStatusCheckingDot to stringResource(R.string.pairing_server_status_internet_unvalidated)
+        }
         ServerConnectionStatus.SERVER_UNREACHABLE -> {
             BrandStatusOfflineDot to stringResource(R.string.pairing_server_status_server_unreachable)
         }
     }
     val isOffline = connectivity.status == ServerConnectionStatus.NETWORK_OFFLINE ||
         connectivity.status == ServerConnectionStatus.SERVER_UNREACHABLE
+    val isWarning = connectivity.status == ServerConnectionStatus.INTERNET_UNVALIDATED
     val accessibilityDesc = stringResource(R.string.pairing_server_status_cd, label)
 
     Surface(
         shape = RoundedCornerShape(CassyDimens.RadiusPill),
-        color = if (isOffline) Color(0xFF471C1C).copy(alpha = 0.82f) else BrandPanelSurface.copy(alpha = 0.78f),
+        color = when {
+            isOffline -> Color(0xFF471C1C).copy(alpha = 0.82f)
+            isWarning -> Color(0xFF4D3812).copy(alpha = 0.84f)
+            else -> BrandPanelSurface.copy(alpha = 0.78f)
+        },
         border = BorderStroke(
             width = 1.dp,
-            color = if (isOffline) BrandStatusOfflineDot.copy(alpha = 0.72f) else BrandPanelBorder
+            color = when {
+                isOffline -> BrandStatusOfflineDot.copy(alpha = 0.72f)
+                isWarning -> BrandStatusCheckingDot.copy(alpha = 0.76f)
+                else -> BrandPanelBorder
+            }
         ),
         modifier = Modifier
             .defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
@@ -288,102 +303,26 @@ private fun ServerStatusChip(
     }
 }
 
-private fun Modifier.cassyCafePatternBackground(motifColor: Color): Modifier = drawWithCache {
-    val tilePx = 112.dp.toPx()
-    val strokePx = 1.6.dp.toPx()
-    val stroke = Stroke(width = strokePx, cap = StrokeCap.Round)
-    val ink = motifColor.copy(alpha = 0.34f)
-    val cols = (size.width / tilePx).toInt() + 2
-    val rows = (size.height / tilePx).toInt() + 2
+private fun Modifier.cassyCafePatternBackground(doodleBitmap: ImageBitmap): Modifier = drawWithCache {
+    val shaderBrush = ShaderBrush(
+        ImageShader(
+            image = doodleBitmap,
+            tileModeX = TileMode.Repeated,
+            tileModeY = TileMode.Repeated
+        )
+    )
+    val vignetteBrush = Brush.radialGradient(
+        colors = listOf(
+            BrandPanelPandan.copy(alpha = 0.45f),
+            BrandPanelPandan.copy(alpha = 0.15f),
+            BrandPanelPandan.copy(alpha = 0.58f)
+        ),
+        center = Offset(size.width * 0.45f, size.height * 0.42f),
+        radius = size.maxDimension.coerceAtLeast(1f) * 0.75f
+    )
 
     onDrawBehind {
-        for (row in 0 until rows) {
-            for (col in 0 until cols) {
-                val originX = col * tilePx + if (row % 2 == 1) tilePx * 0.45f else 0f
-                val originY = row * tilePx
-                when ((col + row) % 3) {
-                    0 -> drawEspressoMotif(originX, originY, tilePx, ink, stroke)
-                    1 -> drawPlateForkMotif(originX, originY, tilePx, ink, stroke)
-                    else -> drawTakeawayCupMotif(originX, originY, tilePx, ink, stroke)
-                }
-            }
-        }
+        drawRect(brush = shaderBrush, alpha = 0.22f)
+        drawRect(brush = vignetteBrush)
     }
-}
-
-private fun DrawScope.drawEspressoMotif(
-    ox: Float,
-    oy: Float,
-    tile: Float,
-    color: Color,
-    stroke: Stroke
-) {
-    val w = tile * 0.30f
-    val h = tile * 0.24f
-    val cx = ox + tile * 0.28f
-    val cy = oy + tile * 0.38f
-    drawRoundRect(
-        color = color,
-        topLeft = Offset(cx, cy),
-        size = Size(w, h),
-        cornerRadius = CornerRadius(h * 0.32f, h * 0.32f),
-        style = stroke
-    )
-    drawLine(
-        color = color,
-        start = Offset(cx - w * 0.14f, cy + h + 4.dp.toPx()),
-        end = Offset(cx + w * 1.14f, cy + h + 4.dp.toPx()),
-        strokeWidth = stroke.width,
-        cap = StrokeCap.Round
-    )
-    val steam = Path().apply {
-        moveTo(cx + w * 0.35f, cy - 3.dp.toPx())
-        quadraticTo(cx + w * 0.20f, cy - 10.dp.toPx(), cx + w * 0.42f, cy - 15.dp.toPx())
-        moveTo(cx + w * 0.65f, cy - 3.dp.toPx())
-        quadraticTo(cx + w * 0.80f, cy - 10.dp.toPx(), cx + w * 0.58f, cy - 15.dp.toPx())
-    }
-    drawPath(steam, color = color, style = stroke)
-}
-
-private fun DrawScope.drawPlateForkMotif(
-    ox: Float,
-    oy: Float,
-    tile: Float,
-    color: Color,
-    stroke: Stroke
-) {
-    val r = tile * 0.14f
-    val center = Offset(ox + tile * 0.48f, oy + tile * 0.48f)
-    drawCircle(color = color, radius = r, center = center, style = stroke)
-    drawCircle(color = color, radius = r * 0.52f, center = center, style = stroke)
-}
-
-private fun DrawScope.drawTakeawayCupMotif(
-    ox: Float,
-    oy: Float,
-    tile: Float,
-    color: Color,
-    stroke: Stroke
-) {
-    val cx = ox + tile * 0.36f
-    val cy = oy + tile * 0.34f
-    val topW = tile * 0.24f
-    val botW = tile * 0.17f
-    val h = tile * 0.30f
-    val inset = (topW - botW) / 2f
-    val cup = Path().apply {
-        moveTo(cx, cy)
-        lineTo(cx + topW, cy)
-        lineTo(cx + topW - inset, cy + h)
-        lineTo(cx + inset, cy + h)
-        close()
-    }
-    drawPath(cup, color = color, style = stroke)
-    drawLine(
-        color = color,
-        start = Offset(cx - 3.dp.toPx(), cy),
-        end = Offset(cx + topW + 3.dp.toPx(), cy),
-        strokeWidth = stroke.width,
-        cap = StrokeCap.Round
-    )
 }

@@ -2,7 +2,8 @@
 <resources>
     <style name="Theme.Cassy" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/cassy_putih_tulang</item>
-        <item name="android:statusBarColor">@color/cassy_pandan</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
     <style name="Theme.Cassy.Splash" parent="Theme.SplashScreen">

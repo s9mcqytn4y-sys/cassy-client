@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import coil.size.Precision
 import com.azuredevid.cassy.R
 import com.azuredevid.cassy.data.model.CatalogProduct
 import com.azuredevid.cassy.ui.designsystem.CassyCard
@@ -199,12 +201,20 @@ fun PosCatalogGrid(
                                 .fillMaxWidth()
                                 .alpha(if (available) 1f else 0.55f)
                         ) {
+                            val imageRequest = remember(context, product.imageUrl) {
+                                ImageRequest.Builder(context)
+                                    .data(product.imageUrl?.takeIf { it.isNotBlank() } ?: R.drawable.img_cassy_menu_default)
+                                    .size(256)
+                                    .precision(Precision.INEXACT)
+                                    .placeholder(R.drawable.img_cassy_menu_default)
+                                    .error(R.drawable.img_cassy_menu_default)
+                                    .fallback(R.drawable.img_cassy_menu_default)
+                                    .crossfade(true)
+                                    .build()
+                            }
                             Box {
                                 AsyncImage(
-                                    model = ImageRequest.Builder(context)
-                                        .data(product.imageUrl)
-                                        .crossfade(true)
-                                        .build(),
+                                    model = imageRequest,
                                     contentDescription = product.name,
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
