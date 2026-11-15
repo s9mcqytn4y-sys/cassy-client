@@ -20,6 +20,15 @@ val CassyKunyit = Color(0xFFE9A23B)
 val CassyTinta = Color(0xFF17211E)
 val CassyPutihTulang = Color(0xFFF7F5F0)
 
+// Full-bleed dark Pandan pairing & splash showcase tokens
+val BrandPanelPandan = CassyPandan
+val BrandPanelSurface = Color(0xFF15473D)
+val BrandPanelBorder = Color(0xFF2B7364)
+val BrandPanelMotif = Color(0xFF297364)
+val BrandStatusOnlineDot = Color(0xFF4ADE80)
+val BrandStatusOfflineDot = Color(0xFFFCA5A5)
+val BrandStatusCheckingDot = CassyKunyit
+
 // Semantic Light Tokens (aligned to packages/design-tokens/tokens.json cassyLight)
 val LightCanvas = CassyPutihTulang
 val LightSurface = Color(0xFFFFFFFF)

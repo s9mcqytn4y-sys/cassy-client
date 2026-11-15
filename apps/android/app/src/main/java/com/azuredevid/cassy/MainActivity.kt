@@ -16,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.core.security.SessionManager
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.ui.components.CassyStartupSplash
 import com.azuredevid.cassy.ui.navigation.CassyNavHost
 import com.azuredevid.cassy.ui.navigation.CassyRoute
 import com.azuredevid.cassy.ui.theme.CassyTheme
@@ -47,7 +48,9 @@ class MainActivity : FragmentActivity() {
             CassyTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     val initial = startRoute
-                    if (initial != null) {
+                    if (initial == null) {
+                        CassyStartupSplash()
+                    } else {
                         val navController = rememberNavController()
                         CassyNavHost(
                             navController = navController,
