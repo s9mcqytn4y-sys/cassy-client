@@ -3,6 +3,7 @@ package com.azuredevid.cassy.ui
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.os.Build
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.getValue
@@ -15,6 +16,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import java.io.File
 import java.io.FileOutputStream
 import com.azuredevid.cassy.R
@@ -110,21 +112,32 @@ class CassyUiShowcaseTest {
     private val context: Context
         get() = ApplicationProvider.getApplicationContext()
 
-    private fun captureScreen(name: String, @Suppress("UNUSED_PARAMETER") preferFullDisplay: Boolean = false) {
+    private fun captureScreen(name: String, preferFullDisplay: Boolean = false) {
         composeRule.waitForIdle()
         runCatching {
-            val decorView = composeRule.activity.window.decorView
-            val width = decorView.width.coerceAtLeast(1)
-            val height = decorView.height.coerceAtLeast(1)
-            val softwareBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(softwareBitmap)
-            composeRule.runOnUiThread {
-                decorView.draw(canvas)
+            val fullDisplayBitmap = if (
+                preferFullDisplay &&
+                Build.VERSION.SDK_INT <= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+            ) {
+                InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+            } else {
+                null
+            }
+            val bitmap = fullDisplayBitmap ?: run {
+                val decorView = composeRule.activity.window.decorView
+                val width = decorView.width.coerceAtLeast(1)
+                val height = decorView.height.coerceAtLeast(1)
+                Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).also { bmp ->
+                    val canvas = Canvas(bmp)
+                    composeRule.runOnUiThread {
+                        decorView.draw(canvas)
+                    }
+                }
             }
             val dir = File(context.filesDir, "showcase").apply { mkdirs() }
             val outFile = File(dir, "$name.png")
             FileOutputStream(outFile).use { out ->
-                softwareBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }
             Log.i("CassyShowcase", "Saved screenshot: ${outFile.absolutePath} (${outFile.length()} bytes)")
         }.onFailure { err ->
@@ -536,8 +549,11 @@ class CassyUiShowcaseTest {
                 )
             }
         }
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("Paket Nasi Ayam Bakar").fetchSemanticsNodes().isNotEmpty()
+        }
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Paket Nasi Ayam Bakar").assertIsDisplayed()
+        captureScreen("pos_landscape")
         composeRule.onNodeWithText("Paket Nasi Ayam Bakar").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
