@@ -2,7 +2,7 @@ name: Web CI & Quality Gates
 
 on:
   push:
-    branches: [main, "docs/**", "feat/**", "fix/**"]
+    branches: [main, "docs/**", "feat/**", "fix/**", "chore/**"]
     paths:
       - "apps/web/**"
       - "packages/design-tokens/**"
@@ -19,6 +19,13 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - ".github/workflows/web-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   web-verify-and-build:
@@ -113,7 +120,18 @@ jobs:
         run: pnpm run build
 
       - name: Run Playwright against the production build
+        env:
+          PLAYWRIGHT_CAPTURE_EVIDENCE: "1"
         run: pnpm --filter @azuredevid/mycaffe-web test:e2e
+
+      - name: Upload Playwright UI v2.5.0 Evidence Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-ui-screenshots-v2.5.0
+          path: apps/web/screenshots/ui-v2.5.0
+          if-no-files-found: ignore
+          retention-days: 30
 
       - name: Upload Playwright traces on failure
         if: failure()
@@ -140,5 +158,5 @@ jobs:
           context: .
           file: apps/web/Dockerfile
           push: false
-          tags: mycaffe-web:test
+          tags: cassy-web:test
 

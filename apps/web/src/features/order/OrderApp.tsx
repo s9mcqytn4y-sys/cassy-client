@@ -7,22 +7,20 @@ import { MenuSkeleton } from "@/components/MenuSkeleton";
 import { Notices } from "@/components/Toast";
 import { useLocale } from "@/components/Providers";
 import { DataStateBox } from "@/components/Shell";
-import { ApiError, apiFetch } from "@/lib/api";
 import { brandVariables } from "@/lib/brand";
 import { formatIdr } from "@/lib/format";
-import { normalizeSubmissionText } from "@/lib/sanitize";
 import { CartSheet } from "./CartSheet";
-import { toOrderItems } from "./cart";
 import { CategoryNav, sectionId } from "./CategoryNav";
 import { menuSections } from "./menu";
 import { PaymentView } from "./PaymentView";
 import { defaultVariant, ProductCard, ProductRow } from "./MenuItems";
 import { ProductOptionsSheet } from "./ProductOptionsSheet";
-import { checkoutMessageKey, moneyTaken, orderPhase, writeActiveOrder, type ActiveOrder } from "./status";
-import type { BankCode, CatalogProduct, PaymentInfo, PayMethod, ServiceMode, SplitShareLink } from "./types";
+import { moneyTaken, orderPhase, writeActiveOrder } from "./status";
+import type { CatalogProduct, PayMethod, ServiceMode } from "./types";
 import { SplitView } from "./SplitView";
 import { StoreHeader } from "./StoreHeader";
 import { useCartPersistence, useOnlineStatus, useOrderBell } from "./hooks";
+import { useOrderCheckout } from "./useOrderCheckout";
 import { useOrderData, useOrderProgress, useQuote } from "./useOrderData";
 
 export function OrderApp({ token }: { token: string }) {
@@ -32,23 +30,46 @@ export function OrderApp({ token }: { token: string }) {
   const [optionsFor, setOptionsFor] = useState<CatalogProduct | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [guestName, setGuestName] = useState("");
-  const [placing, setPlacing] = useState(false);
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const [order, setOrder] = useState<ActiveOrder["order"] | null>(null);
-  const [payment, setPayment] = useState<PaymentInfo | null>(null);
-  const [viewingPayment, setViewingPayment] = useState(false);
   const [splitCount, setSplitCount] = useState<number | null>(null);
-  const [shares, setShares] = useState<SplitShareLink[] | null>(null);
-  const pendingSplitCount = useRef<number | null>(null);
 
   const { quote, failed, loading, refresh } = useQuote(data?.table.store_slug, lines);
+  const methods: PayMethod[] = data?.table.payment_methods?.length ? data.table.payment_methods : ["qris"];
+
+  const {
+    placing,
+    checkoutError,
+    order,
+    payment,
+    viewingPayment,
+    setViewingPayment,
+    shares,
+    method,
+    setPicked,
+    bank,
+    setBank,
+    checkout,
+    newAttempt,
+    resumePayment,
+    startOver
+  } = useOrderCheckout({
+    resume: data?.resume,
+    lines,
+    attemptKey,
+    quote,
+    methods,
+    guestName,
+    splitCount,
+    t,
+    dispatch,
+    setCartOpen,
+    setSplitCount,
+    onSessionExpired: () => void reload(),
+    onQuoteStale: () => void refresh()
+  });
+
   const tracked = useOrderProgress(order?.tracking ?? null);
   const phase = orderPhase(tracked);
 
-  const methods: PayMethod[] = data?.table.payment_methods?.length ? data.table.payment_methods : ["qris"];
-  const [picked, setPicked] = useState<PayMethod | null>(null);
-  const method = picked && methods.includes(picked) ? picked : methods[0];
-  const [bank, setBank] = useState<BankCode>("bca");
   const [actionToast, setActionToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -61,42 +82,6 @@ export function OrderApp({ token }: { token: string }) {
   useEffect(() => () => {
     if (toastTimer.current) clearTimeout(toastTimer.current);
   }, []);
-
-  // One key per method: retrying the same method replays, switching makes a new attempt.
-  const initiatePayment = async (orderId: string, key: string, via: PayMethod, viaBank: BankCode = bank) => {
-    const { payment: created } = await apiFetch<{ payment: PaymentInfo }>(
-      `/api/v1/public/guest/orders/${encodeURIComponent(orderId)}/payments`,
-      {
-        method: "POST",
-        body: {
-          idempotency_key: via === "bank_transfer" ? `${key}_${via}_${viaBank}` : `${key}_${via}`,
-          method: via,
-          ...(via === "bank_transfer" ? { bank: viaBank } : {})
-        }
-      }
-    );
-    setPayment({ ...created, method: created.method ?? via, bank: created.bank ?? (via === "bank_transfer" ? viaBank : undefined) });
-    setViewingPayment(true);
-  };
-
-  const resumed = useRef(false);
-  useEffect(() => {
-    if (resumed.current || !data?.resume) return;
-    resumed.current = true;
-    const { order: saved, payment: savedPayment, shares: savedShares } = data.resume;
-    setOrder(saved);
-    if (savedShares?.length) {
-      setShares(savedShares);
-      setViewingPayment(true);
-    } else if (savedPayment) {
-      setPayment(savedPayment);
-      setViewingPayment(true);
-    } else {
-      initiatePayment(saved.id, saved.payKey, method).catch(() => setCheckoutError(t.checkoutFailed));
-    }
-    // initiatePayment only uses stable setters; the ref limits this to one run.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
 
   useEffect(() => {
     // A served order is done; a cancelled one stays so a guest who paid still sees where to ask for the refund.
@@ -164,105 +149,6 @@ export function OrderApp({ token }: { token: string }) {
   const announcement = locale === "en-US" ? cms.announcement_banner_en : cms.announcement_banner_id;
   const tagline = locale === "en-US" ? cms.hero_subtitle_en : cms.hero_subtitle_id;
   const brand = brandVariables(cms.primary_hex) as React.CSSProperties;
-
-  const checkout = async () => {
-    if (!quote) return;
-    setPlacing(true);
-    setCheckoutError(null);
-    // One key per cart state, so a retry after a dropped connection cannot create a second order.
-    const key = (attemptKey.current ??= crypto.randomUUID());
-    try {
-      const created = await apiFetch<{ order: { id: string; order_number?: string }; tracking_token?: string }>(
-        "/api/v1/public/guest/orders",
-        {
-          method: "POST",
-          body: {
-            idempotency_key: key,
-            customer_name: normalizeSubmissionText(guestName, 60) || t.guestDefault,
-            expected_quote_fingerprint: quote.quote_fingerprint,
-            items: toOrderItems(lines)
-          }
-        }
-      );
-      const payKey = `pay_${key}`;
-      setOrder({ id: created.order.id, number: created.order.order_number, tracking: created.tracking_token ?? null, payKey });
-      pendingSplitCount.current = splitCount;
-      dispatch({ type: "clear" });
-      setCartOpen(false);
-      if (splitCount !== null) {
-        // Splitting only works before any QR exists, so it replaces the first payment (W13).
-        const { links } = await apiFetch<{ links: SplitShareLink[] }>(
-          `/api/v1/public/guest/orders/${encodeURIComponent(created.order.id)}/splits`,
-          { method: "POST", body: { strategy: "equal", split_count: splitCount } }
-        );
-        pendingSplitCount.current = null;
-        setShares(links.map(({ split_number, amount, token: shareToken }) => ({ split_number, amount, token: shareToken })));
-        setViewingPayment(true);
-      } else {
-        await initiatePayment(created.order.id, payKey, method);
-      }
-    } catch (err) {
-      const code = err instanceof ApiError ? (err.details as { code?: unknown } | undefined)?.code : undefined;
-      setCheckoutError(t[checkoutMessageKey(code)]);
-      if (code === "GUEST_SESSION_EXPIRED") void reload();
-      else if (code === "QUOTE_CHANGED" || code === "UNAVAILABLE") void refresh();
-    } finally {
-      setPlacing(false);
-    }
-  };
-
-  // A fresh attempt: a new QR after expiry, or another method; the server cancels the open one.
-  const newAttempt = async (via: PayMethod, viaBank: BankCode = bank) => {
-    if (!order) return;
-    setPicked(via);
-    setPlacing(true);
-    setCheckoutError(null);
-    try {
-      await initiatePayment(order.id, `pay_${crypto.randomUUID()}`, via, viaBank);
-    } catch (err) {
-      const code = err instanceof ApiError ? (err.details as { code?: unknown } | undefined)?.code : undefined;
-      setCheckoutError(t[checkoutMessageKey(code)]);
-    } finally {
-      setPlacing(false);
-    }
-  };
-
-  const resumePayment = async () => {
-    if (!order) return;
-    setCheckoutError(null);
-    if (payment || shares) {
-      setViewingPayment(true);
-      return;
-    }
-    setPlacing(true);
-    try {
-      if (pendingSplitCount.current !== null) {
-        const { links } = await apiFetch<{ links: SplitShareLink[] }>(
-          `/api/v1/public/guest/orders/${encodeURIComponent(order.id)}/splits`,
-          { method: "POST", body: { strategy: "equal", split_count: pendingSplitCount.current } }
-        );
-        pendingSplitCount.current = null;
-        setShares(links.map(({ split_number, amount, token: shareToken }) => ({ split_number, amount, token: shareToken })));
-        setViewingPayment(true);
-      } else {
-        await initiatePayment(order.id, order.payKey, method);
-      }
-    } catch {
-      setCheckoutError(t.checkoutFailed);
-    } finally {
-      setPlacing(false);
-    }
-  };
-
-  const startOver = () => {
-    dispatch({ type: "clear" });
-    setOrder(null);
-    setPayment(null);
-    setShares(null);
-    setSplitCount(null);
-    setViewingPayment(false);
-    setCheckoutError(null);
-  };
 
   if (shares && order && viewingPayment && phase === "awaiting") {
     return (
@@ -345,7 +231,7 @@ export function OrderApp({ token }: { token: string }) {
         ) : (
           sections.map((section) => (
             <section key={section.id} aria-labelledby={sectionId(section.id)} className="cassy-menu-section mt-7">
-                  <h2 id={sectionId(section.id)} className="scroll-mt-4 text-xl font-extrabold tracking-tight">
+              <h2 id={sectionId(section.id)} className="scroll-mt-4 text-xl font-extrabold tracking-tight">
                 {section.name}
               </h2>
               {(() => {
@@ -385,7 +271,7 @@ export function OrderApp({ token }: { token: string }) {
             <div className="px-3 pt-1">
               <button type="button" data-cart-cta onClick={() => setCartOpen(true)} className="btn-primary flex min-h-[56px] w-full items-center justify-between rounded-xl px-5 text-base font-bold">
                 <span className="flex items-center gap-2.5">
-                  <ShoppingBag size={20} />
+                  <ShoppingBag size={20} aria-hidden="true" />
                   {t.viewCart} ({itemCount} {t.items})
                 </span>
                 <span className="tabular-nums">{quote ? formatIdr(quote.total_amount) : ""}</span>

@@ -1,57 +1,44 @@
-# Cassy client monorepo
+# Cassy Client Monorepo
 
-Single source of agent instructions for this repo. `CLAUDE.md` and `GEMINI.md` only import this file. Each app folder has its own `AGENTS.md` with app rules; read both.
+Single source of agent instructions for this repo. `CLAUDE.md` and `GEMINI.md` import this file. App-specific rules live in `apps/web/AGENTS.md`, `apps/android/AGENTS.md`, and `apps/ios/AGENTS.md`. Global style, Caveman communication, and Karpathy coding rules are inherited from user global configuration.
 
-## What this is
-Client apps for **Cassy by AzureDevID**: ordering and POS for food and beverage businesses in Indonesia (restaurants, cafes, bakeries, food courts, cloud kitchens, kiosks). `MyCaffe` is the former name and survives only in technical identifiers.
+## What This Repo Covers
 
-| Path | App |
+Client applications for **Cassy by AzureDevID** (F&B POS and QR table ordering, Indonesia). `MyCaffe` remains only in legacy technical identifiers until scheduled refactors.
+
+| Path | App | Stack |
+|---|---|---|
+| `apps/web` | Guest QR ordering PWA | Next.js 15 App Router, React 19, Tailwind CSS v4, Playwright + axe |
+| `apps/android` | Cassy POS tablet | Kotlin, Jetpack Compose, Koin, Ktor, DataStore + Tink (`com.azuredevid.cassy`) |
+| `apps/ios` | Hardware printer bridge | Objective-C (ARC), no UI |
+| `packages/design-tokens` | Master visual tokens | `tokens.json` -> CSS / Kotlin / Compose tokens |
+
+Sibling folders inside `C:\Projects\CassyWorkspace`:
+- Backend (`CassyBackend`, repo `s9mcqytn4y-sys/cassy-backend`): Go 1.27, PostgreSQL 18 RLS (owns all pricing, taxes, inventory, and payment state).
+- Docker (`Docker`, repo `s9mcqytn4y-sys/cassy-docker`): Standalone Compose, Nginx, Monitoring, and VPS Gateway definitions.
+- Business Vault (`C:\Users\Acer\OneDrive\Documents\AzureDevId`): Brand, legal, payment, and recovery docs (readable by authorized workspace config; never print, copy, or commit secret values).
+
+Source of Truth docs: `docs/PrdCassyV4.md`, `docs/ProjectManagement/README.md`, `docs/TechDebt.md`, `apps/android/docs/ReleaseOnePlan.md`.
+
+## Non-Negotiable Client Rules
+
+- **Server is source of truth**: Prices, taxes, service charges, discounts, and payment state come strictly from backend APIs. Never calculate authoritative totals on clients.
+- **Money is integer rupiah**: `Long` on Kotlin / integer `number` on TS, zero floats.
+- **No hardcoded tenant data**: Store config, IDs, catalog, tax rules, and printer targets come from authenticated bootstrap or server endpoints.
+- **Fail closed**: Show a locked or explicit error state without valid session, store binding, or token.
+- **Visual tokens (PRD v4)**: Pandan `#1F5F52`, Kunyit `#E9A23B`, Putih Tulang `#F7F5F0`, Tinta `#17211E` (from `packages/design-tokens/tokens.json`). No Espresso/brown tones. Outlets without custom color fall back to neutral ink.
+- **Icons & Copy**: Web uses `lucide-react`; Android uses Material Symbols. No emoji in code, UI copy, logs, or commits. UI copy is polite, clear Bahasa Indonesia with English parity (`values-en` / `messages.ts`).
+- **Evidence Screenshots**: Android saves local evidence under `apps/android/screenshots/ui-v2.4.0/...`; PWA saves Desktop/Mobile evidence under `apps/web/screenshots/ui-v2.5.0/<PageGroup>/<StatePascalCase>.png` (gitignored locally, inspectable before PR).
+
+## Branches & Verification Gates
+
+Trunk-based (`main`), short-lived branches (`feat/*`, `fix/*`, `docs/*`, `chore/*`) via PR with Conventional Commits and green CI.
+
+| Area | Verification Command |
 |---|---|
-| `apps/web` | Guest QR ordering PWA: Next.js 15 App Router, React 19, Tailwind CSS v4 |
-| `apps/android` | Cassy POS tablet, Jetpack Compose, `com.azuredevid.cassy` |
-| `apps/ios` | Objective-C printer bridge, no UI |
-| `packages/design-tokens` | `tokens.json`, the single source of colour for every app |
+| Design Tokens | `pnpm run tokens:verify` |
+| Web PWA | `pnpm --filter @azuredevid/mycaffe-web typecheck`, `test:unit`, `build`, `test:e2e` |
+| Android POS | `apps/android/gradlew.bat -p apps/android test bundleDebug --no-daemon --max-workers=2` |
+| iOS Bridge | `pnpm run ios:lint-objc` |
 
-Related folders: backend `C:\Projects\myCaffe-backend` (Go, PostgreSQL 18 RLS, owns all prices, taxes and state); brand and legal vault `C:\Users\Acer\OneDrive\Documents\AzureDevId` (never touch `SecurityRecovery` or `MerchantPaymentGateway`).
-
-Current product decisions: `docs/PrdCassyV4.md`. Open debt: `docs/TechDebt.md`. Android plan: `apps/android/docs/ReleaseOnePlan.md`.
-
-## Rules
-- **Server is the source of truth.** Prices, taxes, service charges, totals and payment state come from the API. Clients never calculate them.
-- **Money is integer rupiah** (`Long` / `number` without fractions). No floating point.
-- **No hardcoded tenant data.** Store config, tenant ids, catalog, rates and printer routes come from the API or the authenticated bootstrap.
-- **Fail closed.** Without a valid session, store binding or token, show a locked or error state.
-- **Brand (PRD v4).** Pandan `#1F5F52`, kunyit `#E9A23B`, putih tulang `#F7F5F0`, tinta `#17211E`. No brown. The outlet colour leads the guest app; without one the guest app uses neutral ink. Plus Jakarta Sans for product UI, Bricolage Grotesque for brand display.
-- **Icons.** Web uses `lucide-react`; Android uses Material Symbols (`androidx.compose.material.icons`). No custom icon packs.
-- **No emoji** in code, UI copy, logs or commits.
-- **Copy** is everyday, polite Bahasa Indonesia with English in `values-en` / `messages.ts`. Short sentences, verb first, clear numbers.
-- Small focused files, SOLID, no dead code.
-
-## Communication and Caveman Mode
-All agents (`agy`, `gemini-cli`, `claude-code`) have `caveman` v4.1.0 installed for high-signal, token-efficient communication:
-- **Terse technical register:** Answer first (outcome and recommendation), then concise reason, then next step. Strip pleasantries, greetings, hedging, conversational ceremony, and AI filler.
-- **Natural, direct Bahasa Indonesia:** Compress register without distorting meaning. Keep technical terms in English where standard.
-- **Strictly no emoji:** Never output emoji in code, responses, logs, or commit messages (overrides any default Caveman icons/emoji).
-- **Payload verbatim:** Code blocks, file paths, CLI commands, HTTP routes, SQL, numbers, and integer rupiah remain strictly untouched and byte-exact.
-- **Auto-clarity fallback:** Architectural decisions, destructive operations, breaking migrations, security advisories, or user clarification questions automatically expand to normal, clear prose.
-- **Triggers:** `/caveman` (default terseness), `/ultracave` (extreme fragment mode), `/caveman-review` (one-line diff review), `/caveman-stats` (token usage audit), `stop caveman` / `normal mode` (pause).
-
-## Coding Discipline and Karpathy Guidelines
-All agents adhere to `karpathy-guidelines` (installed across `agy`, `gemini-cli`, `claude-code`):
-- **Think Before Coding:** Explicit assumptions first. Stop and ask on ambiguity. Push back on overcomplicated designs.
-- **Simplicity First:** Minimal code to solve the prompt. No speculative abstractions, single-use helpers, or premature configurability.
-- **Surgical Changes:** Touch only what was requested. No edits to adjacent formatting, comments, or unrelated files. Clean up only orphans created by your own changes.
-- **Goal-Driven Execution:** Transform tasks into verifiable checks before coding. Run tests and verify output before declaring completion.
-
-## Branches and checks
-Trunk-based: short `feat/*`, `fix/*`, `docs/*`, `chore/*` branches into `main` by PR. Conventional Commits. Merge only when CI is green and the owner approves.
-
-| Area | Command |
-|---|---|
-| Tokens | `pnpm tokens:verify` |
-| Web | `pnpm --filter @azuredevid/mycaffe-web typecheck`, `test:unit`, `test:e2e` |
-| Android | `apps/android/gradlew -p apps/android test bundleDebug` |
-| iOS | `pnpm ios:lint-objc` |
-
-## Tooling
-`gh` for GitHub, `adb` at `C:\Users\Acer\scoop\shims\adb.exe`, Android CLI at `C:\Users\Acer\AppData\AndroidCLI\android.exe`. Never print `.env` contents or credentials.
+Tooling paths on Windows: `gh`, `adb` at `C:\Users\Acer\scoop\shims\adb.exe`, Android CLI at `C:\Users\Acer\AppData\AndroidCLI\android.exe`.

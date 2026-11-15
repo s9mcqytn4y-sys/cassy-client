@@ -7,13 +7,13 @@
     "build": "next build",
     "start": "next start --port 3000",
     "typecheck": "tsc --noEmit",
-    "codegen:api": "openapi-typescript ../../../myCaffe-backend/docs/Api/OpenApi.yaml -o src/types/api.generated.ts",
+    "codegen:api": "openapi-typescript ../../../CassyBackend/docs/Api/OpenApi.yaml -o src/types/api.generated.ts",
     "test:unit": "node --experimental-strip-types src/features/order/cart.test.mjs",
     "test:e2e": "playwright test"
   },
   "dependencies": {
     "animejs": "^4.5.0",
-    "lucide-react": "1.64.0",
+    "lucide-react": "^1.73.0",
     "next": "^15.5.29",
     "qrcode": "^1.5.4",
     "react": "^19.2.7",
@@ -28,7 +28,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "openapi-typescript": "^7.13.0",
-    "postcss": "^8.5.3",
+    "postcss": "^8.5.33",
     "tailwindcss": "^4.3.5",
     "typescript": "^5.8.2"
   }

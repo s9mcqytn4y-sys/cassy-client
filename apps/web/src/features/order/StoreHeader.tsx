@@ -27,7 +27,7 @@ export function StoreHeader({
       </div>
       {announcement ? (
         <p className="mt-4 flex items-start gap-2.5 rounded-xl bg-muted px-3.5 py-3 text-sm leading-snug">
-          <Megaphone size={18} className="mt-0.5 shrink-0 text-subink" />
+          <Megaphone size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-subink" />
           <span className="line-clamp-2">{announcement}</span>
         </p>
       ) : null}

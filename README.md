@@ -1,13 +1,13 @@
 # Cassy Client Monorepo: Multi-Platform Hospitality Suite
 
-[![Android CI](https://github.com/s9mcqytn4y-sys/mycaffe-client/actions/workflows/android-ci.yml/badge.svg)](https://github.com/s9mcqytn4y-sys/mycaffe-client/actions)
-[![Web CI](https://github.com/s9mcqytn4y-sys/mycaffe-client/actions/workflows/web-ci.yml/badge.svg)](https://github.com/s9mcqytn4y-sys/mycaffe-client/actions)
+[![Android CI](https://github.com/s9mcqytn4y-sys/cassy-client/actions/workflows/android-ci.yml/badge.svg)](https://github.com/s9mcqytn4y-sys/cassy-client/actions)
+[![Web CI](https://github.com/s9mcqytn4y-sys/cassy-client/actions/workflows/web-ci.yml/badge.svg)](https://github.com/s9mcqytn4y-sys/cassy-client/actions)
 
-Official multi-platform client applications for **Cassy by AzureDevID** (usaha perorangan AzureDevID, Jakarta Pusat, DKI Jakarta).
+Aplikasi klien resmi untuk **Cassy by AzureDevID** (usaha perorangan AzureDevID, Jakarta Pusat, DKI Jakarta).
 
-```
+```text
                       +-----------------------------+
-                      |   MyCaffe Backend (Go/PG18) |
+                      |  Cassy Backend (Go 1.27/PG18)|
                       +--------------+--------------+
                                      |
               +----------------------+----------------------+
@@ -25,61 +25,59 @@ Official multi-platform client applications for **Cassy by AzureDevID** (usaha p
      +-----------------+    +-----------------+
 ```
 
----
-
 ## Applications & Structure
 
 | Package / App | Technology | Role | Status |
-|:---|:---|:---|:---|
-| **`apps/android`** | Kotlin 2.0, Jetpack Compose, CameraX, ZXing | **Cassy POS**: Native Android Tablet POS with dynamic KDS ticket routing, port 9100 ESC/POS printing, and offline fallback. | Production Ready |
-| **`apps/web`** | Next.js 15 App Router, React 19, Tailwind CSS v4 | **Guest Ordering PWA**: White-label mobile web for QR table ordering, dynamic menu, and checkout. | Production Ready |
-| **`apps/ios`** | Objective-C, Foundation, CoreBluetooth | **Hardware HAL**: Low-level receipt printing driver for iOS point-of-sale setups. | Active |
-| **`packages/design-tokens`** | JSON & CSS Variables | **Design Tokens**: Official *Pandan & Kunyit* (`#1F5F52`, `#E9A23B`, `#F7F5F0`, `#17211E`) tokens verified for WCAG 2.2 AA contrast. | Active |
-
----
+|---|---|---|---|
+| `apps/android` | Kotlin, Jetpack Compose, Koin, Ktor, CameraX, ZXing | Cassy POS tablet (`com.azuredevid.cassy`) dengan KDS routing, ESC/POS TCP 9100, mDNS LAN discovery, offline cash sync | Production Ready (Release One) |
+| `apps/web` | Next.js 15 App Router, React 19, Tailwind CSS v4, Playwright | Guest QR table ordering PWA, checkout Midtrans Core, live tracker, struk digital PDF, halaman legal UU PDP | Active (`v2.5.0`) |
+| `apps/ios` | Objective-C (ARC), Foundation | Driver/bridge printer ESC/POS dan serial untuk iOS | Active |
+| `packages/design-tokens` | JSON & generator CSS/Compose | Token visual Pandan & Kunyit tervalidasi rasio kontras WCAG 2.2 AA | Active |
 
 ## Core Capabilities
 
 ### 1. Cassy POS Tablet (`apps/android`)
-- **Visual Ergonomics**: 10-55-35 landscape rhythm (10% Navigation Rail, 55% Catalog Grid, 35% Order Summary Panel).
-- **KDS Kitchen Ticket Routing**: Multi-printer routing by station (Barista, Hot Kitchen, Cold Pastry, Runner) with auto-redirect failover and watermark alerts.
-- **Hardware Abstraction**: Network ESC/POS printer driver over raw TCP socket port 9100 with `DLE EOT 4` status query, RJ11 drawer kick pulse, and 2.500 ms connection timeout.
-- **Dynamic QRIS Generation**: In-memory ZXing bitmap generation with Cart Lock, tenant-isolated WebSocket event listening, and manual Force Sync fallback.
-- **Store Pairing**: CameraX 1.4.0 + ML Kit barcode scanner for zero-configuration outlet pairing via `/api/v1/mobile/bootstrap`.
-- **Accessibility & i18n**: Full dual-language Indonesian (`values`) & English (`values-en`), TalkBack semantics, and minimum 48x48 dp touch targets.
+- **Visual Ergonomics**: Tata letak lanskap 10-55-35 (Navigation Rail, Catalog Grid, Order Summary Panel).
+- **KDS Kitchen Ticket Routing**: Rute cetak per stasiun dengan failover dan peringatan status printer.
+- **Hardware Abstraction**: Driver ESC/POS TCP port 9100 (`DLE EOT 4` status query, RJ11 drawer kick, timeout 2.500 ms).
+- **Dynamic QRIS & Bootstrap Pairing**: ZXing QRIS generator, quote harga resmi server, pairing via QR/PIN, dan discovery mDNS (`_cassy._tcp`).
+- **Accessibility & i18n**: Bahasa Indonesia (`values`) dan English (`values-en`), minimal touch target 48 dp.
 
 ### 2. Guest Table Order PWA (`apps/web`)
-- **Next.js 15 App Router**: Server Components for instant catalog loading, zero client bundle bloat.
-- **Real-Time Sync**: Resilient `useTenantWebSocket` hook with exponential backoff and automatic heartbeat.
-- **PWA Capabilities**: Installable web application with dynamic brand manifests and Cloudflare R2 CDN preconnection.
-
----
+- **Next.js 15 App Router**: Pemuatan cepat tanpa instalasi aplikasi bagi tamu restoran/kafe.
+- **Real-Time Sync**: Hooks WebSocket dengan exponential backoff dan fallback polling.
+- **AI Search & GEO Ready**: Metadata JSON-LD (`Organization`, `SoftwareApplication`, `FAQPage`), `sitemap.xml`, `robots.txt`, `/llms.txt`, dan `/llms-full.txt`.
 
 ## Development Setup
 
 ### Prerequisites
-- Node.js >= 22.0.0 and `pnpm` >= 9.0.0
+- Node.js >= 22.0.0 and `pnpm` 12.18.0
 - Java JDK 17 (Eclipse Temurin or OpenJDK)
 - Android SDK 34/35/36 with Android Build Tools
-- Go 1.24 (for running backend pairing tests)
+- Go 1.27 (untuk menjalankan `CassyBackend` saat E2E live)
 
 ### Commands
-```bash
-# Install root dependencies
+
+```powershell
+# Install workspace dependencies
 pnpm install
 
-# Run Web PWA locally
-pnpm --filter @azuredevid/mycaffe-web dev
+# Verify design tokens & WCAG contrast
+pnpm run tokens:verify
 
-# Run Android unit tests & DevDebug bundle
-cd apps/android
-./gradlew testDevDebugUnitTest bundleDevDebug --no-daemon --max-workers=2
+# Web PWA: typecheck, unit test, build, E2E
+pnpm --filter @azuredevid/mycaffe-web typecheck
+pnpm --filter @azuredevid/mycaffe-web test:unit
+pnpm --filter @azuredevid/mycaffe-web build
+pnpm --filter @azuredevid/mycaffe-web test:e2e
+
+# Android POS: unit tests & debug bundle
+apps/android/gradlew.bat -p apps/android test bundleDebug --no-daemon --max-workers=2
 ```
 
----
+## Project Management & Docs
 
-## Brand & Licensing
-Operated by **AzureDevID** (usaha perorangan AzureDevID). All rights reserved.
-Legal Package Identifier: `com.azuredevid.cassy`.
-Visual System: *Pandan, Kunyit & Putih Tulang* (`#1F5F52`, `#E9A23B`, `#F7F5F0`, `#17211E`).
-
+- Indeks Project Management: [docs/ProjectManagement/README.md](docs/ProjectManagement/README.md)
+- PRD Aktif: [docs/PrdCassyV4.md](docs/PrdCassyV4.md)
+- Utang Teknis & Backlog: [docs/TechDebt.md](docs/TechDebt.md), [docs/ProjectManagement/BacklogAndDebt.md](docs/ProjectManagement/BacklogAndDebt.md)
+- Repositori Terkait: [`cassy-backend`](https://github.com/s9mcqytn4y-sys/cassy-backend), [`cassy-docker`](https://github.com/s9mcqytn4y-sys/cassy-docker)

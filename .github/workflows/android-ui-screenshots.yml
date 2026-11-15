@@ -3,7 +3,7 @@ name: Android UI Screenshots & Instrumentation
 on:
   workflow_dispatch:
   push:
-    branches: ["feat/android-ui-screenshots-ci", "fix/android-pairing-hardening"]
+    branches: [main, "feat/**", "fix/**", "chore/**"]
     paths:
       - "apps/android/**"
       - ".github/workflows/android-ui-screenshots.yml"
@@ -14,6 +14,13 @@ on:
       - "apps/android/**"
       - ".github/workflows/android-ui-screenshots.yml"
       - ".github/scripts/android-ui-screenshots.sh"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   android-emulator-screenshots:

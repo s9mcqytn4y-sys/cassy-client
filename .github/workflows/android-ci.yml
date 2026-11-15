@@ -2,7 +2,7 @@ name: Android POS & Companion CI
 
 on:
   push:
-    branches: [main, "docs/**", "feat/**", "fix/**"]
+    branches: [main, "docs/**", "feat/**", "fix/**", "chore/**"]
     paths:
       - "apps/android/**"
       - "packages/design-tokens/**"
@@ -13,6 +13,13 @@ on:
       - "apps/android/**"
       - "packages/design-tokens/**"
       - ".github/workflows/android-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   android-verify-and-build:

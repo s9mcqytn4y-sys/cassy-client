@@ -2,13 +2,25 @@ name: iOS POS Hardware Bridge & Xcode Archive
 
 on:
   workflow_dispatch:
-  pull_request:
+  push:
+    branches: [main, "feat/**", "fix/**", "chore/**"]
     paths:
       - "apps/ios/**"
       - "packages/design-tokens/**"
+      - ".github/workflows/ios-xcode-build.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/ios/**"
+      - "packages/design-tokens/**"
+      - ".github/workflows/ios-xcode-build.yml"
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   PRODUCT_BUNDLE_IDENTIFIER: com.azuredevid.cassy

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ReceiptView } from "@/features/receipt/ReceiptView";
 
 export const metadata: Metadata = {
-  title: "Struk Digital | Cassy",
+  title: "Struk digital",
   robots: { index: false, follow: false },
   referrer: "no-referrer"
 };

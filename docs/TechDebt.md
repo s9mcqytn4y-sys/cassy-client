@@ -1,8 +1,8 @@
 # Ledger utang teknis (PRD v3 N11, F2)
 
-Satu baris per utang: apa, kenapa belum dibayar, dan kapan harus dibayar. Hapus baris saat lunas, catat PR-nya di commit. Review keamanan F1 ada di `mycaffe-backend/docs/Engineering/SecurityReviewF1.md`.
+Satu baris per utang: apa, kenapa belum dibayar, dan kapan harus dibayar. Hapus baris saat lunas, catat PR-nya di commit. Review keamanan F1 ada di `cassy-backend/docs/Engineering/SecurityReviewF1.md`.
 
-Prioritas: **T** tinggi (bayar sebelum pilot), **S** sedang (bayar dalam rilis berikutnya), **R** rendah (bayar saat menyentuh area itu).
+Prioritas: **T** tinggi (bayar sebelum pilot), **S** sedang (bayar dalam rilis berikutnya), **R** rendah (bayar saat menyentuh area itu). Lihat juga [BacklogAndDebt.md](ProjectManagement/BacklogAndDebt.md) untuk temuan audit PWA terbaru.
 
 ## Dari PRD v2 F2
 
@@ -31,5 +31,5 @@ Prioritas: **T** tinggi (bayar sebelum pilot), **S** sedang (bayar dalam rilis b
 | ID | Utang | Prioritas | Pemicu bayar |
 |---|---|---|---|
 | A1 | Modul Owner/Manager belum memiliki halaman generator QR pairing perangkat di UI (saat ini POS memindai/tempel kode perangkat dari API `POST /api/v1/pos/devices/register`; `apps/web` khusus Guest QR Table Ordering PWA) | T | Saat membangun layar manajemen perangkat Owner bersama short-lived `pairing_token` (`docs/SecurityQrPairingAdr.md`) |
-| A2 | Backend `myCaffe-backend` masih mengandalkan `device_credential` statis dan belum memiliki endpoint `pairing_token` single-use TTL 5 menit | S | Saat layar manajemen perangkat Owner (`A1`) dikerjakan |
+| A2 | Backend `cassy-backend` masih mengandalkan `device_credential` statis dan belum memiliki endpoint `pairing_token` single-use TTL 5 menit | S | Saat layar manajemen perangkat Owner (`A1`) dikerjakan |
 | A4 | Pengujian regresi visual screenshot Android belum memakai Roborazzi di JVM dan masih bergantung pada emulator KVM CI (`android-ui-screenshots.yml`) | R | Setelah screen Release One selesai dan stabil |

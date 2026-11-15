@@ -88,7 +88,7 @@ const structuredData = [
 
 export default function HomePage() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-5 py-6 text-ink">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-5 py-6 text-ink">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -139,6 +139,6 @@ export default function HomePage() {
           </p>
         </article>
       </section>
-    </main>
+    </div>
   );
 }
