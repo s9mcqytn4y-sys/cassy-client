@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-mkdir -p artifacts/ui-v2.1.0/showcase
+OUT_ROOT="artifacts/ui-v2.2.0"
+mkdir -p \
+  "$OUT_ROOT/StartupSplash" \
+  "$OUT_ROOT/StorePairing" \
+  "$OUT_ROOT/ServerConfig" \
+  "$OUT_ROOT/PosLandscape" \
+  "$OUT_ROOT/CatalogManagement" \
+  "$OUT_ROOT/StoreSettings"
 
 png_dims() {
   python3 - "$1" <<'PY'
@@ -65,7 +72,7 @@ adb shell pm grant com.azuredevid.cassy.dev android.permission.POST_NOTIFICATION
 adb shell am force-stop com.azuredevid.cassy.dev
 adb shell am start -n com.azuredevid.cassy.dev/com.azuredevid.cassy.MainActivity
 sleep 0.6
-adb exec-out screencap -p > artifacts/ui-v2.1.0/01_os_splash_live.png || true
+adb exec-out screencap -p > "$OUT_ROOT/StartupSplash/OsSplash.png" || true
 
 for i in $(seq 1 30); do
   sleep 2
@@ -76,11 +83,13 @@ for i in $(seq 1 30); do
   fi
 done
 sleep 1
-adb exec-out screencap -p > artifacts/ui-v2.1.0/00_live_launch_store_pairing.png
+adb exec-out screencap -p > "$OUT_ROOT/StorePairing/LiveDefaultOnline.png"
 
-adb shell cat /data/local/tmp/ui.xml > artifacts/ui-v2.1.0/live_ui_dump.xml || true
-python3 - <<'PY'
-import re, subprocess, time, xml.etree.ElementTree as ET
+adb shell cat /data/local/tmp/ui.xml > "$OUT_ROOT/live_ui_dump.xml" || true
+python3 - "$OUT_ROOT" <<'PY'
+import re, subprocess, sys, time, xml.etree.ElementTree as ET
+
+out_root = sys.argv[1]
 
 def find_center(xml_path, target_text):
     tree = ET.parse(xml_path)
@@ -96,7 +105,7 @@ def find_center(xml_path, target_text):
 def tap(xy):
     subprocess.run(["adb", "shell", "input", "tap", str(xy[0]), str(xy[1])], check=True)
 
-xml_file = "artifacts/ui-v2.1.0/live_ui_dump.xml"
+xml_file = f"{out_root}/live_ui_dump.xml"
 scan_btn = find_center(xml_file, "Scan Store Pairing QR")
 sign_in = find_center(xml_file, "Sign In & Connect Store")
 hid_btn = find_center(xml_file, "USB Scanner")
@@ -106,14 +115,13 @@ print("Centers:", {"scan": scan_btn, "sign_in": sign_in, "hid": hid_btn})
 if scan_btn:
     tap(scan_btn)
     time.sleep(3)
-    with open("artifacts/ui-v2.1.0/05_live_pairing_qr_scanner.png", "wb") as f:
+    with open(f"{out_root}/StorePairing/LiveQrCameraScanner.png", "wb") as f:
         subprocess.run(["adb", "exec-out", "screencap", "-p"], stdout=f, check=True)
-    # Close Camera Scanner cleanly via UI button if present, else KEYCODE_BACK
     subprocess.run(["adb", "shell", "uiautomator", "dump", "/data/local/tmp/ui_cam.xml"], check=False)
-    subprocess.run(["adb", "pull", "/data/local/tmp/ui_cam.xml", "artifacts/ui-v2.1.0/live_cam_dump.xml"], check=False)
+    subprocess.run(["adb", "pull", "/data/local/tmp/ui_cam.xml", f"{out_root}/live_cam_dump.xml"], check=False)
     close_cam = None
     try:
-        close_cam = find_center("artifacts/ui-v2.1.0/live_cam_dump.xml", "Close Camera") or find_center("artifacts/ui-v2.1.0/live_cam_dump.xml", "Manual")
+        close_cam = find_center(f"{out_root}/live_cam_dump.xml", "Close camera scanner")
     except Exception:
         pass
     if close_cam:
@@ -126,18 +134,18 @@ if scan_btn:
 if sign_in:
     tap(sign_in)
     time.sleep(1.5)
-    with open("artifacts/ui-v2.1.0/03_live_pairing_validation.png", "wb") as f:
+    with open(f"{out_root}/StorePairing/LiveValidation.png", "wb") as f:
         subprocess.run(["adb", "exec-out", "screencap", "-p"], stdout=f, check=True)
 
-# 3) Open USB HID / Paste QR Payload dialog
+# 3) Open USB HID / Paste code dialog
 if hid_btn:
     tap(hid_btn)
     time.sleep(2)
-    with open("artifacts/ui-v2.1.0/04_live_pairing_hid_dialog.png", "wb") as f:
+    with open(f"{out_root}/StorePairing/LiveHidScannerDialog.png", "wb") as f:
         subprocess.run(["adb", "exec-out", "screencap", "-p"], stdout=f, check=True)
 PY
 
-rm -f artifacts/ui-v2.1.0/live_ui_dump.xml artifacts/ui-v2.1.0/live_cam_dump.xml
+rm -f "$OUT_ROOT/live_ui_dump.xml" "$OUT_ROOT/live_cam_dump.xml"
 
 # Run Compose Showcase instrumentation tests
 adb shell am force-stop com.azuredevid.cassy.dev
@@ -147,20 +155,18 @@ INSTR_RC=$?
 set -e
 echo "$INSTR_OUT"
 
-FILES=$(adb shell run-as com.azuredevid.cassy.dev ls files/showcase 2>/dev/null | tr -d '\r' || true)
-for f in $FILES; do
-  adb exec-out run-as com.azuredevid.cassy.dev cat "files/showcase/$f" > "artifacts/ui-v2.1.0/showcase/$f"
+SHOWCASE_FILES=$(adb shell run-as com.azuredevid.cassy.dev find files/showcase -type f -name '*.png' 2>/dev/null | tr -d '\r' || true)
+for rel in $SHOWCASE_FILES; do
+  rel_clean="${rel#./}"
+  rel_clean="${rel_clean#files/showcase/}"
+  mkdir -p "$OUT_ROOT/$(dirname "$rel_clean")"
+  adb exec-out run-as com.azuredevid.cassy.dev cat "files/showcase/$rel_clean" > "$OUT_ROOT/$rel_clean"
 done
 
-cp -f artifacts/ui-v2.1.0/showcase/startup_splash.png artifacts/ui-v2.1.0/01_startup_splash.png || true
-cp -f artifacts/ui-v2.1.0/showcase/store_pairing.png artifacts/ui-v2.1.0/02_pairing_default_online.png || true
-cp -f artifacts/ui-v2.1.0/showcase/store_pairing_validation_offline.png artifacts/ui-v2.1.0/03_pairing_validation_offline.png || true
-cp -f artifacts/ui-v2.1.0/showcase/store_pairing_hid_dialog.png artifacts/ui-v2.1.0/04_pairing_hid_dialog.png || true
-cp -f artifacts/ui-v2.1.0/showcase/store_pairing_scanner.png artifacts/ui-v2.1.0/05_pairing_qr_scanner.png || true
-
-python3 - <<'PY'
-import glob, os, struct
-for path in sorted(glob.glob("artifacts/ui-v2.1.0/**/*.png", recursive=True)):
+python3 - "$OUT_ROOT" <<'PY'
+import glob, os, struct, sys
+out_root = sys.argv[1]
+for path in sorted(glob.glob(f"{out_root}/**/*.png", recursive=True)):
     with open(path, "rb") as f:
         hdr = f.read(24)
     if len(hdr) >= 24 and hdr[:8] == b"\x89PNG\r\n\x1a\n":

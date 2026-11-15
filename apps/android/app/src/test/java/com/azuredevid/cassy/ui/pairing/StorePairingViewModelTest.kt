@@ -207,4 +207,32 @@ class StorePairingViewModelTest {
 
         collectorJob.cancel()
     }
+
+    @Test
+    fun openingCameraOrHid_clearsStaleFieldErrors_andInvalidHidKeepsDialogOpen() {
+        val vm = StorePairingViewModel(FakeAuthRepository(), FakeServerHealthMonitor())
+        vm.onEvent(StorePairingUiEvent.SubmitLogin)
+        assertNotNull(vm.uiState.value.storeSlugError)
+        assertNotNull(vm.uiState.value.emailError)
+        assertNotNull(vm.uiState.value.pinError)
+
+        vm.onEvent(StorePairingUiEvent.OpenHidScanner(true))
+        assertTrue(vm.uiState.value.isHidScannerOpen)
+        assertNull(vm.uiState.value.storeSlugError)
+        assertNull(vm.uiState.value.emailError)
+        assertNull(vm.uiState.value.pinError)
+        assertNull(vm.uiState.value.hidError)
+
+        // Blank submit keeps dialog open and reports inline hidError
+        vm.onEvent(StorePairingUiEvent.SubmitHidQrPayload)
+        assertTrue(vm.uiState.value.isHidScannerOpen)
+        assertEquals(StorePairingViewModel.ERR_QR_EMPTY, vm.uiState.value.hidError)
+
+        // Malformed payload keeps dialog open with ERR_QR_FORMAT
+        vm.onEvent(StorePairingUiEvent.UpdateHidInput("not-json"))
+        assertNull(vm.uiState.value.hidError)
+        vm.onEvent(StorePairingUiEvent.SubmitHidQrPayload)
+        assertTrue(vm.uiState.value.isHidScannerOpen)
+        assertEquals(StorePairingViewModel.ERR_QR_FORMAT, vm.uiState.value.hidError)
+    }
 }

@@ -3,6 +3,7 @@ package com.azuredevid.cassy
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
@@ -33,6 +34,7 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         splashScreen.setKeepOnScreenCondition { startRoute == null }
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         lifecycleScope.launch {

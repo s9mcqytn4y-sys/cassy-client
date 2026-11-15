@@ -24,7 +24,6 @@ import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.QrCodeScanner
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Storefront
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
@@ -35,7 +34,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -54,7 +52,6 @@ import com.azuredevid.cassy.R
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
 import com.azuredevid.cassy.ui.designsystem.CassyErrorBanner
 import com.azuredevid.cassy.ui.designsystem.CassyPrimaryButton
-import com.azuredevid.cassy.ui.designsystem.CassySecondaryButton
 import com.azuredevid.cassy.ui.designsystem.CassyStatusBadge
 import com.azuredevid.cassy.ui.designsystem.CassyTextActionButton
 import com.azuredevid.cassy.ui.designsystem.CassyTextField
@@ -71,8 +68,6 @@ fun StorePairingFormPane(
     state: StorePairingUiState,
     onOpenQrScanner: () -> Unit,
     onOpenHidDialog: () -> Unit,
-    onOpenAppSettings: () -> Unit,
-    onDismissCameraDenied: () -> Unit,
     onClearQrBadge: () -> Unit,
     onSlugChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
@@ -135,39 +130,6 @@ fun StorePairingFormPane(
                 enabled = !state.isSubmitting,
                 icon = Icons.Rounded.Keyboard
             )
-        }
-
-        if (state.cameraPermissionDenied) {
-            Spacer(Modifier.height(CassyDimens.SpaceSm))
-            Surface(
-                shape = RoundedCornerShape(CassyDimens.RadiusCard),
-                color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.4f))
-            ) {
-                Column(modifier = Modifier.padding(CassyDimens.SpaceMd)) {
-                    CassyErrorBanner(
-                        message = "${stringResource(R.string.pairing_camera_permission_denied_title)}: " +
-                            stringResource(R.string.pairing_camera_permission_denied_desc),
-                        tone = CassyToastTone.WARNING
-                    )
-                    Spacer(Modifier.height(CassyDimens.SpaceSm))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
-                    ) {
-                        CassySecondaryButton(
-                            text = stringResource(R.string.pairing_btn_open_app_settings),
-                            onClick = onOpenAppSettings,
-                            icon = Icons.Rounded.Settings,
-                            modifier = Modifier.weight(1f)
-                        )
-                        CassyTextActionButton(
-                            text = stringResource(R.string.shift_xreport_close_btn),
-                            onClick = onDismissCameraDenied
-                        )
-                    }
-                }
-            }
         }
 
         if (!qrInfo.isNullOrBlank()) {
@@ -381,7 +343,7 @@ fun StorePairingFormPane(
 }
 
 @Composable
-private fun resolvePairingError(codeOrMessage: String?): String? {
+internal fun resolvePairingError(codeOrMessage: String?): String? {
     if (codeOrMessage.isNullOrBlank()) return null
     return when (codeOrMessage) {
         StorePairingViewModel.ERR_QR_EMPTY -> stringResource(R.string.pairing_err_qr_empty)

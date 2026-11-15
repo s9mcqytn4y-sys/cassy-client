@@ -34,6 +34,7 @@ data class StorePairingUiState(
     val isCameraActive: Boolean = false,
     val isHidScannerOpen: Boolean = false,
     val hidScannerInput: String = "",
+    val hidError: String? = null,
     val cameraPermissionDenied: Boolean = false,
     val isSubmitting: Boolean = false,
     val qrScannedInfo: String? = null,
@@ -141,6 +142,9 @@ class StorePairingViewModel(
                 it.copy(
                     isCameraActive = event.active,
                     cameraPermissionDenied = if (event.active) false else it.cameraPermissionDenied,
+                    storeSlugError = if (event.active) null else it.storeSlugError,
+                    emailError = if (event.active) null else it.emailError,
+                    pinError = if (event.active) null else it.pinError,
                     formError = null
                 )
             }
@@ -151,36 +155,52 @@ class StorePairingViewModel(
                 it.copy(cameraPermissionDenied = false)
             }
             StorePairingUiEvent.ClearQrScanned -> _uiState.update {
-                it.copy(qrScannedInfo = null, badge = "", deviceCredential = "")
+                it.copy(
+                    qrScannedInfo = null,
+                    badge = "",
+                    deviceCredential = "",
+                    storeSlugError = null,
+                    emailError = null,
+                    pinError = null,
+                    formError = null
+                )
             }
             is StorePairingUiEvent.OpenHidScanner -> _uiState.update {
                 it.copy(
                     isHidScannerOpen = event.open,
                     isCameraActive = if (event.open) false else it.isCameraActive,
+                    cameraPermissionDenied = if (event.open) false else it.cameraPermissionDenied,
                     hidScannerInput = if (!event.open) "" else it.hidScannerInput,
+                    hidError = null,
+                    storeSlugError = if (event.open) null else it.storeSlugError,
+                    emailError = if (event.open) null else it.emailError,
+                    pinError = if (event.open) null else it.pinError,
                     formError = null
                 )
             }
             is StorePairingUiEvent.UpdateHidInput -> _uiState.update {
-                it.copy(hidScannerInput = event.value)
+                it.copy(hidScannerInput = event.value, hidError = null)
             }
-            StorePairingUiEvent.SubmitHidQrPayload -> parseQrPayload(_uiState.value.hidScannerInput)
-            is StorePairingUiEvent.HandleQrPayload -> parseQrPayload(event.rawPayload)
+            StorePairingUiEvent.SubmitHidQrPayload -> parseQrPayload(_uiState.value.hidScannerInput, fromHid = true)
+            is StorePairingUiEvent.HandleQrPayload -> parseQrPayload(event.rawPayload, fromHid = false)
             StorePairingUiEvent.RetryServerHealthProbe -> healthMonitor.requestProbe()
             StorePairingUiEvent.SubmitLogin -> submitLogin()
         }
     }
 
-    private fun parseQrPayload(rawPayload: String) {
+    private fun parseQrPayload(rawPayload: String, fromHid: Boolean) {
         val trimmed = rawPayload.trim()
         if (trimmed.isBlank()) {
             _uiState.update {
-                it.copy(
-                    isCameraActive = false,
-                    isHidScannerOpen = false,
-                    hidScannerInput = "",
-                    formError = ERR_QR_EMPTY
-                )
+                if (fromHid) {
+                    it.copy(hidError = ERR_QR_EMPTY)
+                } else {
+                    it.copy(
+                        isCameraActive = false,
+                        hidScannerInput = "",
+                        formError = ERR_QR_EMPTY
+                    )
+                }
             }
             return
         }
@@ -208,6 +228,7 @@ class StorePairingViewModel(
                     isCameraActive = false,
                     isHidScannerOpen = false,
                     hidScannerInput = "",
+                    hidError = null,
                     cameraPermissionDenied = false,
                     qrScannedInfo = INFO_QR_SCANNED,
                     storeSlugError = null,
@@ -217,12 +238,15 @@ class StorePairingViewModel(
             }
         } else {
             _uiState.update {
-                it.copy(
-                    isCameraActive = false,
-                    isHidScannerOpen = false,
-                    hidScannerInput = "",
-                    formError = ERR_QR_FORMAT
-                )
+                if (fromHid) {
+                    it.copy(hidError = ERR_QR_FORMAT)
+                } else {
+                    it.copy(
+                        isCameraActive = false,
+                        hidScannerInput = "",
+                        formError = ERR_QR_FORMAT
+                    )
+                }
             }
         }
     }

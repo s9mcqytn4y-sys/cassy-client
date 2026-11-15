@@ -3,7 +3,7 @@ name: Android UI Screenshots & Instrumentation
 on:
   workflow_dispatch:
   push:
-    branches: ["feat/android-ui-screenshots-ci"]
+    branches: ["feat/android-ui-screenshots-ci", "fix/android-pairing-hardening"]
     paths:
       - "apps/android/**"
       - ".github/workflows/android-ui-screenshots.yml"
@@ -11,7 +11,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "apps/android/app/src/androidTest/**"
+      - "apps/android/**"
       - ".github/workflows/android-ui-screenshots.yml"
       - ".github/scripts/android-ui-screenshots.sh"
 
@@ -67,6 +67,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: android-ui-v2.1.0-screenshots
-          path: artifacts/ui-v2.1.0/
+          name: android-ui-v2.2.0-screenshots
+          path: artifacts/ui-v2.2.0/
           if-no-files-found: warn

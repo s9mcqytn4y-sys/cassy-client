@@ -60,6 +60,7 @@ import com.azuredevid.cassy.ui.theme.BrandPanelPandan
 import com.azuredevid.cassy.ui.theme.BrandPanelSurface
 import com.azuredevid.cassy.ui.theme.BrandStatusCheckingDot
 import com.azuredevid.cassy.ui.theme.BrandStatusOfflineDot
+import com.azuredevid.cassy.ui.theme.BrandStatusOfflineText
 import com.azuredevid.cassy.ui.theme.BrandStatusOnlineDot
 import com.azuredevid.cassy.ui.theme.CassyPutihTulang
 import com.azuredevid.cassy.ui.theme.CassyTinta
@@ -140,33 +141,49 @@ fun StorePairingBrandPane(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(
-                onClick = onNavigateToServerConfig,
-                shape = RoundedCornerShape(CassyDimens.RadiusButton),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = CassyPutihTulang,
-                    contentColor = CassyTinta
-                ),
-                contentPadding = PaddingValues(
-                    horizontal = CassyDimens.SpaceLg,
-                    vertical = CassyDimens.SpaceMd
-                ),
-                modifier = Modifier.defaultMinSize(
-                    minWidth = CassyDimens.TouchTargetMin,
-                    minHeight = CassyDimens.ButtonHeight
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Settings,
-                    contentDescription = null,
-                    modifier = Modifier.size(CassyDimens.IconSizeSm)
-                )
-                Spacer(Modifier.width(CassyDimens.SpaceSm))
-                Text(
-                    text = stringResource(R.string.auth_btn_server_config),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
+            Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXxs)) {
+                Button(
+                    onClick = onNavigateToServerConfig,
+                    shape = RoundedCornerShape(CassyDimens.RadiusButton),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = CassyPutihTulang,
+                        contentColor = CassyTinta
+                    ),
+                    contentPadding = PaddingValues(
+                        horizontal = CassyDimens.SpaceLg,
+                        vertical = CassyDimens.SpaceMd
+                    ),
+                    modifier = Modifier.defaultMinSize(
+                        minWidth = CassyDimens.TouchTargetMin,
+                        minHeight = CassyDimens.ButtonHeight
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Settings,
+                        contentDescription = null,
+                        modifier = Modifier.size(CassyDimens.IconSizeSm)
+                    )
+                    Spacer(Modifier.width(CassyDimens.SpaceSm))
+                    Text(
+                        text = stringResource(R.string.auth_btn_server_config),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                if (connectivity.status == ServerConnectionStatus.SERVER_UNREACHABLE ||
+                    connectivity.status == ServerConnectionStatus.NETWORK_OFFLINE
+                ) {
+                    Text(
+                        text = stringResource(R.string.pairing_server_offline_hint),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = BrandStatusOfflineText,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(CassyDimens.RadiusBadge))
+                            .clickable(role = Role.Button, onClick = onNavigateToServerConfig)
+                            .padding(horizontal = CassyDimens.SpaceXs, vertical = CassyDimens.SpaceXxs)
+                    )
+                }
             }
 
             ServerStatusChip(
@@ -233,31 +250,41 @@ private fun ServerStatusChip(
             BrandStatusOfflineDot to stringResource(R.string.pairing_server_status_server_unreachable)
         }
     }
+    val isOffline = connectivity.status == ServerConnectionStatus.NETWORK_OFFLINE ||
+        connectivity.status == ServerConnectionStatus.SERVER_UNREACHABLE
     val accessibilityDesc = stringResource(R.string.pairing_server_status_cd, label)
 
-    Row(
+    Surface(
+        shape = RoundedCornerShape(CassyDimens.RadiusPill),
+        color = if (isOffline) Color(0xFF471C1C).copy(alpha = 0.82f) else BrandPanelSurface.copy(alpha = 0.78f),
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (isOffline) BrandStatusOfflineDot.copy(alpha = 0.72f) else BrandPanelBorder
+        ),
         modifier = Modifier
             .defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
             .clip(RoundedCornerShape(CassyDimens.RadiusPill))
-            .background(BrandPanelSurface.copy(alpha = 0.72f))
             .clickable(role = Role.Button, onClick = onClick)
             .semantics { contentDescription = accessibilityDesc }
-            .padding(horizontal = CassyDimens.SpaceMd, vertical = CassyDimens.SpaceSm),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
     ) {
-        Box(
-            modifier = Modifier
-                .size(10.dp)
-                .clip(CircleShape)
-                .background(dotColor)
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = CassyDimens.SpaceMd, vertical = CassyDimens.SpaceSm),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(10.dp)
+                    .clip(CircleShape)
+                    .background(dotColor)
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = if (isOffline) BrandStatusOfflineText else Color.White
+            )
+        }
     }
 }
 

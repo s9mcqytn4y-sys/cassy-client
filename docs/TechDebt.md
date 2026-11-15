@@ -27,3 +27,12 @@ Prioritas: **T** tinggi (bayar sebelum pilot), **S** sedang (bayar dalam rilis b
 | P2 | Ikon Cassy PNG dibuat dari SVG vault di repo web, belum disimpan balik ke vault | R | Saat Director merapikan aset vault |
 | P3 | Halaman struk menampilkan nama varian tunggal seperti "Reguler" karena struk menyimpan snapshot varian. Disengaja, sama dengan struk kertas | R | Bila tenant meminta; butuh flag `has_variants` di snapshot pesanan |
 | P4 | Demo memakai nama grup add-on yang dirapikan lewat `db/seeds/demo_group_names.sql`, sedangkan `test_fixtures.sql` masih memakai nama lama | R | Saat fixture uji ditata ulang |
+
+## Ditemukan pada Cassy POS Android (Release One)
+
+| ID | Utang | Prioritas | Pemicu bayar |
+|---|---|---|---|
+| A1 | `apps/web` belum memiliki halaman generator QR pairing perangkat pada Owner Dashboard (saat ini POS memindai/tempel payload eksternal) | T | Saat membangun alur onboarding kasir Owner Dashboard bersama short-lived `pairing_token` (`docs/SecurityQrPairingAdr.md`) |
+| A2 | Backend `myCaffe-backend` masih mengandalkan `device_credential` statis dan belum memiliki endpoint `pairing_token` single-use TTL 5 menit | S | Saat Owner Dashboard QR generator (`A1`) dikerjakan |
+| A3 | `SharedPreferencesServerSettingsRepository` masih memakai `SharedPreferences`, belum dimigrasi ke Preferences DataStore sesuai baseline PRD v4 Q11 | R | Saat menyentuh ulang modul pengaturan server |
+| A4 | Pengujian regresi visual screenshot Android belum memakai Roborazzi di JVM dan masih bergantung pada emulator KVM CI (`android-ui-screenshots.yml`) | R | Setelah screen Release One selesai dan stabil |
