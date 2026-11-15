@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-OUT_ROOT="artifacts/ui-v2.2.0"
+OUT_ROOT="artifacts/ui-v2.4.0"
 mkdir -p \
   "$OUT_ROOT/StartupSplash" \
-  "$OUT_ROOT/StorePairing" \
-  "$OUT_ROOT/ServerConfig" \
-  "$OUT_ROOT/PosLandscape" \
-  "$OUT_ROOT/CatalogManagement" \
-  "$OUT_ROOT/StoreSettings"
+  "$OUT_ROOT/StorePairing/Modals" \
+  "$OUT_ROOT/StorePairing/Errors" \
+  "$OUT_ROOT/ServerConfig/Tabs" \
+  "$OUT_ROOT/ServerConfig/Modals" \
+  "$OUT_ROOT/ServerConfig/Errors" \
+  "$OUT_ROOT/PosLandscape/Modals" \
+  "$OUT_ROOT/ShiftManagement/Modals" \
+  "$OUT_ROOT/CatalogManagement/Modals" \
+  "$OUT_ROOT/StoreSettings/Tabs"
 
 png_dims() {
   python3 - "$1" <<'PY'
@@ -115,7 +119,7 @@ print("Centers:", {"scan": scan_btn, "sign_in": sign_in, "hid": hid_btn})
 if scan_btn:
     tap(scan_btn)
     time.sleep(3)
-    with open(f"{out_root}/StorePairing/LiveQrCameraScanner.png", "wb") as f:
+    with open(f"{out_root}/StorePairing/Modals/LiveQrCameraScanner.png", "wb") as f:
         subprocess.run(["adb", "exec-out", "screencap", "-p"], stdout=f, check=True)
     subprocess.run(["adb", "shell", "uiautomator", "dump", "/data/local/tmp/ui_cam.xml"], check=False)
     subprocess.run(["adb", "pull", "/data/local/tmp/ui_cam.xml", f"{out_root}/live_cam_dump.xml"], check=False)
@@ -134,14 +138,14 @@ if scan_btn:
 if sign_in:
     tap(sign_in)
     time.sleep(1.5)
-    with open(f"{out_root}/StorePairing/LiveValidation.png", "wb") as f:
+    with open(f"{out_root}/StorePairing/Errors/LiveValidation.png", "wb") as f:
         subprocess.run(["adb", "exec-out", "screencap", "-p"], stdout=f, check=True)
 
 # 3) Open USB HID / Paste code dialog
 if hid_btn:
     tap(hid_btn)
     time.sleep(2)
-    with open(f"{out_root}/StorePairing/LiveHidScannerDialog.png", "wb") as f:
+    with open(f"{out_root}/StorePairing/Modals/LiveHidScannerDialog.png", "wb") as f:
         subprocess.run(["adb", "exec-out", "screencap", "-p"], stdout=f, check=True)
 PY
 

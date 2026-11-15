@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Download, Printer } from "lucide-react";
 import { useLocale } from "@/components/Providers";
 import { ApiError, apiFetch, isMaintenance } from "@/lib/api";
 import { formatIdr } from "@/lib/format";
@@ -143,6 +144,25 @@ export function ReceiptView({ token }: { token: string }) {
           {t.paidWith}: <strong>{methods.join(", ")}</strong>
         </p>
       ) : null}
+
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row print:hidden">
+        <a
+          href={`/api/v1/public/receipts/${encodeURIComponent(token)}/pdf`}
+          download={`Struk-${receipt.order_number}.pdf`}
+          className="btn-primary inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold"
+        >
+          <Download className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>{t.downloadReceiptPdf}</span>
+        </a>
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-subtle bg-surface px-5 py-3 text-sm font-bold text-ink transition hover:bg-canvas"
+        >
+          <Printer className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>{t.printReceipt}</span>
+        </button>
+      </div>
     </section>
   );
 }

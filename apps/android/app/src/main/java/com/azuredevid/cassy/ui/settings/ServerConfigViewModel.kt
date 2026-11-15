@@ -38,10 +38,13 @@ data class ServerConfigUiState(
     val probeLatencyMs: Long? = null,
     val probeIsTls: Boolean = false,
     val probeErrorMessage: String? = null,
+    val lastVerifiedEndpoint: String? = null,
     val showCleartextWarning: Boolean = false,
     val isDiscoveringMdns: Boolean = false,
+    val showMdnsDialog: Boolean = false,
     val discoveredServers: List<DiscoveredLocalServer> = emptyList(),
-    val mdnsDiscoveryCompleted: Boolean = false
+    val mdnsDiscoveryCompleted: Boolean = false,
+    val enforceHttpsOnly: Boolean = false
 )
 
 sealed interface ServerConfigUiEffect {
@@ -64,7 +67,8 @@ class ServerConfigViewModel(
     private val _uiState = MutableStateFlow(
         ServerConfigUiState(
             urlInput = initialUrl,
-            showCleartextWarning = isUnlistedCleartextUrl(initialUrl)
+            showCleartextWarning = isUnlistedCleartextUrl(initialUrl),
+            enforceHttpsOnly = enforceHttpsOnly
         )
     )
     val uiState: StateFlow<ServerConfigUiState> = _uiState.asStateFlow()
@@ -84,17 +88,43 @@ class ServerConfigViewModel(
         updateUrlState(url)
     }
 
+    fun selectDiscoveredServer(url: String) {
+        updateUrlState(url)
+        _uiState.update { it.copy(showMdnsDialog = false) }
+        testConnection()
+    }
+
+    fun dismissMdnsDialog() {
+        _uiState.update { it.copy(showMdnsDialog = false) }
+    }
+
     fun discoverLocalServers() {
-        val discovery = localDiscovery ?: return
-        if (_uiState.value.isDiscoveringMdns) return
+        if (_uiState.value.isDiscoveringMdns) {
+            _uiState.update { it.copy(showMdnsDialog = true) }
+            return
+        }
+        val discovery = localDiscovery
+        if (discovery == null) {
+            _uiState.update {
+                it.copy(
+                    showMdnsDialog = true,
+                    isDiscoveringMdns = false,
+                    discoveredServers = emptyList(),
+                    mdnsDiscoveryCompleted = true
+                )
+            }
+            return
+        }
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
                     isDiscoveringMdns = true,
+                    showMdnsDialog = true,
                     mdnsDiscoveryCompleted = false
                 )
             }
-            val servers = runCatching { discovery.discoverLocalServers() }.getOrDefault(emptyList())
+            val rawServers = runCatching { discovery.discoverLocalServers() }.getOrDefault(emptyList())
+            val servers = rawServers.filter { isSafeMdnsEndpoint(it.baseUrl) }
             val firstUrl = servers.firstOrNull()?.baseUrl
             _uiState.update { current ->
                 val updatedUrl = firstUrl ?: current.urlInput
@@ -127,7 +157,7 @@ class ServerConfigViewModel(
                 probeStatusOk = null,
                 probeHttpCode = null,
                 probeLatencyMs = null,
-                probeIsTls = false,
+                probeIsTls = value.trim().startsWith("https://", ignoreCase = true),
                 probeErrorMessage = null,
                 showCleartextWarning = isUnlistedCleartextUrl(value)
             )
@@ -191,6 +221,7 @@ class ServerConfigViewModel(
                             probeHttpCode = response.status.value,
                             probeLatencyMs = elapsedMs,
                             probeIsTls = isTls,
+                            lastVerifiedEndpoint = if (ok) raw else it.lastVerifiedEndpoint,
                             probeErrorMessage = if (ok) null else "HTTP ${response.status.value}"
                         )
                     }
@@ -251,6 +282,7 @@ class ServerConfigViewModel(
                 isUrlInvalid = false,
                 isCleartextBlockedInProd = false,
                 isSaved = true,
+                lastVerifiedEndpoint = it.lastVerifiedEndpoint ?: normalized,
                 showCleartextWarning = isUnlistedCleartextUrl(normalized)
             )
         }
@@ -259,13 +291,39 @@ class ServerConfigViewModel(
 
     private fun isValidHttpUrl(raw: String): Boolean {
         val trimmed = raw.trim()
+        if (trimmed.isEmpty()) return false
         val uri = runCatching { URI(trimmed) }.getOrNull() ?: return false
+        if (!uri.userInfo.isNullOrEmpty()) return false
+        if (!uri.rawQuery.isNullOrEmpty() || !uri.rawFragment.isNullOrEmpty()) return false
         val scheme = uri.scheme?.lowercase() ?: return false
         if (scheme != "http" && scheme != "https") return false
-        val host = uri.host?.trim().orEmpty()
-        if (host.isEmpty() || host.contains(' ')) return false
-        if (!host.equals("localhost", ignoreCase = true) && !host.contains('.')) return false
+        val host = uri.host?.trim()?.lowercase().orEmpty()
+        if (host.isEmpty() || host.contains(' ') || host == "0.0.0.0") return false
+        if (host != "localhost" && !host.contains('.')) return false
         return uri.port == -1 || uri.port in 1..65535
+    }
+
+    private fun isSafeMdnsEndpoint(raw: String): Boolean {
+        if (!isValidHttpUrl(raw)) return false
+        val uri = runCatching { URI(raw.trim()) }.getOrNull() ?: return false
+        val host = uri.host?.lowercase() ?: return false
+        if (host.endsWith(".local") || host == "localhost" || host == "127.0.0.1" || host == "10.0.2.2") {
+            return true
+        }
+        return isRfc1918Ipv4(host)
+    }
+
+    private fun isRfc1918Ipv4(host: String): Boolean {
+        val parts = host.split('.')
+        if (parts.size != 4) return false
+        val octets = parts.map { it.toIntOrNull() ?: return false }
+        if (octets.any { it !in 0..255 }) return false
+        return when {
+            octets[0] == 10 -> true
+            octets[0] == 192 && octets[1] == 168 -> true
+            octets[0] == 172 && octets[1] in 16..31 -> true
+            else -> false
+        }
     }
 
     private fun isUnlistedCleartextUrl(raw: String): Boolean {
@@ -280,6 +338,16 @@ class ServerConfigViewModel(
         const val ERR_INVALID_URL = "URL_INVALID"
         const val ERR_CLEARTEXT_PROD = "URL_CLEARTEXT_PROD"
         private const val PROBE_TIMEOUT_MS = 4_500L
-        private val ALLOWED_CLEARTEXT_HOSTS = setOf("10.0.2.2", "127.0.0.1", "localhost", "192.168.10.10")
+        private val ALLOWED_CLEARTEXT_HOSTS = setOf(
+            "10.0.2.2",
+            "127.0.0.1",
+            "localhost",
+            "192.168.1.100",
+            "192.168.1.1",
+            "192.168.0.100",
+            "192.168.10.10",
+            "cassy.local",
+            "pos-lokal.cassy.local"
+        )
     }
 }

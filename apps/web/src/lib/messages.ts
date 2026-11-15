@@ -161,7 +161,11 @@ const id = {
   qrDownloaded: "Kode QR Cassy disimpan.",
   invalidEmail: "Masukkan alamat email yang benar.",
   invalidGuestName: "Gunakan huruf atau angka tanpa karakter khusus.",
-  addedToCart: "Ditambahkan ke keranjang."
+  addedToCart: "Ditambahkan ke keranjang.",
+  downloadReceiptPdf: "Unduh PDF Struk",
+  printReceipt: "Cetak Struk",
+  legalIntegrityLabel: "Integritas dokumen (SHA-256)",
+  copyHash: "Salin hash"
 };
 
 export type Messages = typeof id;
@@ -329,7 +333,11 @@ const en: Messages = {
   qrDownloaded: "Cassy QR code saved.",
   invalidEmail: "Enter a valid email address.",
   invalidGuestName: "Use standard letters or numbers.",
-  addedToCart: "Added to cart."
+  addedToCart: "Added to cart.",
+  downloadReceiptPdf: "Download PDF Receipt",
+  printReceipt: "Print Receipt",
+  legalIntegrityLabel: "Document integrity (SHA-256)",
+  copyHash: "Copy hash"
 };
 
 export const MESSAGES = { "id-ID": id, "en-US": en };

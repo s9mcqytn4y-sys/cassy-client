@@ -33,23 +33,23 @@
       "problemMatcher": []
     },
     {
-      "label": "Android: Assemble Debug APK",
+      "label": "Android: Assemble DevDebug APK",
       "type": "shell",
-      "command": ".\\apps\\android\\gradlew.bat -p apps/android assembleDebug",
+      "command": ".\\apps\\android\\gradlew.bat -p apps/android assembleDevDebug --no-daemon --max-workers=2",
       "group": "build",
       "problemMatcher": []
     },
     {
-      "label": "Android: Build App Bundle (AAB)",
+      "label": "Android: Build DevDebug App Bundle (AAB)",
       "type": "shell",
-      "command": ".\\apps\\android\\gradlew.bat -p apps/android bundleDebug",
+      "command": ".\\apps\\android\\gradlew.bat -p apps/android bundleDevDebug --no-daemon --max-workers=2",
       "group": "build",
       "problemMatcher": []
     },
     {
-      "label": "Android: Run Unit Tests",
+      "label": "Android: Run DevDebug Unit Tests",
       "type": "shell",
-      "command": ".\\apps\\android\\gradlew.bat -p apps/android test",
+      "command": ".\\apps\\android\\gradlew.bat -p apps/android testDevDebugUnitTest --no-daemon --max-workers=2",
       "group": "test",
       "problemMatcher": []
     },
@@ -61,10 +61,10 @@
       "problemMatcher": []
     },
     {
-      "label": "Android: Install Debug APK via ADB",
+      "label": "Android: Install DevDebug APK via ADB",
       "type": "shell",
-      "command": "adb install -r apps/android/app/build/outputs/apk/debug/app-debug.apk",
-      "dependsOn": "Android: Assemble Debug APK",
+      "command": "adb install -r apps/android/app/build/outputs/apk/dev/debug/app-dev-debug.apk",
+      "dependsOn": "Android: Assemble DevDebug APK",
       "problemMatcher": []
     },
     {
