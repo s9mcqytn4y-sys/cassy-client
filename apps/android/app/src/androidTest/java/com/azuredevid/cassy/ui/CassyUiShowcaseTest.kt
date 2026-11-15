@@ -2,21 +2,21 @@ package com.azuredevid.cassy.ui
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.captureToImage
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
-import java.io.File
-import java.io.FileOutputStream
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import java.io.File
+import java.io.FileOutputStream
 import com.azuredevid.cassy.R
 import com.azuredevid.cassy.core.security.SessionManager
 import com.azuredevid.cassy.data.model.CatalogCategory
@@ -65,13 +65,18 @@ import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import com.azuredevid.cassy.domain.repository.PrinterConfig
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.domain.repository.ServerConnectionStatus
+import com.azuredevid.cassy.domain.repository.ServerConnectivityState
+import com.azuredevid.cassy.domain.repository.ServerHealthMonitor
 import com.azuredevid.cassy.domain.repository.ShiftRepository
 import com.azuredevid.cassy.domain.repository.StoreGovernanceRepository
 import com.azuredevid.cassy.ui.catalog.CatalogManagementScreen
 import com.azuredevid.cassy.ui.catalog.CatalogManagementViewModel
 import com.azuredevid.cassy.ui.catalog.components.CategoryFormDialog
 import com.azuredevid.cassy.ui.catalog.components.ProductFormDialog
+import com.azuredevid.cassy.ui.components.CassyStartupSplash
 import com.azuredevid.cassy.ui.pairing.StorePairingScreen
+import com.azuredevid.cassy.ui.pairing.StorePairingUiEvent
 import com.azuredevid.cassy.ui.pairing.StorePairingViewModel
 import com.azuredevid.cassy.ui.pos.PosLandscapeScreen
 import com.azuredevid.cassy.ui.pos.PosViewModel
@@ -100,19 +105,30 @@ import java.util.Locale
 class CassyUiShowcaseTest {
 
     @get:Rule
-    val composeRule = createComposeRule()
+    val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     private val context: Context
         get() = ApplicationProvider.getApplicationContext()
 
-    private fun captureScreen(name: String) {
+    private fun captureScreen(name: String, @Suppress("UNUSED_PARAMETER") preferFullDisplay: Boolean = false) {
         composeRule.waitForIdle()
         runCatching {
-            val bitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
-            val dir = File(context.getExternalFilesDir(null), "showcase").apply { mkdirs() }
-            FileOutputStream(File(dir, "$name.png")).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            val decorView = composeRule.activity.window.decorView
+            val width = decorView.width.coerceAtLeast(1)
+            val height = decorView.height.coerceAtLeast(1)
+            val softwareBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(softwareBitmap)
+            composeRule.runOnUiThread {
+                decorView.draw(canvas)
             }
+            val dir = File(context.filesDir, "showcase").apply { mkdirs() }
+            val outFile = File(dir, "$name.png")
+            FileOutputStream(outFile).use { out ->
+                softwareBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            }
+            Log.i("CassyShowcase", "Saved screenshot: ${outFile.absolutePath} (${outFile.length()} bytes)")
+        }.onFailure { err ->
+            Log.w("CassyShowcase", "Failed screenshot $name", err)
         }
     }
 
@@ -395,17 +411,92 @@ class CassyUiShowcaseTest {
         captureScreen("server_config")
     }
 
+    private class ShowcaseHealthMonitor(
+        initialStatus: ServerConnectionStatus = ServerConnectionStatus.ONLINE,
+        latencyMs: Long? = 24L
+    ) : ServerHealthMonitor {
+        private val flow = MutableStateFlow(ServerConnectivityState(initialStatus, latencyMs))
+        override fun observeConnectivity(): Flow<ServerConnectivityState> = flow
+        override fun requestProbe() = Unit
+        override suspend fun probeNow(): ServerConnectivityState = flow.value
+    }
+
+    @Test
+    fun startupSplash_rendersBrandMonogramAndProgress() {
+        composeRule.setContent {
+            CassyTheme(darkTheme = false) {
+                CassyStartupSplash()
+            }
+        }
+        composeRule.onNodeWithText(context.getString(R.string.app_name)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.splash_loading_subtitle)).assertIsDisplayed()
+        captureScreen("startup_splash")
+    }
+
     @Test
     fun storePairingScreen_rendersBrandingShowcaseAndAuthForm() {
-        val vm = StorePairingViewModel(ShowcaseAuthRepository())
+        val vm = StorePairingViewModel(
+            authRepository = ShowcaseAuthRepository(),
+            healthMonitor = ShowcaseHealthMonitor(ServerConnectionStatus.ONLINE, 24L)
+        )
         composeRule.setContent {
             CassyTheme(darkTheme = false) {
                 StorePairingScreen(viewModel = vm, onPairingSuccess = { _, _ -> })
             }
         }
         composeRule.onNodeWithText(context.getString(R.string.pairing_screen_title)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.btn_scan_qr_camera)).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.auth_btn_sign_in)).assertIsDisplayed()
         captureScreen("store_pairing")
+    }
+
+    @Test
+    fun storePairingScreen_rendersValidationErrorsOfflineStatusAndHidDialog() {
+        val vm = StorePairingViewModel(
+            authRepository = ShowcaseAuthRepository(),
+            healthMonitor = ShowcaseHealthMonitor(ServerConnectionStatus.SERVER_UNREACHABLE, null)
+        )
+        composeRule.setContent {
+            CassyTheme(darkTheme = false) {
+                StorePairingScreen(viewModel = vm, onPairingSuccess = { _, _ -> })
+            }
+        }
+        composeRule.runOnIdle {
+            vm.onEvent(StorePairingUiEvent.CameraPermissionDenied)
+            vm.onEvent(StorePairingUiEvent.SubmitLogin)
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.pairing_server_status_server_unreachable))
+            .assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.auth_err_store_slug_required)).assertIsDisplayed()
+        captureScreen("store_pairing_validation_offline")
+
+        composeRule.runOnIdle {
+            vm.onEvent(StorePairingUiEvent.OpenHidScanner(true))
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.pairing_hid_dialog_title)).assertIsDisplayed()
+        captureScreen("store_pairing_hid_dialog", preferFullDisplay = true)
+    }
+
+    @Test
+    fun storePairingScreen_rendersCameraScannerOverlay() {
+        val vm = StorePairingViewModel(
+            authRepository = ShowcaseAuthRepository(),
+            healthMonitor = ShowcaseHealthMonitor(ServerConnectionStatus.ONLINE, 19L)
+        )
+        composeRule.setContent {
+            CassyTheme(darkTheme = false) {
+                StorePairingScreen(viewModel = vm, onPairingSuccess = { _, _ -> })
+            }
+        }
+        composeRule.runOnIdle {
+            vm.onEvent(StorePairingUiEvent.ToggleCamera(true))
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.pairing_camera_title)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.btn_close_camera)).assertIsDisplayed()
+        captureScreen("store_pairing_scanner", preferFullDisplay = true)
     }
 
     @Test

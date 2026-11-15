@@ -7,6 +7,7 @@ import com.azuredevid.cassy.core.security.AndroidTinkAeadCipher
 import com.azuredevid.cassy.core.security.BiometricSecurityManager
 import com.azuredevid.cassy.core.security.DataStoreSessionManager
 import com.azuredevid.cassy.core.security.SessionManager
+import com.azuredevid.cassy.data.network.AndroidServerHealthMonitor
 import com.azuredevid.cassy.data.network.CassyHttpClientFactory
 import com.azuredevid.cassy.data.network.CassyRealtimeClient
 import com.azuredevid.cassy.data.repository.DataStorePrinterSettingsRepository
@@ -23,6 +24,7 @@ import com.azuredevid.cassy.domain.repository.CatalogRepository
 import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.domain.repository.ServerHealthMonitor
 import com.azuredevid.cassy.domain.repository.ShiftRepository
 import com.azuredevid.cassy.domain.repository.StoreGovernanceRepository
 import com.azuredevid.cassy.ui.catalog.CatalogManagementViewModel
@@ -57,6 +59,14 @@ val appModule = module {
             httpClient = get(),
             serverSettings = get(),
             sessionManager = get()
+        )
+    }
+
+    single<ServerHealthMonitor> {
+        AndroidServerHealthMonitor(
+            context = androidContext(),
+            httpClient = get(),
+            serverSettings = get()
         )
     }
 }
@@ -109,7 +119,13 @@ val repositoryModule = module {
 }
 
 val viewModelModule = module {
-    viewModel { StorePairingViewModel(authRepository = get(), savedStateHandle = get()) }
+    viewModel {
+        StorePairingViewModel(
+            authRepository = get(),
+            healthMonitor = get(),
+            savedStateHandle = get()
+        )
+    }
     viewModel { ServerConfigViewModel(serverSettings = get(), httpClient = get(), savedStateHandle = get()) }
     viewModel {
         StoreSettingsViewModel(

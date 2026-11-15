@@ -73,7 +73,7 @@
 
     <!-- Store Pairing Screen -->
     <string name="pairing_screen_title">Pairing Perangkat Tablet POS</string>
-    <string name="pairing_screen_desc">Hubungkan tablet POS ini ke gerai Anda dengan memindai Signed QR Code dari Dashboard Pemilik, atau masukkan kode 6-digit manual.</string>
+    <string name="pairing_screen_desc">Hubungkan tablet POS ini ke gerai dengan memindai QR Perangkat dari Dashboard Pemilik, atau masuk dengan Slug Gerai, Email, dan PIN 6 digit.</string>
     <string name="pairing_connecting">Menghubungkan ke server gerai...</string>
     <string name="btn_scan_qr_camera">Pindai QR Pairing Gerai (Kamera)</string>
     <string name="btn_close_camera">Tutup Kamera</string>
@@ -282,7 +282,7 @@
     <string name="server_config_guide_title">Panduan Alamat Server</string>
     <string name="server_config_guide_body">Gunakan HTTPS publik untuk tablet fisik dan http://10.0.2.2:8080 untuk emulator lokal.</string>
     <string name="pairing_brand_tagline">Kasir &amp; Pemesanan F&amp;B Indonesia</string>
-    <string name="pairing_highlight_1">Menu, meja, dan pajak tersinkronisasi langsung dari server gerai.</string>
+    <string name="pairing_highlight_1">Menu, shift kasir, dan pajak tersinkronisasi langsung dari server gerai.</string>
     <string name="pairing_highlight_2">Mendukung QRIS dinamis Midtrans serta cetak thermal LAN port 9100.</string>
     <string name="pairing_highlight_3">Kredensial staf terenkripsi aman di penyimpanan perangkat.</string>
     <string name="pairing_camera_title">Arahkan kamera ke QR Perangkat</string>
@@ -290,6 +290,30 @@
     <string name="pairing_err_qr_empty">QR Code kosong atau tidak terbaca.</string>
     <string name="pairing_err_qr_format">Format QR tidak valid. Pindai QR perangkat resmi dari Dashboard Pemilik.</string>
     <string name="pairing_err_auth_failed">Autentikasi staf gagal.</string>
+    <string name="auth_err_store_slug_invalid">Gunakan huruf kecil, angka, dan tanda hubung (-).</string>
+    <string name="auth_err_email_invalid">Format email staf belum valid.</string>
+    <string name="auth_pin_helper">%1$d/6 digit terisi</string>
+    <string name="auth_pin_ready_helper">PIN 6 digit siap dikirim</string>
+    <string name="a11y_toggle_pin_visibility">Tampilkan atau sembunyikan PIN</string>
+    <string name="a11y_clear_qr_badge">Hapus info QR terbaca</string>
+    <string name="pairing_server_status_checking">Memeriksa…</string>
+    <string name="pairing_server_status_online">Online • %1$d ms</string>
+    <string name="pairing_server_status_online_simple">Online</string>
+    <string name="pairing_server_status_network_offline">Offline (Tanpa Jaringan)</string>
+    <string name="pairing_server_status_server_unreachable">Offline (Server Mati)</string>
+    <string name="pairing_server_status_cd">Status koneksi server: %1$s. Ketuk untuk periksa ulang.</string>
+    <string name="pairing_camera_permission_denied_title">Izin Kamera Diperlukan</string>
+    <string name="pairing_camera_permission_denied_desc">Aktifkan izin kamera untuk memindai QR Pairing, atau gunakan input scanner USB/Bluetooth.</string>
+    <string name="pairing_btn_open_app_settings">Buka Pengaturan Aplikasi</string>
+    <string name="pairing_btn_hid_scanner">Scanner USB / Tempel Payload QR</string>
+    <string name="pairing_hid_dialog_title">Pindai USB atau Tempel Payload QR</string>
+    <string name="pairing_hid_dialog_desc">Arahkan barcode scanner USB/Bluetooth ke kolom ini atau tempel JSON QR dari Dashboard Pemilik.</string>
+    <string name="pairing_hid_field_label">Payload JSON QR Perangkat</string>
+    <string name="pairing_hid_apply">Terapkan QR</string>
+    <string name="scanner_torch_on">Nyalakan Lampu Flash</string>
+    <string name="scanner_torch_off">Matikan Lampu Flash</string>
+    <string name="scanner_reticle_hint">Arahkan kamera ke QR Code Pairing Gerai</string>
+    <string name="splash_loading_subtitle">Memverifikasi sesi gerai terenkripsi…</string>
 
     <!-- Catalog Management Form Additions -->
     <string name="catalog_categories_header">Kategori Menu</string>
