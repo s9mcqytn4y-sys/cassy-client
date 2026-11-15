@@ -11,6 +11,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.filterToOne
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -445,17 +447,17 @@ class CassyUiShowcaseTest {
         }
         composeRule.onNodeWithText(context.getString(R.string.server_config_title)).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.server_config_test_btn)).assertIsDisplayed()
-        composeRule.onNodeWithText(context.getString(R.string.server_config_preset_lan)).assertIsDisplayed()
+        composeRule.onAllNodesWithText(context.getString(R.string.server_config_preset_lan)).filterToOne(hasClickAction()).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.server_config_discover_mdns)).assertIsDisplayed()
-        composeRule.onNodeWithText(context.getString(R.string.server_config_preset_demo)).performClick()
+        composeRule.onAllNodesWithText(context.getString(R.string.server_config_preset_demo)).filterToOne(hasClickAction()).performClick()
         composeRule.onNodeWithContentDescription(context.getString(R.string.server_config_clear_url_cd)).assertIsDisplayed()
         captureScreen("ServerConfig/DefaultCloudHttps")
 
-        composeRule.onNodeWithText(context.getString(R.string.server_config_preset_lan)).performClick()
+        composeRule.onAllNodesWithText(context.getString(R.string.server_config_preset_lan)).filterToOne(hasClickAction()).performClick()
         composeRule.waitForIdle()
         captureScreen("ServerConfig/Tabs/LocalStoreLanTab")
 
-        composeRule.onNodeWithText(context.getString(R.string.server_config_preset_emulator)).performClick()
+        composeRule.onAllNodesWithText(context.getString(R.string.server_config_preset_emulator)).filterToOne(hasClickAction()).performClick()
         composeRule.waitForIdle()
         captureScreen("ServerConfig/Tabs/LocalEmulatorTab")
 
