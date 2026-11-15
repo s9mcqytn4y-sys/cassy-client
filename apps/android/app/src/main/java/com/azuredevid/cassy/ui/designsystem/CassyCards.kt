@@ -56,7 +56,7 @@ fun CassyCard(
             border = BorderStroke(1.dp, borderColor),
             modifier = modifier.cassyPressScale(interactionSource, enabled)
         ) {
-            Column(modifier = Modifier.padding(contentPadding), content = content)
+            Column(modifier = Modifier.fillMaxWidth().padding(contentPadding), content = content)
         }
     } else {
         Surface(
@@ -66,7 +66,7 @@ fun CassyCard(
             border = BorderStroke(1.dp, borderColor),
             modifier = modifier
         ) {
-            Column(modifier = Modifier.padding(contentPadding), content = content)
+            Column(modifier = Modifier.fillMaxWidth().padding(contentPadding), content = content)
         }
     }
 }
@@ -115,8 +115,8 @@ fun CassySplitPane(
     leftWeight: Float = 0.44f,
     rightWeight: Float = 0.56f,
     gap: Dp = CassyDimens.SpaceXl,
-    leftContent: @Composable () -> Unit,
-    rightContent: @Composable () -> Unit
+    leftContent: @Composable ColumnScope.() -> Unit,
+    rightContent: @Composable ColumnScope.() -> Unit
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         if (maxWidth >= CassyDimens.SplitPaneBreakpoint) {
@@ -129,8 +129,7 @@ fun CassySplitPane(
                 Column(
                     modifier = Modifier
                         .weight(leftWeight)
-                        .fillMaxHeight()
-                        .verticalScroll(rememberScrollState()),
+                        .fillMaxHeight(),
                     verticalArrangement = Arrangement.Top
                 ) {
                     leftContent()
@@ -138,8 +137,7 @@ fun CassySplitPane(
                 Column(
                     modifier = Modifier
                         .weight(rightWeight)
-                        .fillMaxHeight()
-                        .verticalScroll(rememberScrollState()),
+                        .fillMaxHeight(),
                     verticalArrangement = Arrangement.Top
                 ) {
                     rightContent()

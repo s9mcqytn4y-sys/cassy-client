@@ -12,11 +12,17 @@ const font = localFont({ src: "./fonts/PlusJakartaSans-latin-wght.woff2", weight
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: { default: "Pesan dari meja", template: "%s | Cassy" },
-  description: "Pesan dan bayar dari meja gerai lewat kode QR.",
+  description: "Pesan dan bayar dari meja gerai lewat kode QR bersama Cassy oleh AzureDevID.",
   manifest: "/manifest.webmanifest",
   applicationName: "Cassy",
   // Table QR links are private to each table, so the app stays out of search results.
   robots: { index: false, follow: false },
+  openGraph: {
+    siteName: "Cassy oleh AzureDevID",
+    locale: "id_ID",
+    type: "website",
+    images: [{ url: "/AndroidChrome512.png", width: 512, height: 512, alt: "Cassy oleh AzureDevID" }]
+  },
   icons: {
     icon: [
       { url: "/Favicon32.png", sizes: "32x32", type: "image/png" },

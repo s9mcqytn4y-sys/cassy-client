@@ -11,7 +11,6 @@ Prioritas: **T** tinggi (bayar sebelum pilot), **S** sedang (bayar dalam rilis b
 | D1 | Image Playwright di CI (`mcr.microsoft.com/playwright:v1.65.0-noble`) diselaraskan manual dengan `@playwright/test` di lockfile. Saat ini cocok (1.65.0) | R | Langkah CI yang membandingkan keduanya, atau saat menaikkan Playwright |
 | D2 | Isi legal dimuat di browser (`LegalView` client component) karena web tidak memanggil `BACKEND_INTERNAL_URL` saat render server | R | Saat SEO halaman legal penting atau saat menambah halaman server lain |
 | D3 | Pesan cadangan `apiFetch` ("Tidak bisa terhubung ke server", "Permintaan gagal") hanya bahasa Indonesia. Sebagian besar pemanggil sudah memetakan ke `t.*` | R | Saat ada pemanggil baru yang menampilkan `err.message` |
-| D4 | Judul ToS tenant di data masih "Syarat dan Ketentuan Layanan SaaS MyCaffe by AzureDevID" | S | Versi baru dokumen tenant setelah tinjauan hukum; jangan ubah versi yang sudah disetujui tenant |
 
 ## Ditemukan selama PRD v3
 
@@ -19,7 +18,6 @@ Prioritas: **T** tinggi (bayar sebelum pilot), **S** sedang (bayar dalam rilis b
 |---|---|---|---|
 | S1 | Token bearer di path (struk, pelacakan, bagi tagihan) tercatat utuh di access log nginx | S | Sebelum log dikirim ke layanan pihak ketiga: samarkan dengan `map` di `log_format` |
 | S2 | Repo client belum punya pemindai rahasia di CI (backend sudah Gitleaks) | R | Saat ada konfigurasi atau kunci baru di repo client |
-| S3 | Rate limit tamu (sesi, pesanan, pembayaran) disimpan di memori proses, benar hanya untuk satu instance API (ADR-002) | S | Sebelum API dijalankan lebih dari satu instance |
 | O1 | `/opt/mycaffe` di host demo adalah salinan `deploy/` dan `scripts/`, bukan checkout git; perubahan konfigurasi deploy perlu disalin manual | S | Sebelum pilot VPS Jakarta: checkout git dengan tag rilis |
 | O2 | Port forwarding localhost Windows ke WSL putus; skrip lokal memakai IP WSL | R | Saat mengganti mesin atau setelah `wsl --shutdown` terjadwal |
 | O3 | Override `next>postcss` di `pnpm-workspace.yaml` karena Next memasang postcss 8.4.31 | R | Hapus saat Next memakai postcss yang sudah ditambal |

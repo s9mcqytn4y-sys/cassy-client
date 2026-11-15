@@ -241,4 +241,47 @@ class ServerConfigViewModelTest {
         assertFalse(prodVm.uiState.value.isCleartextBlockedInProd)
         assertEquals("https://pos-lokal.cassy.local", repo.getBaseUrl())
     }
+
+    @Test
+    fun securityUrlValidation_rejectsCredentialsZeroHostAndUnsafeMdnsExternalIp() = runTest(testDispatcher) {
+        val repo = FakeServerSettingsRepository("https://demo.abbdullaziz.online")
+        val fakeDiscovery = object : LocalServerDiscoveryRepository {
+            override suspend fun discoverLocalServers(timeoutMs: Long): List<DiscoveredLocalServer> {
+                return listOf(
+                    DiscoveredLocalServer(
+                        serviceName = "Untrusted Public Host",
+                        host = "8.8.8.8",
+                        port = 8080,
+                        baseUrl = "http://8.8.8.8:8080",
+                        isTls = false
+                    ),
+                    DiscoveredLocalServer(
+                        serviceName = "Cassy Local Appliance",
+                        host = "192.168.10.25",
+                        port = 8080,
+                        baseUrl = "http://192.168.10.25:8080",
+                        isTls = false
+                    )
+                )
+            }
+        }
+        val vm = ServerConfigViewModel(repo, localDiscovery = fakeDiscovery, enforceHttpsOnly = false)
+
+        vm.onUrlChanged("https://admin:secret@demo.abbdullaziz.online")
+        assertFalse(vm.save())
+        assertTrue(vm.uiState.value.isUrlInvalid)
+
+        vm.onUrlChanged("http://0.0.0.0:8080")
+        assertFalse(vm.save())
+        assertTrue(vm.uiState.value.isUrlInvalid)
+
+        vm.discoverLocalServers()
+        advanceUntilIdle()
+        assertTrue(vm.uiState.value.showMdnsDialog)
+        assertEquals(1, vm.uiState.value.discoveredServers.size)
+        assertEquals("http://192.168.10.25:8080", vm.uiState.value.discoveredServers.single().baseUrl)
+
+        vm.dismissMdnsDialog()
+        assertFalse(vm.uiState.value.showMdnsDialog)
+    }
 }

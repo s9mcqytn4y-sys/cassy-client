@@ -70,6 +70,7 @@ fun CassySecondaryButton(
     loading: Boolean = false,
     icon: ImageVector? = null,
     height: Dp = CassyDimens.ButtonHeight,
+    containerColor: Color = Color.Transparent,
     contentColor: Color = MaterialTheme.colorScheme.primary,
     borderColor: Color = MaterialTheme.colorScheme.outline
 ) {
@@ -80,7 +81,10 @@ fun CassySecondaryButton(
         interactionSource = interactionSource,
         shape = RoundedCornerShape(CassyDimens.RadiusButton),
         border = BorderStroke(1.dp, borderColor),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = containerColor,
+            contentColor = contentColor
+        ),
         contentPadding = PaddingValues(horizontal = CassyDimens.SpaceLg, vertical = CassyDimens.SpaceSm),
         modifier = modifier
             .defaultMinSize(minWidth = CassyDimens.TouchTargetMin, minHeight = height)

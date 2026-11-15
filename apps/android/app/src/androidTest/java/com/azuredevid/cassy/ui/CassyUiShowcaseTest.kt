@@ -64,6 +64,8 @@ import com.azuredevid.cassy.domain.model.ZReport
 import com.azuredevid.cassy.domain.repository.AuthLoginResult
 import com.azuredevid.cassy.domain.repository.AuthRepository
 import com.azuredevid.cassy.domain.repository.CatalogRepository
+import com.azuredevid.cassy.domain.repository.DiscoveredLocalServer
+import com.azuredevid.cassy.domain.repository.LocalServerDiscoveryRepository
 import com.azuredevid.cassy.domain.repository.MobileBootstrapData
 import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
@@ -417,7 +419,24 @@ class CassyUiShowcaseTest {
 
     @Test
     fun serverConfigScreen_rendersSplitPaneAndPresets() {
-        val vm = ServerConfigViewModel(ShowcaseServerSettingsRepo(), enforceHttpsOnly = false)
+        val fakeDiscovery = object : LocalServerDiscoveryRepository {
+            override suspend fun discoverLocalServers(timeoutMs: Long): List<DiscoveredLocalServer> {
+                return listOf(
+                    DiscoveredLocalServer(
+                        serviceName = "Cassy Roastery Senopati (LAN)",
+                        host = "192.168.1.100",
+                        port = 8080,
+                        baseUrl = "http://192.168.1.100:8080",
+                        isTls = false
+                    )
+                )
+            }
+        }
+        val vm = ServerConfigViewModel(
+            serverSettings = ShowcaseServerSettingsRepo(),
+            localDiscovery = fakeDiscovery,
+            enforceHttpsOnly = false
+        )
         composeRule.setContent {
             CassyTheme(darkTheme = false) {
                 ServerConfigScreen(viewModel = vm, onNavigateBack = {})
@@ -429,7 +448,33 @@ class CassyUiShowcaseTest {
         composeRule.onNodeWithText(context.getString(R.string.server_config_discover_mdns)).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.server_config_preset_demo)).performClick()
         composeRule.onNodeWithContentDescription(context.getString(R.string.server_config_clear_url_cd)).assertIsDisplayed()
-        captureScreen("ServerConfig/ServerConfigDefault")
+        captureScreen("ServerConfig/DefaultCloudHttps")
+
+        composeRule.onNodeWithText(context.getString(R.string.server_config_preset_lan)).performClick()
+        composeRule.waitForIdle()
+        captureScreen("ServerConfig/Tabs/LocalStoreLanTab")
+
+        composeRule.onNodeWithText(context.getString(R.string.server_config_preset_emulator)).performClick()
+        composeRule.waitForIdle()
+        captureScreen("ServerConfig/Tabs/LocalEmulatorTab")
+
+        composeRule.runOnIdle {
+            vm.onUrlChanged("ftp://invalid-endpoint")
+            vm.save()
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.server_config_err_url)).assertIsDisplayed()
+        captureScreen("ServerConfig/Errors/InvalidUrlValidation")
+
+        composeRule.runOnIdle {
+            vm.discoverLocalServers()
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.server_config_mdns_dialog_title)).assertIsDisplayed()
+        captureScreen("ServerConfig/Modals/MdnsDiscoveryDialog", preferFullDisplay = true)
+        composeRule.runOnIdle {
+            vm.dismissMdnsDialog()
+        }
     }
 
     private class ShowcaseHealthMonitor(
@@ -490,7 +535,7 @@ class CassyUiShowcaseTest {
             .assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.auth_err_store_slug_required)).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.auth_btn_sign_in)).assertIsDisplayed()
-        captureScreen("StorePairing/ValidationAndOffline")
+        captureScreen("StorePairing/Errors/ValidationAndOffline")
 
         composeRule.runOnIdle {
             vm.onEvent(StorePairingUiEvent.CameraPermissionDenied)
@@ -498,7 +543,7 @@ class CassyUiShowcaseTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.pairing_camera_permission_denied_title))
             .assertIsDisplayed()
-        captureScreen("StorePairing/CameraPermissionModal", preferFullDisplay = true)
+        captureScreen("StorePairing/Modals/CameraPermissionModal", preferFullDisplay = true)
 
         composeRule.runOnIdle {
             vm.onEvent(StorePairingUiEvent.OpenHidScanner(true))
@@ -521,7 +566,7 @@ class CassyUiShowcaseTest {
             composeRule.waitForIdle()
         }
         composeRule.onNodeWithText(context.getString(R.string.pairing_hid_ready_scan)).assertIsDisplayed()
-        captureScreen("StorePairing/HidScannerDialog", preferFullDisplay = true)
+        captureScreen("StorePairing/Modals/HidScannerDialog", preferFullDisplay = true)
     }
 
     @Test
@@ -542,7 +587,7 @@ class CassyUiShowcaseTest {
         composeRule.onNodeWithText(context.getString(R.string.scanner_reticle_hint)).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.pairing_btn_hid_scanner)).assertIsDisplayed()
         composeRule.onNodeWithContentDescription(context.getString(R.string.scanner_close_cd)).assertIsDisplayed()
-        captureScreen("StorePairing/QrCameraScanner", preferFullDisplay = true)
+        captureScreen("StorePairing/Modals/QrCameraScanner", preferFullDisplay = true)
     }
 
     @Test
@@ -623,16 +668,16 @@ class CassyUiShowcaseTest {
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_midtrans)).assertIsDisplayed()
-        captureScreen("StoreSettings/MidtransTab")
+        captureScreen("StoreSettings/Tabs/MidtransTab")
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_cms)).performClick()
         composeRule.onNodeWithText(context.getString(R.string.cms_preview_heading)).assertIsDisplayed()
-        captureScreen("StoreSettings/CmsTab")
+        captureScreen("StoreSettings/Tabs/CmsTab")
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_service)).performClick()
         composeRule.onNodeWithText(context.getString(R.string.service_section_title)).assertIsDisplayed()
-        captureScreen("StoreSettings/ServiceModeTab")
+        captureScreen("StoreSettings/Tabs/ServiceModeTab")
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_printer)).performClick()
         composeRule.onNodeWithText(context.getString(R.string.printer_tab_title)).assertIsDisplayed()
-        captureScreen("StoreSettings/PrinterTab")
+        captureScreen("StoreSettings/Tabs/PrinterTab")
     }
 
     @Test
@@ -725,20 +770,21 @@ class CassyUiShowcaseTest {
             }
         }
 
-        val expectedTitles = listOf(
-            R.string.shift_open_title,
-            R.string.shift_movement_title,
-            R.string.shift_xreport_title,
-            R.string.shift_close_title,
-            R.string.modal_cash_title,
-            R.string.modal_qris_title,
-            R.string.catalog_edit_category,
-            R.string.catalog_edit_product
+        val modalCaptures = listOf(
+            R.string.shift_open_title to "ShiftManagement/Modals/OpenShiftModal",
+            R.string.shift_movement_title to "ShiftManagement/Modals/CashMovementModal",
+            R.string.shift_xreport_title to "ShiftManagement/Modals/XReportModal",
+            R.string.shift_close_title to "ShiftManagement/Modals/CloseShiftModal",
+            R.string.modal_cash_title to "PosLandscape/Modals/PosCashModal",
+            R.string.modal_qris_title to "PosLandscape/Modals/PosQrisModal",
+            R.string.catalog_edit_category to "CatalogManagement/Modals/CategoryFormDialog",
+            R.string.catalog_edit_product to "CatalogManagement/Modals/ProductFormDialog"
         )
-        expectedTitles.forEachIndexed { idx, titleRes ->
+        modalCaptures.forEachIndexed { idx, (titleRes, path) ->
             composeRule.runOnIdle { dialogStep = idx }
             composeRule.waitForIdle()
             composeRule.onAllNodesWithText(context.getString(titleRes))[0].assertIsDisplayed()
+            captureScreen(path, preferFullDisplay = true)
         }
     }
 }

@@ -34,7 +34,7 @@ Official multi-platform client applications for **Cassy by AzureDevID** (usaha p
 | **`apps/android`** | Kotlin 2.0, Jetpack Compose, CameraX, ZXing | **Cassy POS**: Native Android Tablet POS with dynamic KDS ticket routing, port 9100 ESC/POS printing, and offline fallback. | Production Ready |
 | **`apps/web`** | Next.js 15 App Router, React 19, Tailwind CSS v4 | **Guest Ordering PWA**: White-label mobile web for QR table ordering, dynamic menu, and checkout. | Production Ready |
 | **`apps/ios`** | Objective-C, Foundation, CoreBluetooth | **Hardware HAL**: Low-level receipt printing driver for iOS point-of-sale setups. | Active |
-| **`packages/design-tokens`** | JSON & CSS Variables | **Design Tokens**: Official *Espresso & Crema* tokens verified for WCAG 2.2 AA contrast. | Active |
+| **`packages/design-tokens`** | JSON & CSS Variables | **Design Tokens**: Official *Pandan & Kunyit* (`#1F5F52`, `#E9A23B`, `#F7F5F0`, `#17211E`) tokens verified for WCAG 2.2 AA contrast. | Active |
 
 ---
 
@@ -69,14 +69,11 @@ Official multi-platform client applications for **Cassy by AzureDevID** (usaha p
 pnpm install
 
 # Run Web PWA locally
-pnpm --filter web dev
+pnpm --filter @azuredevid/mycaffe-web dev
 
-# Run Android unit tests
+# Run Android unit tests & DevDebug bundle
 cd apps/android
-./gradlew test
-
-# Build Android App Bundle (AAB)
-./gradlew bundleDebug
+./gradlew testDevDebugUnitTest bundleDevDebug --no-daemon --max-workers=2
 ```
 
 ---
@@ -84,5 +81,5 @@ cd apps/android
 ## Brand & Licensing
 Operated by **AzureDevID** (usaha perorangan AzureDevID). All rights reserved.
 Legal Package Identifier: `com.azuredevid.cassy`.
-Visual System: *Espresso & Crema* (`#FAF6F1`, `#2C1A12`, `#C68B59`, `#8A4F22`).
+Visual System: *Pandan, Kunyit & Putih Tulang* (`#1F5F52`, `#E9A23B`, `#F7F5F0`, `#17211E`).
 

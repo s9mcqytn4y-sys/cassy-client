@@ -31,4 +31,14 @@ apps/web/playwright-report/
 .idea/
 **/.idea/
 *.iml
+screenshots/
+apps/android/screenshots/
+.agents/
+**/.agents/
+.mcp.json
+docs/android-adb/
+apps/android/docs/android-adb/
+tools/
+apps/android/tools/
+
 

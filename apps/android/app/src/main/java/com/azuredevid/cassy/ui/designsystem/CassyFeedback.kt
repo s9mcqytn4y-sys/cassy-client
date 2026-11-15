@@ -1,5 +1,10 @@
 package com.azuredevid.cassy.ui.designsystem
 
+import android.media.AudioManager
+import android.media.ToneGenerator
+import android.view.HapticFeedbackConstants
+import android.view.SoundEffectConstants
+import android.view.View
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -320,6 +325,35 @@ fun CassyEmptyState(
                 text = actionLabel,
                 onClick = onAction
             )
+        }
+    }
+}
+
+/**
+ * Proportional tactile (haptic) and system audio cues for cashier actions.
+ * Respects device touch/sound preferences and never crashes on headless CI emulators.
+ */
+object CassyFeedbackCue {
+    fun tap(view: View) {
+        runCatching {
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            view.playSoundEffect(SoundEffectConstants.CLICK)
+        }
+    }
+
+    fun success(view: View) {
+        runCatching {
+            view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+            view.playSoundEffect(SoundEffectConstants.CLICK)
+        }
+    }
+
+    fun warningOrError(view: View) {
+        runCatching {
+            view.performHapticFeedback(HapticFeedbackConstants.REJECT)
+            val tone = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 45)
+            tone.startTone(ToneGenerator.TONE_PROP_NACK, 120)
+            view.postDelayed({ runCatching { tone.release() } }, 180L)
         }
     }
 }
