@@ -1,22 +1,28 @@
 # Cassy POS tablet (`apps/android`)
 
-Read the root `AGENTS.md` first, then `docs/ReleaseOnePlan.md` before building a screen. Scope and PR order live there.
+Read the root `AGENTS.md` first, then `docs/ReleaseOnePlan.md` and `docs/TestingAndCiGuide.md` before building or testing a screen. Scope and PR order live in `ReleaseOnePlan.md`.
 
 ## Architecture (PRD v4 Q11)
-One module, strict layers per feature: `ui` (Compose + ViewModel) -> `domain` (models, repository interfaces) -> `data` (Ktor implementations). Koin for DI, one shared Ktor client, DataStore with Tink for secrets. No Paging 3 and no Retrofit in Release One.
+One module, strict layers per feature: `ui` (Compose + ViewModel) -> `domain` (models, repository interfaces) -> `data` (Ktor implementations). Koin for DI, one shared Ktor client, DataStore with Tink for secrets (`ServerSettingsRepository` masih memakai `SharedPreferences`, migrasi ke DataStore dicatat di root `docs/TechDebt.md`). No Paging 3 and no Retrofit in Release One.
 
 ## Rules
 - Totals come from `POST /api/v1/pos/orders/quote` (`OrderQuoteRepository`). Never compute tax or service on the device.
 - Theme colours must match `packages/design-tokens/tokens.json`; no Espresso & Crema values.
 - Icons: Material Symbols via `androidx.compose.material.icons`, each with a `contentDescription` or `null` when decorative.
-- All UI text in `res/values/strings.xml` and `res/values-en/strings.xml`.
+- All UI text in `res/values/strings.xml` and `res/values-en/strings.xml`. Keep cashier copy free of technical jargon (`JSON`, `payload`, `HID`).
 - Touch targets 48 dp or more. Rupiah formatted as integers.
 - Printing: raw TCP port 9100 ESC/POS with a 2,500 ms timeout (`PrinterPort9100Manager`), kitchen routing in `KdsTicketRouter`.
+- Security: fail closed without valid session/store binding; follow `docs/SecurityQrPairingAdr.md` for pairing revocation and cleartext warnings.
 
 ## Commands
 ```bash
-./gradlew testDevDebugUnitTest bundleDevDebug
+./gradlew testDevDebugUnitTest bundleDevDebug --no-daemon --max-workers=2
+./gradlew test --no-daemon --max-workers=2
 ```
+
+## Testing & Screenshot Policy
+- Local 8 GB RAM host: run Gradle with `--no-daemon --max-workers=2`; offload Compose UI instrumentation and screenshot captures (`CassyUiShowcaseTest`) to GitHub Actions KVM (`android-ui-screenshots.yml`, detail di `docs/TestingAndCiGuide.md`).
+- Never stage or commit `screenshots/`, `.agents/`, `docs/android-adb/`, or `tools/`.
 
 ## Headless Emulator Test Workflow
 1. Build APK lebih dulu tanpa Gradle daemon agar commit memory Windows tetap bebas:

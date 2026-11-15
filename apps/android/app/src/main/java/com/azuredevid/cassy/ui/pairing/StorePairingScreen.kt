@@ -8,28 +8,18 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Keyboard
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,16 +27,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.azuredevid.cassy.R
-import com.azuredevid.cassy.ui.designsystem.CassyCard
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
-import com.azuredevid.cassy.ui.designsystem.CassyPrimaryButton
-import com.azuredevid.cassy.ui.designsystem.CassySecondaryButton
 import com.azuredevid.cassy.ui.designsystem.CassySnackbarHost
+import com.azuredevid.cassy.ui.pairing.components.CameraPermissionDeniedDialog
 import com.azuredevid.cassy.ui.pairing.components.StorePairingBrandPane
 import com.azuredevid.cassy.ui.pairing.components.StorePairingFormPane
 import com.azuredevid.cassy.ui.pairing.components.StorePairingHidDialog
@@ -87,64 +72,41 @@ fun StorePairingScreen(
     }
 
     if (state.isCameraActive) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            CameraQrScannerView(
-                onQrDetected = { payload ->
-                    viewModel.onEvent(StorePairingUiEvent.HandleQrPayload(payload))
-                }
-            )
-            CassyCard(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(CassyDimens.SpaceXl),
-                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f)
-            ) {
-                Text(
-                    text = stringResource(R.string.pairing_camera_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.height(CassyDimens.SpaceXs))
-                Text(
-                    text = stringResource(R.string.pairing_camera_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+        CameraQrScannerView(
+            onQrDetected = { payload ->
+                viewModel.onEvent(StorePairingUiEvent.HandleQrPayload(payload))
+            },
+            onCloseCamera = {
+                viewModel.onEvent(StorePairingUiEvent.ToggleCamera(false))
+            },
+            onOpenHidScanner = {
+                viewModel.onEvent(StorePairingUiEvent.OpenHidScanner(true))
             }
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = CassyDimens.Space2Xl),
-                shape = RoundedCornerShape(CassyDimens.RadiusCard),
-                color = Color.White.copy(alpha = 0.94f),
-                shadowElevation = CassyDimens.ElevationModal
-            ) {
-                Row(
-                    modifier = Modifier.padding(CassyDimens.SpaceSm),
-                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    CassySecondaryButton(
-                        text = stringResource(R.string.pairing_btn_hid_scanner),
-                        onClick = { viewModel.onEvent(StorePairingUiEvent.OpenHidScanner(true)) },
-                        icon = Icons.Rounded.Keyboard
-                    )
-                    CassyPrimaryButton(
-                        text = stringResource(R.string.btn_close_camera),
-                        onClick = { viewModel.onEvent(StorePairingUiEvent.ToggleCamera(false)) }
-                    )
-                }
-            }
-        }
+        )
         return
+    }
+
+    val openAppSettings: () -> Unit = {
+        val intent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.fromParts("package", context.packageName, null)
+        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
     }
 
     if (state.isHidScannerOpen) {
         StorePairingHidDialog(
             payloadInput = state.hidScannerInput,
+            errorCodeOrMessage = state.hidError,
             onPayloadChange = { viewModel.onEvent(StorePairingUiEvent.UpdateHidInput(it)) },
             onApply = { viewModel.onEvent(StorePairingUiEvent.SubmitHidQrPayload) },
             onDismiss = { viewModel.onEvent(StorePairingUiEvent.OpenHidScanner(false)) }
+        )
+    } else if (state.cameraPermissionDenied) {
+        CameraPermissionDeniedDialog(
+            onOpenAppSettings = openAppSettings,
+            onUseHidScanner = { viewModel.onEvent(StorePairingUiEvent.OpenHidScanner(true)) },
+            onDismiss = { viewModel.onEvent(StorePairingUiEvent.ClearCameraPermissionDenied) }
         )
     }
 
@@ -158,14 +120,6 @@ fun StorePairingScreen(
         } else {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
-    }
-
-    val openAppSettings: () -> Unit = {
-        val intent = Intent(
-            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-            Uri.fromParts("package", context.packageName, null)
-        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        runCatching { context.startActivity(intent) }
     }
 
     Scaffold(
@@ -202,10 +156,6 @@ fun StorePairingScreen(
                             state = state,
                             onOpenQrScanner = openQrScanner,
                             onOpenHidDialog = { viewModel.onEvent(StorePairingUiEvent.OpenHidScanner(true)) },
-                            onOpenAppSettings = openAppSettings,
-                            onDismissCameraDenied = {
-                                viewModel.onEvent(StorePairingUiEvent.ClearCameraPermissionDenied)
-                            },
                             onClearQrBadge = { viewModel.onEvent(StorePairingUiEvent.ClearQrScanned) },
                             onSlugChange = { viewModel.onEvent(StorePairingUiEvent.UpdateStoreSlug(it)) },
                             onEmailChange = { viewModel.onEvent(StorePairingUiEvent.UpdateEmail(it)) },
@@ -233,10 +183,6 @@ fun StorePairingScreen(
                         state = state,
                         onOpenQrScanner = openQrScanner,
                         onOpenHidDialog = { viewModel.onEvent(StorePairingUiEvent.OpenHidScanner(true)) },
-                        onOpenAppSettings = openAppSettings,
-                        onDismissCameraDenied = {
-                            viewModel.onEvent(StorePairingUiEvent.ClearCameraPermissionDenied)
-                        },
                         onClearQrBadge = { viewModel.onEvent(StorePairingUiEvent.ClearQrScanned) },
                         onSlugChange = { viewModel.onEvent(StorePairingUiEvent.UpdateStoreSlug(it)) },
                         onEmailChange = { viewModel.onEvent(StorePairingUiEvent.UpdateEmail(it)) },

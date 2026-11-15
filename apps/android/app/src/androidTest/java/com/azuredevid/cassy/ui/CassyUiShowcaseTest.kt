@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -134,8 +135,10 @@ class CassyUiShowcaseTest {
                     }
                 }
             }
-            val dir = File(context.filesDir, "showcase").apply { mkdirs() }
-            val outFile = File(dir, "$name.png")
+            val dir = File(context.filesDir, "showcase")
+            val outFile = File(dir, "$name.png").apply {
+                parentFile?.mkdirs()
+            }
             FileOutputStream(outFile).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }
@@ -421,7 +424,7 @@ class CassyUiShowcaseTest {
         composeRule.onNodeWithText(context.getString(R.string.server_config_title)).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.server_config_test_btn)).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.server_config_preset_demo)).performClick()
-        captureScreen("server_config")
+        captureScreen("ServerConfig/ServerConfigDefault")
     }
 
     private class ShowcaseHealthMonitor(
@@ -443,7 +446,7 @@ class CassyUiShowcaseTest {
         }
         composeRule.onNodeWithText(context.getString(R.string.app_name)).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.splash_loading_subtitle)).assertIsDisplayed()
-        captureScreen("startup_splash")
+        captureScreen("StartupSplash/ComposeSplash")
     }
 
     @Test
@@ -460,7 +463,7 @@ class CassyUiShowcaseTest {
         composeRule.onNodeWithText(context.getString(R.string.pairing_screen_title)).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.btn_scan_qr_camera)).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.auth_btn_sign_in)).assertIsDisplayed()
-        captureScreen("store_pairing")
+        captureScreen("StorePairing/DefaultOnline")
     }
 
     @Test
@@ -475,21 +478,30 @@ class CassyUiShowcaseTest {
             }
         }
         composeRule.runOnIdle {
-            vm.onEvent(StorePairingUiEvent.CameraPermissionDenied)
             vm.onEvent(StorePairingUiEvent.SubmitLogin)
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.pairing_server_status_server_unreachable))
             .assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.auth_err_store_slug_required)).assertIsDisplayed()
-        captureScreen("store_pairing_validation_offline")
+        composeRule.onNodeWithText(context.getString(R.string.auth_btn_sign_in)).assertIsDisplayed()
+        captureScreen("StorePairing/ValidationAndOffline")
+
+        composeRule.runOnIdle {
+            vm.onEvent(StorePairingUiEvent.CameraPermissionDenied)
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.pairing_camera_permission_denied_title))
+            .assertIsDisplayed()
+        captureScreen("StorePairing/CameraPermissionModal", preferFullDisplay = true)
 
         composeRule.runOnIdle {
             vm.onEvent(StorePairingUiEvent.OpenHidScanner(true))
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.pairing_hid_dialog_title)).assertIsDisplayed()
-        captureScreen("store_pairing_hid_dialog", preferFullDisplay = true)
+        composeRule.onNodeWithText(context.getString(R.string.pairing_hid_ready_scan)).assertIsDisplayed()
+        captureScreen("StorePairing/HidScannerDialog", preferFullDisplay = true)
     }
 
     @Test
@@ -507,9 +519,10 @@ class CassyUiShowcaseTest {
             vm.onEvent(StorePairingUiEvent.ToggleCamera(true))
         }
         composeRule.waitForIdle()
-        composeRule.onNodeWithText(context.getString(R.string.pairing_camera_title)).assertIsDisplayed()
-        composeRule.onNodeWithText(context.getString(R.string.btn_close_camera)).assertIsDisplayed()
-        captureScreen("store_pairing_scanner", preferFullDisplay = true)
+        composeRule.onNodeWithText(context.getString(R.string.scanner_reticle_hint)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.pairing_btn_hid_scanner)).assertIsDisplayed()
+        composeRule.onNodeWithContentDescription(context.getString(R.string.scanner_close_cd)).assertIsDisplayed()
+        captureScreen("StorePairing/QrCameraScanner", preferFullDisplay = true)
     }
 
     @Test
@@ -553,11 +566,10 @@ class CassyUiShowcaseTest {
             composeRule.onAllNodesWithText("Paket Nasi Ayam Bakar").fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.waitForIdle()
-        captureScreen("pos_landscape")
         composeRule.onNodeWithText("Paket Nasi Ayam Bakar").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
-        captureScreen("pos_landscape")
+        captureScreen("PosLandscape/PosMain")
     }
 
     @Test
@@ -574,7 +586,7 @@ class CassyUiShowcaseTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.catalog_mgmt_title)).assertIsDisplayed()
         composeRule.onNodeWithText("Paket Nasi Ayam Bakar").assertIsDisplayed()
-        captureScreen("catalog_management")
+        captureScreen("CatalogManagement/CatalogMain")
     }
 
     @Test
@@ -591,16 +603,16 @@ class CassyUiShowcaseTest {
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_midtrans)).assertIsDisplayed()
-        captureScreen("settings_midtrans")
+        captureScreen("StoreSettings/MidtransTab")
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_cms)).performClick()
         composeRule.onNodeWithText(context.getString(R.string.cms_preview_heading)).assertIsDisplayed()
-        captureScreen("settings_cms")
+        captureScreen("StoreSettings/CmsTab")
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_service)).performClick()
         composeRule.onNodeWithText(context.getString(R.string.service_section_title)).assertIsDisplayed()
-        captureScreen("settings_service")
+        captureScreen("StoreSettings/ServiceModeTab")
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_printer)).performClick()
         composeRule.onNodeWithText(context.getString(R.string.printer_tab_title)).assertIsDisplayed()
-        captureScreen("settings_printer")
+        captureScreen("StoreSettings/PrinterTab")
     }
 
     @Test

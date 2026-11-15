@@ -126,7 +126,14 @@ val viewModelModule = module {
             savedStateHandle = get()
         )
     }
-    viewModel { ServerConfigViewModel(serverSettings = get(), httpClient = get(), savedStateHandle = get()) }
+    viewModel {
+        ServerConfigViewModel(
+            serverSettings = get(),
+            httpClient = get(),
+            healthMonitor = get(),
+            savedStateHandle = get()
+        )
+    }
     viewModel {
         StoreSettingsViewModel(
             repository = get(),

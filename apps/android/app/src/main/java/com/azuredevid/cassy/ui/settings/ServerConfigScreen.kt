@@ -74,7 +74,6 @@ fun ServerConfigScreen(
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
-                ServerConfigUiEffect.SavedAndNavigateBack -> onNavigateBack()
                 is ServerConfigUiEffect.ShowProbeResult -> {
                     val msg = if (effect.success) {
                         String.format(probeOkTemplate, effect.detail)
@@ -192,7 +191,16 @@ private fun ServerConfigInfoPane(state: ServerConfigUiState) {
             if (state.probeStatusOk != null) {
                 Spacer(Modifier.height(CassyDimens.SpaceMd))
                 val msg = if (state.probeStatusOk) {
-                    stringResource(R.string.server_config_test_ok, "HTTP ${state.probeHttpCode ?: 200}")
+                    val detail = if (state.probeLatencyMs != null) {
+                        stringResource(
+                            R.string.server_config_err_latency_note,
+                            state.probeHttpCode ?: 200,
+                            state.probeLatencyMs
+                        )
+                    } else {
+                        "HTTP ${state.probeHttpCode ?: 200}"
+                    }
+                    stringResource(R.string.server_config_test_ok, detail)
                 } else {
                     stringResource(
                         R.string.server_config_test_fail,
@@ -270,6 +278,14 @@ private fun ServerConfigFormPane(
             isError = errMessage != null,
             supportingText = errMessage
         )
+
+        if (state.showCleartextWarning && errMessage == null) {
+            Spacer(Modifier.height(CassyDimens.SpaceSm))
+            CassyErrorBanner(
+                message = stringResource(R.string.server_config_cleartext_warning),
+                tone = CassyToastTone.WARNING
+            )
+        }
 
         if (state.probeStatusOk == false && !state.probeErrorMessage.isNullOrBlank()) {
             Spacer(Modifier.height(CassyDimens.SpaceMd))
