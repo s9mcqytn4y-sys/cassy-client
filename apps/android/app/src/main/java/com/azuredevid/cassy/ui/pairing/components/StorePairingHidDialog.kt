@@ -11,6 +11,7 @@ import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -33,7 +34,10 @@ fun StorePairingHidDialog(
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+        // Wait for the Dialog subcomposition window to attach FocusRequester before requesting focus.
+        withFrameNanos { }
+        withFrameNanos { }
+        runCatching { focusRequester.requestFocus() }
     }
 
     CassyModalDialog(

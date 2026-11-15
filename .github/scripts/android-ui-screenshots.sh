@@ -3,47 +3,54 @@ set -euo pipefail
 
 mkdir -p artifacts/ui-v2.1.0/showcase
 
+png_dims() {
+  python3 - "$1" <<'PY'
+import struct, sys
+with open(sys.argv[1], "rb") as f:
+    data = f.read(24)
+w, h = struct.unpack(">II", data[16:24])
+print(f"{w} {h}")
+PY
+}
+
 ensure_tablet_landscape() {
   adb shell settings put system accelerometer_rotation 0
-  adb shell wm density 320
   adb shell svc power stayon true
   adb shell input keyevent KEYCODE_WAKEUP
   adb shell wm dismiss-keyguard
 
-  # Physical/natural AVD display is portrait (e.g. 320x640); setting natural size
-  # 1600x2560 + user_rotation 1 produces exact 2560x1600 landscape.
-  adb shell wm size 1600x2560
-  adb shell settings put system user_rotation 1
-  sleep 2
   adb exec-out screencap -p > /tmp/orient_check.png
-
-  local dims
-  dims=$(python3 - <<'PY'
-import struct
-with open("/tmp/orient_check.png", "rb") as f:
-    data = f.read(24)
-w, h = struct.unpack(">II", data[16:24])
-print(f"{w} {h}")
-PY
-)
-  echo "Orientation check 1: $dims"
-  local w h
+  local dims w h
+  dims=$(png_dims /tmp/orient_check.png)
+  echo "Native display: $dims"
   read -r w h <<< "$dims"
+
   if [ "$w" -lt "$h" ]; then
-    echo "Switching to natural 2560x1600 + user_rotation 0 for landscape..."
-    adb shell wm size 2560x1600
-    adb shell settings put system user_rotation 0
+    adb shell settings put system user_rotation 1
     sleep 2
     adb exec-out screencap -p > /tmp/orient_check.png
-    dims=$(python3 - <<'PY'
-import struct
-with open("/tmp/orient_check.png", "rb") as f:
-    data = f.read(24)
-w, h = struct.unpack(">II", data[16:24])
-print(f"{w} {h}")
-PY
-)
-    echo "Orientation check 2: $dims"
+    dims=$(png_dims /tmp/orient_check.png)
+    echo "After user_rotation 1: $dims"
+    read -r w h <<< "$dims"
+  fi
+
+  if [ "$w" -lt 2000 ] || [ "$w" -lt "$h" ]; then
+    adb shell wm density 320
+    adb shell wm size 1600x2560
+    adb shell settings put system user_rotation 1
+    sleep 2
+    adb exec-out screencap -p > /tmp/orient_check.png
+    dims=$(png_dims /tmp/orient_check.png)
+    echo "After wm override: $dims"
+    read -r w h <<< "$dims"
+    if [ "$w" -lt "$h" ]; then
+      adb shell wm size 2560x1600
+      adb shell settings put system user_rotation 0
+      sleep 2
+      adb exec-out screencap -p > /tmp/orient_check.png
+      dims=$(png_dims /tmp/orient_check.png)
+      echo "After swapped wm override: $dims"
+    fi
   fi
 }
 
@@ -90,40 +97,55 @@ def tap(xy):
     subprocess.run(["adb", "shell", "input", "tap", str(xy[0]), str(xy[1])], check=True)
 
 xml_file = "artifacts/ui-v2.1.0/live_ui_dump.xml"
+scan_btn = find_center(xml_file, "Scan Store Pairing QR")
 sign_in = find_center(xml_file, "Sign In & Connect Store")
 hid_btn = find_center(xml_file, "USB Scanner")
-scan_btn = find_center(xml_file, "Scan Store Pairing QR")
-print("Centers:", {"sign_in": sign_in, "hid": hid_btn, "scan": scan_btn})
+print("Centers:", {"scan": scan_btn, "sign_in": sign_in, "hid": hid_btn})
 
-if sign_in:
-    tap(sign_in)
-    time.sleep(2)
-    with open("artifacts/ui-v2.1.0/03_live_pairing_validation.png", "wb") as f:
-        subprocess.run(["adb", "exec-out", "screencap", "-p"], stdout=f, check=True)
-
-if hid_btn:
-    tap(hid_btn)
-    time.sleep(2)
-    with open("artifacts/ui-v2.1.0/04_live_pairing_hid_dialog.png", "wb") as f:
-        subprocess.run(["adb", "exec-out", "screencap", "-p"], stdout=f, check=True)
-    subprocess.run(["adb", "shell", "input", "keyevent", "KEYCODE_BACK"], check=True)
-    time.sleep(1)
-
+# 1) Open Camera QR Scanner first from clean state
 if scan_btn:
     tap(scan_btn)
     time.sleep(3)
     with open("artifacts/ui-v2.1.0/05_live_pairing_qr_scanner.png", "wb") as f:
         subprocess.run(["adb", "exec-out", "screencap", "-p"], stdout=f, check=True)
+    # Close Camera Scanner cleanly via UI button if present, else KEYCODE_BACK
+    subprocess.run(["adb", "shell", "uiautomator", "dump", "/data/local/tmp/ui_cam.xml"], check=False)
+    subprocess.run(["adb", "pull", "/data/local/tmp/ui_cam.xml", "artifacts/ui-v2.1.0/live_cam_dump.xml"], check=False)
+    close_cam = None
+    try:
+        close_cam = find_center("artifacts/ui-v2.1.0/live_cam_dump.xml", "Close Camera") or find_center("artifacts/ui-v2.1.0/live_cam_dump.xml", "Manual")
+    except Exception:
+        pass
+    if close_cam:
+        tap(close_cam)
+    else:
+        subprocess.run(["adb", "shell", "input", "keyevent", "KEYCODE_BACK"], check=True)
+    time.sleep(1.5)
+
+# 2) Trigger inline form validation on empty submit
+if sign_in:
+    tap(sign_in)
+    time.sleep(1.5)
+    with open("artifacts/ui-v2.1.0/03_live_pairing_validation.png", "wb") as f:
+        subprocess.run(["adb", "exec-out", "screencap", "-p"], stdout=f, check=True)
+
+# 3) Open USB HID / Paste QR Payload dialog
+if hid_btn:
+    tap(hid_btn)
+    time.sleep(2)
+    with open("artifacts/ui-v2.1.0/04_live_pairing_hid_dialog.png", "wb") as f:
+        subprocess.run(["adb", "exec-out", "screencap", "-p"], stdout=f, check=True)
 PY
+
+rm -f artifacts/ui-v2.1.0/live_ui_dump.xml artifacts/ui-v2.1.0/live_cam_dump.xml
 
 # Run Compose Showcase instrumentation tests
 adb shell am force-stop com.azuredevid.cassy.dev
-INSTR_OUT=$(adb shell am instrument -w -e class "com.azuredevid.cassy.ui.CassyUiShowcaseTest" com.azuredevid.cassy.dev.test/androidx.test.runner.AndroidJUnitRunner)
+set +e
+INSTR_OUT=$(adb shell am instrument -w -e class "com.azuredevid.cassy.ui.CassyUiShowcaseTest" com.azuredevid.cassy.dev.test/androidx.test.runner.AndroidJUnitRunner 2>&1)
+INSTR_RC=$?
+set -e
 echo "$INSTR_OUT"
-if echo "$INSTR_OUT" | grep -qE "FAILURES!!!|INSTRUMENTATION_ABORTED|INSTRUMENTATION_FAILED|Process crashed"; then
-  echo "Instrumentation test failed"
-  exit 1
-fi
 
 FILES=$(adb shell run-as com.azuredevid.cassy.dev ls files/showcase 2>/dev/null | tr -d '\r' || true)
 for f in $FILES; do
@@ -136,7 +158,6 @@ cp -f artifacts/ui-v2.1.0/showcase/store_pairing_validation_offline.png artifact
 cp -f artifacts/ui-v2.1.0/showcase/store_pairing_hid_dialog.png artifacts/ui-v2.1.0/04_pairing_hid_dialog.png || true
 cp -f artifacts/ui-v2.1.0/showcase/store_pairing_scanner.png artifacts/ui-v2.1.0/05_pairing_qr_scanner.png || true
 
-rm -f artifacts/ui-v2.1.0/live_ui_dump.xml
 python3 - <<'PY'
 import glob, os, struct
 for path in sorted(glob.glob("artifacts/ui-v2.1.0/**/*.png", recursive=True)):
@@ -148,3 +169,8 @@ for path in sorted(glob.glob("artifacts/ui-v2.1.0/**/*.png", recursive=True)):
         w, h = 0, 0
     print(f"{path}: {os.path.getsize(path)} bytes ({w}x{h})")
 PY
+
+if [ "$INSTR_RC" -ne 0 ] || echo "$INSTR_OUT" | grep -qE "FAILURES!!!|INSTRUMENTATION_ABORTED|INSTRUMENTATION_FAILED|Process crashed"; then
+  echo "Instrumentation test failed"
+  exit 1
+fi

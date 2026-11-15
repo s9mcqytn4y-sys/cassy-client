@@ -549,8 +549,11 @@ class CassyUiShowcaseTest {
                 )
             }
         }
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("Paket Nasi Ayam Bakar").fetchSemanticsNodes().isNotEmpty()
+        }
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("Paket Nasi Ayam Bakar").assertIsDisplayed()
+        captureScreen("pos_landscape")
         composeRule.onNodeWithText("Paket Nasi Ayam Bakar").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
