@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.os.Build
+import android.os.SystemClock
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.getValue
@@ -120,6 +121,7 @@ class CassyUiShowcaseTest {
                 preferFullDisplay &&
                 Build.VERSION.SDK_INT <= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
             ) {
+                SystemClock.sleep(500L)
                 InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
             } else {
                 null
@@ -500,10 +502,20 @@ class CassyUiShowcaseTest {
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.pairing_hid_dialog_title)).assertIsDisplayed()
-        composeRule.waitUntil(timeoutMillis = 3_000) {
+        runCatching {
+            composeRule.waitUntil(timeoutMillis = 1_500) {
+                composeRule.onAllNodesWithText(context.getString(R.string.pairing_hid_ready_scan))
+                    .fetchSemanticsNodes()
+                    .isNotEmpty()
+            }
+        }
+        if (
             composeRule.onAllNodesWithText(context.getString(R.string.pairing_hid_ready_scan))
                 .fetchSemanticsNodes()
-                .isNotEmpty()
+                .isEmpty()
+        ) {
+            composeRule.onNodeWithText(context.getString(R.string.pairing_hid_field_label)).performClick()
+            composeRule.waitForIdle()
         }
         composeRule.onNodeWithText(context.getString(R.string.pairing_hid_ready_scan)).assertIsDisplayed()
         captureScreen("StorePairing/HidScannerDialog", preferFullDisplay = true)

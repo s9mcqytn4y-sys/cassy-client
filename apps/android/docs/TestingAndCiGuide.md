@@ -24,7 +24,7 @@ Mesin pengembang Windows memiliki kapasitas commit memory terbatas:
 
 ## 3. Aturan UI Showcase & Screenshot
 
-- **Tema Manifest Test:** `app/src/androidTest/AndroidManifest.xml` memakai `@style/Theme.CassyTest` (`app/src/androidTest/res/values/themes.xml`, turunan `android:Theme.Material.Light.NoActionBar`). Ini menghilangkan bilah ActionBar abu-abu default Android di screenshot Compose test.
+- **Tema Manifest Test:** `app/src/main/AndroidManifest.xml` menetapkan `@style/Theme.Cassy` (`NoActionBar`) pada `<application>` dan `@style/Theme.Cassy.Splash` khusus pada `MainActivity`, sedangkan `app/src/androidTest/AndroidManifest.xml` memakai `@style/Theme.CassyTest`. Ini menghilangkan bilah ActionBar abu-abu default Android di screenshot Compose test.
 - **Struktur Folder Lokal (`apps/android/screenshots/`):** folder ini di-gitignore dan diorganisasi dalam subfolder PascalCase per screen (mirror dari artefak CI `ui-v2.2.0`):
   - `StartupSplash/` (`OsSplash.png`)
   - `StorePairing/` (`DefaultOnline.png`, `ValidationAndOffline.png`, `CameraPermissionModal.png`, `HidScannerDialog.png`, `QrCameraScanner.png`)

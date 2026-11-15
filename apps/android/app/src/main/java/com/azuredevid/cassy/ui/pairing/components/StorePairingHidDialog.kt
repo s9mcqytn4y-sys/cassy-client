@@ -71,7 +71,9 @@ import com.azuredevid.cassy.ui.theme.BrandStatusOnlineDot
 import com.azuredevid.cassy.ui.theme.CassyPandan
 import com.azuredevid.cassy.ui.theme.LightSecondaryInk
 import com.azuredevid.cassy.ui.theme.statusOkFg
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 
 @Composable
 fun StorePairingHidDialog(
@@ -103,12 +105,19 @@ fun StorePairingHidDialog(
         label = "hidScannerPulseAlpha"
     )
 
-    LaunchedEffect(windowInfo) {
-        // Wait for the Dialog window to acquire OS focus before requesting text field focus.
-        snapshotFlow { windowInfo.isWindowFocused }.first { it }
+    LaunchedEffect(focusRequester) {
+        // Wait briefly for Dialog OS window focus, then request focus regardless and retry once if needed.
+        withTimeoutOrNull(400L) {
+            snapshotFlow { windowInfo.isWindowFocused }.first { it }
+        }
         withFrameNanos { }
         runCatching { focusRequester.requestFocus() }
         keyboardController?.hide()
+        delay(150L)
+        if (!isFieldFocused) {
+            runCatching { focusRequester.requestFocus() }
+            keyboardController?.hide()
+        }
     }
 
     CassyModalDialog(
