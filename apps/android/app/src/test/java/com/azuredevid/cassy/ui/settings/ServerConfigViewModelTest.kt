@@ -161,7 +161,7 @@ class ServerConfigViewModelTest {
             override suspend fun probeNow(): ServerConnectivityState =
                 ServerConnectivityState(ServerConnectionStatus.ONLINE)
         }
-        val vm = ServerConfigViewModel(repo, healthMonitor = monitor)
+        val vm = ServerConfigViewModel(repo, healthMonitor = monitor, enforceHttpsOnly = false)
 
         vm.onUrlChanged("https://a")
         assertFalse(vm.save())
