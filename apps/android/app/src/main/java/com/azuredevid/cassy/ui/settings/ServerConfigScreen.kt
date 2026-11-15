@@ -1,5 +1,6 @@
 package com.azuredevid.cassy.ui.settings
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,33 +14,42 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.NetworkCheck
 import androidx.compose.material.icons.rounded.Save
+import androidx.compose.material.icons.rounded.TravelExplore
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.azuredevid.cassy.BuildConfig
 import com.azuredevid.cassy.R
 import com.azuredevid.cassy.ui.designsystem.CassyCard
@@ -54,9 +64,12 @@ import com.azuredevid.cassy.ui.designsystem.CassyStatusBadge
 import com.azuredevid.cassy.ui.designsystem.CassyTextField
 import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import com.azuredevid.cassy.ui.designsystem.showCassySnackbar
+import com.azuredevid.cassy.ui.theme.CassyPandan
 import org.koin.androidx.compose.koinViewModel
 
 private const val DEMO_HTTPS_URL = "https://demo.abbdullaziz.online"
+private const val LOCAL_STORE_LAN_HTTP_URL = "http://192.168.1.100:8080"
+private const val LOCAL_STORE_LAN_TLS_URL = "https://pos-lokal.cassy.local"
 private const val EMULATOR_LOCAL_URL = "http://10.0.2.2:8080"
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -66,7 +79,7 @@ fun ServerConfigScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val probeOkTemplate = stringResource(R.string.server_config_test_ok)
     val probeFailTemplate = stringResource(R.string.server_config_test_fail)
@@ -121,12 +134,17 @@ fun ServerConfigScreen(
             leftWeight = 0.42f,
             rightWeight = 0.58f,
             leftContent = {
-                ServerConfigInfoPane(state = state)
+                ServerConfigInfoPane(
+                    state = state,
+                    onDiscoverMdns = viewModel::discoverLocalServers,
+                    onSelectDiscoveredServer = viewModel::applyPreset
+                )
             },
             rightContent = {
                 ServerConfigFormPane(
                     state = state,
                     onUrlChanged = viewModel::onUrlChanged,
+                    onClearUrl = viewModel::clearUrl,
                     onApplyPreset = viewModel::applyPreset,
                     onTestConnection = viewModel::testConnection,
                     onSave = {
@@ -141,7 +159,11 @@ fun ServerConfigScreen(
 }
 
 @Composable
-private fun ServerConfigInfoPane(state: ServerConfigUiState) {
+private fun ServerConfigInfoPane(
+    state: ServerConfigUiState,
+    onDiscoverMdns: () -> Unit,
+    onSelectDiscoveredServer: (String) -> Unit
+) {
     Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceLg)) {
         CassyCard {
             Row(
@@ -180,41 +202,89 @@ private fun ServerConfigInfoPane(state: ServerConfigUiState) {
             )
         }
 
-        CassyCard(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)) {
+        CassyCard(containerColor = Color(0xFFECE9DF)) {
             CassySectionHeader(title = stringResource(R.string.server_config_guide_title))
             Spacer(Modifier.height(CassyDimens.SpaceSm))
-            Text(
-                text = stringResource(R.string.server_config_guide_body),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+
+            GuideBulletItem(
+                title = stringResource(R.string.server_config_guide_cloud_title),
+                description = stringResource(R.string.server_config_guide_cloud_desc)
             )
-            if (state.probeStatusOk != null) {
-                Spacer(Modifier.height(CassyDimens.SpaceMd))
-                val msg = if (state.probeStatusOk) {
-                    val detail = if (state.probeLatencyMs != null) {
-                        stringResource(
-                            R.string.server_config_err_latency_note,
-                            state.probeHttpCode ?: 200,
-                            state.probeLatencyMs
-                        )
-                    } else {
-                        "HTTP ${state.probeHttpCode ?: 200}"
-                    }
-                    stringResource(R.string.server_config_test_ok, detail)
+            Spacer(Modifier.height(CassyDimens.SpaceXs))
+            GuideBulletItem(
+                title = stringResource(R.string.server_config_guide_lan_title),
+                description = stringResource(R.string.server_config_guide_lan_desc)
+            )
+            Spacer(Modifier.height(CassyDimens.SpaceXs))
+            GuideBulletItem(
+                title = stringResource(R.string.server_config_guide_emulator_title),
+                description = stringResource(R.string.server_config_guide_emulator_desc)
+            )
+
+            Spacer(Modifier.height(CassyDimens.SpaceMd))
+
+            CassySecondaryButton(
+                text = if (state.isDiscoveringMdns) {
+                    stringResource(R.string.server_config_discovering_mdns)
                 } else {
-                    stringResource(
-                        R.string.server_config_test_fail,
-                        state.probeErrorMessage ?: "-"
-                    )
+                    stringResource(R.string.server_config_discover_mdns)
+                },
+                onClick = onDiscoverMdns,
+                loading = state.isDiscoveringMdns,
+                icon = Icons.Rounded.TravelExplore,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            if (state.discoveredServers.isNotEmpty()) {
+                Spacer(Modifier.height(CassyDimens.SpaceSm))
+                Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)) {
+                    for (server in state.discoveredServers) {
+                        FilterChip(
+                            selected = state.urlInput.trimEnd('/') == server.baseUrl.trimEnd('/'),
+                            onClick = { onSelectDiscoveredServer(server.baseUrl) },
+                            label = {
+                                Text(
+                                    stringResource(
+                                        R.string.server_config_mdns_found_format,
+                                        server.serviceName,
+                                        server.baseUrl
+                                    )
+                                )
+                            },
+                            modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
+                        )
+                    }
                 }
-                CassyStatusBadge(
-                    text = msg,
-                    tone = if (state.probeStatusOk) CassyToastTone.SUCCESS else CassyToastTone.ERROR,
-                    icon = if (state.probeStatusOk) Icons.Rounded.CheckCircle else null
+            } else if (state.mdnsDiscoveryCompleted && !state.isDiscoveringMdns) {
+                Spacer(Modifier.height(CassyDimens.SpaceSm))
+                Text(
+                    text = stringResource(R.string.server_config_mdns_empty),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
     }
+}
+
+@Composable
+private fun GuideBulletItem(
+    title: String,
+    description: String
+) {
+    Text(
+        text = buildAnnotatedString {
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)) {
+                append("• ")
+                append(title)
+                append(" ")
+            }
+            withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                append(description)
+            }
+        },
+        style = MaterialTheme.typography.bodyMedium
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -222,13 +292,20 @@ private fun ServerConfigInfoPane(state: ServerConfigUiState) {
 private fun ServerConfigFormPane(
     state: ServerConfigUiState,
     onUrlChanged: (String) -> Unit,
+    onClearUrl: () -> Unit,
     onApplyPreset: (String) -> Unit,
     onTestConnection: () -> Unit,
     onSave: () -> Unit
 ) {
-    val errMessage = if (state.isUrlInvalid || state.urlError != null) {
-        stringResource(R.string.server_config_err_url)
-    } else null
+    val errMessage = when {
+        state.isCleartextBlockedInProd -> stringResource(R.string.server_config_prod_cleartext_error)
+        state.isUrlInvalid || state.urlError != null -> stringResource(R.string.server_config_err_url)
+        else -> null
+    }
+
+    val isProd = BuildConfig.FLAVOR.equals("prod", ignoreCase = true)
+    val cloudPresetUrl = if (isProd) BuildConfig.BASE_API_URL else DEMO_HTTPS_URL
+    val lanPresetUrl = if (isProd) LOCAL_STORE_LAN_TLS_URL else LOCAL_STORE_LAN_HTTP_URL
 
     CassyCard {
         CassySectionHeader(title = stringResource(R.string.server_config_url_label))
@@ -241,29 +318,35 @@ private fun ServerConfigFormPane(
         )
         Spacer(Modifier.height(CassyDimens.SpaceSm))
 
+        val chipColors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = Color(0xFFB7DEC8),
+            selectedLabelColor = CassyPandan
+        )
+
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm),
             verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
         ) {
-            if (BuildConfig.DEBUG) {
-                FilterChip(
-                    selected = state.urlInput.trimEnd('/') == DEMO_HTTPS_URL,
-                    onClick = { onApplyPreset(DEMO_HTTPS_URL) },
-                    label = { Text(stringResource(R.string.server_config_preset_demo)) },
-                    modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
-                )
+            FilterChip(
+                selected = state.urlInput.trimEnd('/') == cloudPresetUrl.trimEnd('/'),
+                onClick = { onApplyPreset(cloudPresetUrl) },
+                label = { Text(stringResource(R.string.server_config_preset_demo)) },
+                colors = chipColors,
+                modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
+            )
+            FilterChip(
+                selected = state.urlInput.trimEnd('/') == lanPresetUrl.trimEnd('/'),
+                onClick = { onApplyPreset(lanPresetUrl) },
+                label = { Text(stringResource(R.string.server_config_preset_lan)) },
+                colors = chipColors,
+                modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
+            )
+            if (BuildConfig.DEBUG || !isProd) {
                 FilterChip(
                     selected = state.urlInput.trimEnd('/') == EMULATOR_LOCAL_URL,
                     onClick = { onApplyPreset(EMULATOR_LOCAL_URL) },
                     label = { Text(stringResource(R.string.server_config_preset_emulator)) },
-                    modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
-                )
-            }
-            if (BuildConfig.BASE_API_URL !in listOf(DEMO_HTTPS_URL, EMULATOR_LOCAL_URL) || !BuildConfig.DEBUG) {
-                FilterChip(
-                    selected = state.urlInput.trimEnd('/') == BuildConfig.BASE_API_URL,
-                    onClick = { onApplyPreset(BuildConfig.BASE_API_URL) },
-                    label = { Text(BuildConfig.BASE_API_URL) },
+                    colors = chipColors,
                     modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
                 )
             }
@@ -276,7 +359,23 @@ private fun ServerConfigFormPane(
             onValueChange = onUrlChanged,
             label = stringResource(R.string.server_config_url_label),
             isError = errMessage != null,
-            supportingText = errMessage
+            supportingText = errMessage,
+            trailingIcon = if (state.urlInput.isNotEmpty()) {
+                {
+                    IconButton(
+                        onClick = onClearUrl,
+                        modifier = Modifier.size(CassyDimens.TouchTargetMin)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Close,
+                            contentDescription = stringResource(R.string.server_config_clear_url_cd),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            } else {
+                null
+            }
         )
 
         if (state.showCleartextWarning && errMessage == null) {
@@ -287,7 +386,44 @@ private fun ServerConfigFormPane(
             )
         }
 
-        if (state.probeStatusOk == false && !state.probeErrorMessage.isNullOrBlank()) {
+        if (state.probeStatusOk == true) {
+            Spacer(Modifier.height(CassyDimens.SpaceMd))
+            val statusCode = state.probeHttpCode ?: 200
+            val latency = state.probeLatencyMs ?: 1L
+            val diagText = if (state.probeIsTls) {
+                stringResource(R.string.server_config_status_connected_tls_format, statusCode, latency)
+            } else {
+                stringResource(R.string.server_config_status_connected_lan_format, statusCode, latency)
+            }
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(CassyDimens.RadiusButton),
+                color = Color(0xFFE6F4EA),
+                border = BorderStroke(1.dp, Color(0xFF4CAF50))
+            ) {
+                Row(
+                    modifier = Modifier.padding(
+                        horizontal = CassyDimens.SpaceMd,
+                        vertical = CassyDimens.SpaceMd
+                    ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.CheckCircle,
+                        contentDescription = null,
+                        tint = Color(0xFF1B5E20),
+                        modifier = Modifier.size(22.dp)
+                    )
+                    Text(
+                        text = diagText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF17211E)
+                    )
+                }
+            }
+        } else if (state.probeStatusOk == false && !state.probeErrorMessage.isNullOrBlank()) {
             Spacer(Modifier.height(CassyDimens.SpaceMd))
             CassyErrorBanner(
                 message = stringResource(R.string.server_config_test_fail, state.probeErrorMessage),

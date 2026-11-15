@@ -87,7 +87,7 @@ fun CassyModalDialog(
                     if (icon != null) {
                         Box(
                             modifier = Modifier
-                                .size(44.dp)
+                                .size(48.dp)
                                 .clip(CircleShape)
                                 .background(iconContainerColor),
                             contentAlignment = Alignment.Center
@@ -96,7 +96,7 @@ fun CassyModalDialog(
                                 imageVector = icon,
                                 contentDescription = null,
                                 tint = iconTint,
-                                modifier = Modifier.size(CassyDimens.IconSizeLg)
+                                modifier = Modifier.size(26.dp)
                             )
                         }
                     }

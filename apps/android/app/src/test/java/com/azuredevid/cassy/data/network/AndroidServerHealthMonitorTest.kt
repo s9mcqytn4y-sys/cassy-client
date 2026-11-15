@@ -12,8 +12,10 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
 
@@ -100,5 +102,18 @@ class AndroidServerHealthMonitorTest {
 
         assertEquals(ServerConnectionStatus.CHECKING, emissions[0].status)
         assertEquals(ServerConnectionStatus.ONLINE, emissions[1].status)
+    }
+
+    @Test
+    fun isLocalOrPrivateEndpoint_recognizesLanEmulatorAndMdnsHosts() {
+        assertTrue(AndroidServerHealthMonitor.isLocalOrPrivateEndpoint("http://192.168.1.100:8080"))
+        assertTrue(AndroidServerHealthMonitor.isLocalOrPrivateEndpoint("http://10.0.2.2:8080"))
+        assertTrue(AndroidServerHealthMonitor.isLocalOrPrivateEndpoint("http://127.0.0.1:8080"))
+        assertTrue(AndroidServerHealthMonitor.isLocalOrPrivateEndpoint("http://localhost:8080"))
+        assertTrue(AndroidServerHealthMonitor.isLocalOrPrivateEndpoint("https://pos-lokal.cassy.local"))
+        assertTrue(AndroidServerHealthMonitor.isLocalOrPrivateEndpoint("http://172.18.0.3:8080"))
+
+        assertFalse(AndroidServerHealthMonitor.isLocalOrPrivateEndpoint("https://demo.abbdullaziz.online"))
+        assertFalse(AndroidServerHealthMonitor.isLocalOrPrivateEndpoint("https://172.32.0.1:8443"))
     }
 }

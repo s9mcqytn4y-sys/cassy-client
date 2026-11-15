@@ -6,6 +6,7 @@ enum class ServerConnectionStatus {
     CHECKING,
     ONLINE,
     NETWORK_OFFLINE,
+    INTERNET_UNVALIDATED,
     SERVER_UNREACHABLE
 }
 

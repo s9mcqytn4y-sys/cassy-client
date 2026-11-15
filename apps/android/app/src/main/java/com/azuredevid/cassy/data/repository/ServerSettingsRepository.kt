@@ -1,33 +1,88 @@
 package com.azuredevid.cassy.data.repository
 
 import android.content.Context
-import android.content.SharedPreferences
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.SharedPreferencesMigration
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import com.azuredevid.cassy.BuildConfig
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
+
+private val Context.serverSettingsDataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "cassy_server_settings_ds",
+    produceMigrations = { context ->
+        listOf(SharedPreferencesMigration(context, DataStoreServerSettingsRepository.LEGACY_PREFS_NAME))
+    }
+)
 
 interface ServerSettingsRepository {
+    val baseUrlFlow: Flow<String>
+        get() = flowOf(getBaseUrl())
+
     fun getBaseUrl(): String
     fun setBaseUrl(url: String)
 }
 
-class SharedPreferencesServerSettingsRepository(context: Context) : ServerSettingsRepository {
-    private val prefs: SharedPreferences =
-        context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+class DataStoreServerSettingsRepository(
+    context: Context,
+    ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+) : ServerSettingsRepository {
 
-    override fun getBaseUrl(): String {
-        val raw = prefs.getString(KEY_BASE_URL, BuildConfig.BASE_API_URL) ?: BuildConfig.BASE_API_URL
-        return normalizeBaseUrl(raw)
+    private val appContext = context.applicationContext
+    private val dataStore = appContext.serverSettingsDataStore
+    private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
+
+    private val _baseUrlFlow = MutableStateFlow(readInitialSeed(appContext))
+    override val baseUrlFlow: StateFlow<String> = _baseUrlFlow.asStateFlow()
+
+    init {
+        scope.launch {
+            dataStore.data.collect { prefs ->
+                val stored = prefs[KEY_BASE_URL_PREF]
+                if (!stored.isNullOrBlank()) {
+                    _baseUrlFlow.value = normalizeBaseUrl(stored)
+                }
+            }
+        }
     }
+
+    override fun getBaseUrl(): String = _baseUrlFlow.value
 
     override fun setBaseUrl(url: String) {
         val normalized = normalizeBaseUrl(url)
         if (normalized.isNotBlank()) {
-            prefs.edit().putString(KEY_BASE_URL, normalized).apply()
+            _baseUrlFlow.value = normalized
+            scope.launch {
+                dataStore.edit { prefs ->
+                    prefs[KEY_BASE_URL_PREF] = normalized
+                }
+            }
         }
     }
 
     companion object {
-        private const val PREFS_NAME = "cassy_server_settings"
+        const val LEGACY_PREFS_NAME = "cassy_server_settings"
         private const val KEY_BASE_URL = "server_base_url"
+        private val KEY_BASE_URL_PREF = stringPreferencesKey(KEY_BASE_URL)
+
+        private fun readInitialSeed(context: Context): String {
+            return runCatching {
+                val legacyPrefs = context.getSharedPreferences(LEGACY_PREFS_NAME, Context.MODE_PRIVATE)
+                val raw = legacyPrefs.getString(KEY_BASE_URL, null)
+                if (!raw.isNullOrBlank()) normalizeBaseUrl(raw) else normalizeBaseUrl(BuildConfig.BASE_API_URL)
+            }.getOrDefault(normalizeBaseUrl(BuildConfig.BASE_API_URL))
+        }
 
         fun normalizeBaseUrl(raw: String): String {
             return raw.trim()
@@ -38,3 +93,5 @@ class SharedPreferencesServerSettingsRepository(context: Context) : ServerSettin
         }
     }
 }
+
+typealias SharedPreferencesServerSettingsRepository = DataStoreServerSettingsRepository

@@ -3,7 +3,7 @@
 Read the root `AGENTS.md` first, then `docs/ReleaseOnePlan.md` and `docs/TestingAndCiGuide.md` before building or testing a screen. Scope and PR order live in `ReleaseOnePlan.md`.
 
 ## Architecture (PRD v4 Q11)
-One module, strict layers per feature: `ui` (Compose + ViewModel) -> `domain` (models, repository interfaces) -> `data` (Ktor implementations). Koin for DI, one shared Ktor client, DataStore with Tink for secrets (`ServerSettingsRepository` masih memakai `SharedPreferences`, migrasi ke DataStore dicatat di root `docs/TechDebt.md`). No Paging 3 and no Retrofit in Release One.
+One module, strict layers per feature: `ui` (Compose + ViewModel) -> `domain` (models, repository interfaces) -> `data` (Ktor implementations). Koin for DI, one shared Ktor client, Preferences DataStore (`DataStoreServerSettingsRepository`) for settings, and Tink for secrets. No Paging 3 and no Retrofit in Release One.
 
 ## Rules
 - Totals come from `POST /api/v1/pos/orders/quote` (`OrderQuoteRepository`). Never compute tax or service on the device.

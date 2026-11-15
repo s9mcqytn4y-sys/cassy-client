@@ -32,7 +32,6 @@ Prioritas: **T** tinggi (bayar sebelum pilot), **S** sedang (bayar dalam rilis b
 
 | ID | Utang | Prioritas | Pemicu bayar |
 |---|---|---|---|
-| A1 | `apps/web` belum memiliki halaman generator QR pairing perangkat pada Owner Dashboard (saat ini POS memindai/tempel payload eksternal) | T | Saat membangun alur onboarding kasir Owner Dashboard bersama short-lived `pairing_token` (`docs/SecurityQrPairingAdr.md`) |
-| A2 | Backend `myCaffe-backend` masih mengandalkan `device_credential` statis dan belum memiliki endpoint `pairing_token` single-use TTL 5 menit | S | Saat Owner Dashboard QR generator (`A1`) dikerjakan |
-| A3 | `SharedPreferencesServerSettingsRepository` masih memakai `SharedPreferences`, belum dimigrasi ke Preferences DataStore sesuai baseline PRD v4 Q11 | R | Saat menyentuh ulang modul pengaturan server |
+| A1 | Modul Owner/Manager belum memiliki halaman generator QR pairing perangkat di UI (saat ini POS memindai/tempel kode perangkat dari API `POST /api/v1/pos/devices/register`; `apps/web` khusus Guest QR Table Ordering PWA) | T | Saat membangun layar manajemen perangkat Owner bersama short-lived `pairing_token` (`docs/SecurityQrPairingAdr.md`) |
+| A2 | Backend `myCaffe-backend` masih mengandalkan `device_credential` statis dan belum memiliki endpoint `pairing_token` single-use TTL 5 menit | S | Saat layar manajemen perangkat Owner (`A1`) dikerjakan |
 | A4 | Pengujian regresi visual screenshot Android belum memakai Roborazzi di JVM dan masih bergantung pada emulator KVM CI (`android-ui-screenshots.yml`) | R | Setelah screen Release One selesai dan stabil |

@@ -105,6 +105,7 @@ fun CameraQrScannerView(
     var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
     var previewViewState by remember { mutableStateOf<PreviewView?>(null) }
     var boundCamera by remember { mutableStateOf<Camera?>(null) }
+    var activeImageAnalysis by remember { mutableStateOf<ImageAnalysis?>(null) }
     var hasFlashUnit by remember { mutableStateOf(false) }
     var isTorchOn by remember { mutableStateOf(false) }
     var lensFacing by remember { mutableIntStateOf(CameraSelector.LENS_FACING_BACK) }
@@ -178,6 +179,7 @@ fun CameraQrScannerView(
             .build()
 
         runCatching {
+            activeImageAnalysis?.clearAnalyzer()
             provider.unbindAll()
             isTorchOn = false
             val camera = provider.bindToLifecycle(
@@ -186,13 +188,15 @@ fun CameraQrScannerView(
                 preview,
                 imageAnalysis
             )
+            activeImageAnalysis = imageAnalysis
             boundCamera = camera
             hasFlashUnit = camera.cameraInfo.hasFlashUnit()
         }
     }
 
-    DisposableEffect(lifecycleOwner) {
+    DisposableEffect(Unit) {
         onDispose {
+            runCatching { activeImageAnalysis?.clearAnalyzer() }
             runCatching { boundCamera?.cameraControl?.enableTorch(false) }
             runCatching { cameraProvider?.unbindAll() }
             runCatching { barcodeScanner.close() }
