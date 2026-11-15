@@ -63,10 +63,22 @@ import com.azuredevid.cassy.ui.settings.components.ServerConfigInfoPane
 import com.azuredevid.cassy.ui.theme.CassyPandan
 import org.koin.androidx.compose.koinViewModel
 
-private const val DEMO_HTTPS_URL = "https://demo.abbdullaziz.online"
-private const val LOCAL_STORE_LAN_HTTP_URL = "http://192.168.1.100:8080"
-private const val LOCAL_STORE_LAN_TLS_URL = "https://pos-lokal.cassy.local"
-private const val EMULATOR_LOCAL_URL = "http://10.0.2.2:8080"
+private object ServerEndpointPresets {
+    private const val STAGING_HTTPS_URL = "https://demo.abbdullaziz.online"
+    const val LOCAL_STORE_LAN_HTTP_URL = "http://192.168.1.100:8080"
+    const val LOCAL_STORE_LAN_TLS_URL = "https://pos-lokal.cassy.local"
+    const val EMULATOR_LOCAL_URL = "http://10.0.2.2:8080"
+
+    fun cloudPresetUrl(isProd: Boolean): String =
+        if (isProd || BuildConfig.BASE_API_URL.startsWith("https://")) {
+            BuildConfig.BASE_API_URL
+        } else {
+            STAGING_HTTPS_URL
+        }
+
+    fun lanPresetUrl(isProd: Boolean): String =
+        if (isProd) LOCAL_STORE_LAN_TLS_URL else LOCAL_STORE_LAN_HTTP_URL
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -114,7 +126,7 @@ fun ServerConfigScreen(
             },
             onRescan = {
                 CassyFeedbackCue.tap(view)
-                viewModel.discoverLocalServers()
+                viewModel.discoverLocalServers(forceRescan = true)
             },
             onDismiss = viewModel::dismissMdnsDialog
         )
@@ -213,8 +225,8 @@ private fun ColumnScope.ServerConfigFormPane(
     }
 
     val isProd = state.enforceHttpsOnly
-    val cloudPresetUrl = if (isProd) BuildConfig.BASE_API_URL else DEMO_HTTPS_URL
-    val lanPresetUrl = if (isProd) LOCAL_STORE_LAN_TLS_URL else LOCAL_STORE_LAN_HTTP_URL
+    val cloudPresetUrl = ServerEndpointPresets.cloudPresetUrl(isProd)
+    val lanPresetUrl = ServerEndpointPresets.lanPresetUrl(isProd)
 
     CassyCard(
         modifier = Modifier
@@ -262,8 +274,8 @@ private fun ColumnScope.ServerConfigFormPane(
                 )
                 if (BuildConfig.DEBUG || !isProd) {
                     FilterChip(
-                        selected = state.urlInput.trimEnd('/') == EMULATOR_LOCAL_URL,
-                        onClick = { onApplyPreset(EMULATOR_LOCAL_URL) },
+                        selected = state.urlInput.trimEnd('/') == ServerEndpointPresets.EMULATOR_LOCAL_URL,
+                        onClick = { onApplyPreset(ServerEndpointPresets.EMULATOR_LOCAL_URL) },
                         label = { Text(stringResource(R.string.server_config_preset_emulator)) },
                         colors = chipColors,
                         modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)

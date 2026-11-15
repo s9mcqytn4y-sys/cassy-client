@@ -282,11 +282,11 @@
     <string name="server_config_saved">Server endpoint saved.</string>
     <string name="server_config_guide_title">Endpoint &amp; Network Guide</string>
     <string name="server_config_guide_body">Use a public HTTPS URL on physical tablets and http://10.0.2.2:8080 on local emulators.</string>
-    <string name="server_config_guide_cloud_title">Cloud HTTPS:</string>
+    <string name="server_config_guide_cloud_title">Cloud HTTPS</string>
     <string name="server_config_guide_cloud_desc">Use a public HTTPS URL on physical tablets (Internet).</string>
-    <string name="server_config_guide_lan_title">Local Store LAN IP:</string>
+    <string name="server_config_guide_lan_title">Local Store LAN IP</string>
     <string name="server_config_guide_lan_desc">Point to the local server IP on your LAN (e.g., 192.168.1.100:8080).</string>
-    <string name="server_config_guide_emulator_title">Android Emulator:</string>
+    <string name="server_config_guide_emulator_title">Android Emulator</string>
     <string name="server_config_guide_emulator_desc">Use http://10.0.2.2:8080 for testing on the emulator.</string>
     <string name="server_config_discover_mdns">Discover Local Server (mDNS)</string>
     <string name="server_config_discovering_mdns">Searching for local server on Wi-Fi…</string>
@@ -360,6 +360,14 @@
     <string name="server_config_err_latency_note">HTTP %1$d (%2$d ms)</string>
     <string name="server_config_cleartext_warning">Plain http:// endpoints on LAN only work if the host is allowed in network security config.</string>
     <string name="splash_loading_subtitle">Verifying encrypted store session…</string>
+    <string name="server_config_diag_overline_status">STATUS</string>
+    <string name="server_config_diag_overline_security">SECURITY</string>
+    <string name="server_config_diag_overline_verified">LAST VERIFIED</string>
+    <string name="server_config_mdns_signal_strong">Signal: Strong</string>
+    <string name="server_config_mdns_signal_moderate">Signal: Fair</string>
+    <string name="server_config_mdns_signal_weak">Signal: Weak</string>
+    <string name="server_config_mdns_latency">Latency: %1$d ms</string>
+    <string name="server_config_mdns_scanning_footer">Scanning network…</string>
 
     <!-- Catalog Management Form Additions -->
     <string name="catalog_categories_header">Menu Categories</string>

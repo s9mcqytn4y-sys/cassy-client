@@ -154,7 +154,7 @@ class EscPosReceiptBuilder(
     }
 
     /**
-     * Helper to build a complete customer receipt for MyCaffe / Cassy POS.
+     * Helper to build a complete customer receipt for Cassy POS.
      */
     fun buildStoreReceipt(
         storeName: String,

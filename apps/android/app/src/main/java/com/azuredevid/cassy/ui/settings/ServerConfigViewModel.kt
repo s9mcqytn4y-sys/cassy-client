@@ -15,12 +15,15 @@ import io.ktor.http.isSuccess
 import java.net.URI
 import kotlin.time.TimeSource
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -76,6 +79,8 @@ class ServerConfigViewModel(
     private val _effects = MutableSharedFlow<ServerConfigUiEffect>(extraBufferCapacity = 4)
     val effects: SharedFlow<ServerConfigUiEffect> = _effects.asSharedFlow()
 
+    private var discoveryJob: Job? = null
+
     fun onUrlChanged(value: String) {
         updateUrlState(value)
     }
@@ -98,8 +103,9 @@ class ServerConfigViewModel(
         _uiState.update { it.copy(showMdnsDialog = false) }
     }
 
-    fun discoverLocalServers() {
-        if (_uiState.value.isDiscoveringMdns) {
+    @OptIn(FlowPreview::class)
+    fun discoverLocalServers(forceRescan: Boolean = false) {
+        if (!forceRescan && _uiState.value.isDiscoveringMdns) {
             _uiState.update { it.copy(showMdnsDialog = true) }
             return
         }
@@ -115,7 +121,8 @@ class ServerConfigViewModel(
             }
             return
         }
-        viewModelScope.launch {
+        discoveryJob?.cancel()
+        discoveryJob = viewModelScope.launch {
             _uiState.update {
                 it.copy(
                     isDiscoveringMdns = true,
@@ -123,9 +130,23 @@ class ServerConfigViewModel(
                     mdnsDiscoveryCompleted = false
                 )
             }
-            val rawServers = runCatching { discovery.discoverLocalServers() }.getOrDefault(emptyList())
-            val servers = rawServers.filter { isSafeMdnsEndpoint(it.baseUrl) }
-            val firstUrl = servers.firstOrNull()?.baseUrl
+            var latestServers: List<DiscoveredLocalServer> = emptyList()
+            try {
+                discovery.discoverLocalServersFlow()
+                    .debounce(MDNS_DEBOUNCE_MS)
+                    .collect { rawServers ->
+                        val filtered = rawServers.filter { isSafeMdnsEndpoint(it.baseUrl) }
+                        latestServers = filtered
+                        _uiState.update { current ->
+                            current.copy(discoveredServers = filtered)
+                        }
+                    }
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (_: Throwable) {
+                // Keep any resolved servers received before stream failure.
+            }
+            val firstUrl = latestServers.firstOrNull()?.baseUrl
             _uiState.update { current ->
                 val updatedUrl = firstUrl ?: current.urlInput
                 if (firstUrl != null) {
@@ -134,7 +155,7 @@ class ServerConfigViewModel(
                 current.copy(
                     urlInput = updatedUrl,
                     isDiscoveringMdns = false,
-                    discoveredServers = servers,
+                    discoveredServers = latestServers,
                     mdnsDiscoveryCompleted = true,
                     urlError = null,
                     isUrlInvalid = false,
@@ -338,6 +359,7 @@ class ServerConfigViewModel(
         const val ERR_INVALID_URL = "URL_INVALID"
         const val ERR_CLEARTEXT_PROD = "URL_CLEARTEXT_PROD"
         private const val PROBE_TIMEOUT_MS = 4_500L
+        private const val MDNS_DEBOUNCE_MS = 300L
         private val ALLOWED_CLEARTEXT_HOSTS = setOf(
             "10.0.2.2",
             "127.0.0.1",

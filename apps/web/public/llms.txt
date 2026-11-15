@@ -1,0 +1,18 @@
+# Cassy oleh AzureDevID
+
+> Cassy adalah platform kasir (POS) tablet dan pemesanan QR meja untuk bisnis kuliner Indonesia: kafe, restoran, kedai kopi, bakery, food court, dan cloud kitchen.
+
+## Produk Utama
+- **Cassy POS Tablet (Android)**: Aplikasi kasir berbasis Android Jetpack Compose dengan dukungan cetak struk ESC/POS LAN/Bluetooth/USB, rute dapur (KDS), shift kasir, penagihan QRIS/VA Midtrans, serta mode koneksi Cloud HTTPS maupun server toko lokal (LAN/mDNS).
+- **Cassy Guest QR PWA (Web)**: Halaman pemesanan dari meja tanpa instalasi aplikasi. Pelanggan memindai QR meja, memilih menu, membayar via QRIS/VA/kasir, memantau status pesanan, dan mengunduh struk digital PDF.
+
+## Prinsip Teknis & Keamanan
+- Harga, pajak PB1/PPN, biaya layanan, dan total dihitung terpusat di server (PostgreSQL 18 Row-Level Security multi-tenant).
+- Kepatuhan privasi data mengikuti UU PDP No. 27 Tahun 2022 di Indonesia.
+- Zona waktu default gerai Indonesia (WIB UTC+7) dengan dukungan multi-gerai dan mata uang Rupiah (IDR).
+
+## Tautan Publik Resmi
+- Beranda Tamu & Informasi Produk: /
+- Ketentuan dan Privasi Tamu (UU PDP): /legal
+- Dokumen Hukum Mitra Gerai & DPA: /legal/mitra
+- Dokumentasi Lengkap AI/LLM: /llms-full.txt

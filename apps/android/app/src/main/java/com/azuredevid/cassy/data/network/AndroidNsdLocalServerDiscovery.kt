@@ -7,16 +7,21 @@ import android.net.wifi.WifiManager
 import com.azuredevid.cassy.domain.repository.DiscoveredLocalServer
 import com.azuredevid.cassy.domain.repository.LocalServerDiscoveryRepository
 import java.net.Inet4Address
+import java.net.InetSocketAddress
+import java.net.Socket
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.resume
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.suspendCancellableCoroutine
 
@@ -28,9 +33,17 @@ class AndroidNsdLocalServerDiscovery(
     private val appContext = context.applicationContext
 
     override suspend fun discoverLocalServers(timeoutMs: Long): List<DiscoveredLocalServer> =
-        withContext(ioDispatcher) {
+        discoverLocalServersFlow(timeoutMs).lastOrNull().orEmpty()
+
+    override fun discoverLocalServersFlow(timeoutMs: Long): Flow<List<DiscoveredLocalServer>> =
+        callbackFlow {
             val nsdManager = appContext.getSystemService(Context.NSD_SERVICE) as? NsdManager
-                ?: return@withContext emptyList()
+            if (nsdManager == null) {
+                trySend(emptyList())
+                close()
+                awaitClose { }
+                return@callbackFlow
+            }
             val wifiManager = appContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
             val multicastLock = wifiManager?.createMulticastLock("cassy_mdns_lock")?.apply {
                 setReferenceCounted(false)
@@ -40,55 +53,60 @@ class AndroidNsdLocalServerDiscovery(
             val resolveMutex = Mutex()
             val activeListeners = mutableListOf<NsdManager.DiscoveryListener>()
 
-            try {
-                runCatching { multicastLock?.acquire() }
+            runCatching { multicastLock?.acquire() }
 
-                supervisorScope {
-                    for (serviceType in SERVICE_TYPES) {
-                        val listener = object : NsdManager.DiscoveryListener {
-                            override fun onDiscoveryStarted(regType: String) = Unit
+            for (serviceType in SERVICE_TYPES) {
+                val listener = object : NsdManager.DiscoveryListener {
+                    override fun onDiscoveryStarted(regType: String) = Unit
 
-                            override fun onServiceFound(service: NsdServiceInfo) {
-                                launch {
-                                    resolveMutex.withLock {
-                                        val resolved = withTimeoutOrNull(RESOLVE_TIMEOUT_MS) {
-                                            resolveServiceSuspend(nsdManager, service)
-                                        }
-                                        if (resolved != null) {
-                                            val candidate = toDiscoveredServer(resolved)
-                                            if (candidate != null) {
-                                                found[candidate.baseUrl] = candidate
-                                            }
-                                        }
+                    override fun onServiceFound(service: NsdServiceInfo) {
+                        launch {
+                            resolveMutex.withLock {
+                                val resolved = withTimeoutOrNull(RESOLVE_TIMEOUT_MS) {
+                                    resolveServiceSuspend(nsdManager, service)
+                                }
+                                if (resolved != null) {
+                                    val candidate = toDiscoveredServer(resolved)
+                                    if (candidate != null) {
+                                        val latency = measureTcpLatencyMs(candidate.host, candidate.port)
+                                        found[candidate.baseUrl] = candidate.copy(latencyMs = latency)
+                                        trySend(found.values.sortedBy { it.serviceName })
                                     }
                                 }
                             }
-
-                            override fun onServiceLost(service: NsdServiceInfo) = Unit
-                            override fun onDiscoveryStopped(serviceType: String) = Unit
-
-                            override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) {
-                                runCatching { nsdManager.stopServiceDiscovery(this) }
-                            }
-
-                            override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) {
-                                runCatching { nsdManager.stopServiceDiscovery(this) }
-                            }
-                        }
-
-                        val started = runCatching {
-                            nsdManager.discoverServices(serviceType, NsdManager.PROTOCOL_DNS_SD, listener)
-                            true
-                        }.getOrDefault(false)
-
-                        if (started) {
-                            activeListeners.add(listener)
                         }
                     }
 
-                    delay(timeoutMs.coerceIn(500L, 10_000L))
+                    override fun onServiceLost(service: NsdServiceInfo) = Unit
+                    override fun onDiscoveryStopped(serviceType: String) = Unit
+
+                    override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) {
+                        runCatching { nsdManager.stopServiceDiscovery(this) }
+                    }
+
+                    override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) {
+                        runCatching { nsdManager.stopServiceDiscovery(this) }
+                    }
                 }
-            } finally {
+
+                val started = runCatching {
+                    nsdManager.discoverServices(serviceType, NsdManager.PROTOCOL_DNS_SD, listener)
+                    true
+                }.getOrDefault(false)
+
+                if (started) {
+                    activeListeners.add(listener)
+                }
+            }
+
+            val timeoutJob = launch {
+                delay(timeoutMs.coerceIn(500L, 10_000L))
+                trySend(found.values.sortedBy { it.serviceName })
+                close()
+            }
+
+            awaitClose {
+                timeoutJob.cancel()
                 for (listener in activeListeners) {
                     runCatching { nsdManager.stopServiceDiscovery(listener) }
                 }
@@ -98,9 +116,16 @@ class AndroidNsdLocalServerDiscovery(
                     }
                 }
             }
+        }.flowOn(ioDispatcher)
 
-            found.values.sortedBy { it.serviceName }
-        }
+    private fun measureTcpLatencyMs(host: String, port: Int): Long? =
+        runCatching {
+            val startedNs = System.nanoTime()
+            Socket().use { socket ->
+                socket.connect(InetSocketAddress(host, port), LATENCY_PROBE_TIMEOUT_MS)
+            }
+            ((System.nanoTime() - startedNs) / 1_000_000L).coerceAtLeast(1L)
+        }.getOrNull()
 
     @Suppress("DEPRECATION")
     private suspend fun resolveServiceSuspend(
@@ -150,5 +175,6 @@ class AndroidNsdLocalServerDiscovery(
     companion object {
         private val SERVICE_TYPES = listOf("_cassy._tcp.", "_http._tcp.")
         private const val RESOLVE_TIMEOUT_MS = 1_200L
+        private const val LATENCY_PROBE_TIMEOUT_MS = 600
     }
 }

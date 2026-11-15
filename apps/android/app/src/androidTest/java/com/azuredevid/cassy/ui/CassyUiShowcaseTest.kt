@@ -427,7 +427,8 @@ class CassyUiShowcaseTest {
                         host = "192.168.1.100",
                         port = 8080,
                         baseUrl = "http://192.168.1.100:8080",
-                        isTls = false
+                        isTls = false,
+                        latencyMs = 12L
                     )
                 )
             }

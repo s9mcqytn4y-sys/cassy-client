@@ -46,19 +46,23 @@ function Row({ label, value, strong }: { label: string; value: number; strong?: 
   );
 }
 
-export function ReceiptView({ token }: { token: string }) {
+export function ReceiptView({ token, mode = "token" }: { token: string; mode?: "token" | "short" }) {
   const { t, locale } = useLocale();
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "missing" | "maintenance" | "failed">("loading");
+  const apiBasePath =
+    mode === "short"
+      ? `/api/v1/public/receipts/short/${encodeURIComponent(token)}`
+      : `/api/v1/public/receipts/${encodeURIComponent(token)}`;
 
   const load = useCallback(async () => {
     try {
-      setReceipt(await apiFetch<Receipt>(`/api/v1/public/receipts/${encodeURIComponent(token)}`));
+      setReceipt(await apiFetch<Receipt>(apiBasePath));
       setState("ready");
     } catch (e) {
       setState(e instanceof ApiError && e.status === 404 ? "missing" : isMaintenance(e) ? "maintenance" : "failed");
     }
-  }, [token]);
+  }, [apiBasePath]);
 
   useEffect(() => {
     void load();
@@ -147,7 +151,7 @@ export function ReceiptView({ token }: { token: string }) {
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row print:hidden">
         <a
-          href={`/api/v1/public/receipts/${encodeURIComponent(token)}/pdf`}
+          href={`${apiBasePath}/pdf`}
           download={`Struk-${receipt.order_number}.pdf`}
           className="btn-primary inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold"
         >
