@@ -39,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +55,7 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -69,6 +71,7 @@ import com.azuredevid.cassy.ui.theme.BrandStatusOnlineDot
 import com.azuredevid.cassy.ui.theme.CassyPandan
 import com.azuredevid.cassy.ui.theme.LightSecondaryInk
 import com.azuredevid.cassy.ui.theme.statusOkFg
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun StorePairingHidDialog(
@@ -81,6 +84,7 @@ fun StorePairingHidDialog(
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val clipboardManager = LocalClipboardManager.current
+    val windowInfo = LocalWindowInfo.current
     var isFieldFocused by remember { mutableStateOf(false) }
     var isSoftKeyboardVisible by remember { mutableStateOf(false) }
     var showEmptyClipboardHint by remember { mutableStateOf(false) }
@@ -99,9 +103,9 @@ fun StorePairingHidDialog(
         label = "hidScannerPulseAlpha"
     )
 
-    LaunchedEffect(Unit) {
-        // Wait for the Dialog window to attach FocusRequester before locking hardware focus.
-        withFrameNanos { }
+    LaunchedEffect(windowInfo) {
+        // Wait for the Dialog window to acquire OS focus before requesting text field focus.
+        snapshotFlow { windowInfo.isWindowFocused }.first { it }
         withFrameNanos { }
         runCatching { focusRequester.requestFocus() }
         keyboardController?.hide()

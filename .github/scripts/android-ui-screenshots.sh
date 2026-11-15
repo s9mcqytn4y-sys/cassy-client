@@ -155,9 +155,10 @@ INSTR_RC=$?
 set -e
 echo "$INSTR_OUT"
 
-SHOWCASE_FILES=$(adb shell run-as com.azuredevid.cassy.dev sh -c 'cd files/showcase && find . -type f -name "*.png"' 2>/dev/null | tr -d '\r' || true)
+SHOWCASE_FILES=$(adb shell run-as com.azuredevid.cassy.dev find files/showcase -type f -name '*.png' 2>/dev/null | tr -d '\r' || true)
 for rel in $SHOWCASE_FILES; do
   rel_clean="${rel#./}"
+  rel_clean="${rel_clean#files/showcase/}"
   mkdir -p "$OUT_ROOT/$(dirname "$rel_clean")"
   adb exec-out run-as com.azuredevid.cassy.dev cat "files/showcase/$rel_clean" > "$OUT_ROOT/$rel_clean"
 done

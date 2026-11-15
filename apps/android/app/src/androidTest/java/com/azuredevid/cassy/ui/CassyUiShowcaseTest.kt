@@ -500,6 +500,11 @@ class CassyUiShowcaseTest {
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.pairing_hid_dialog_title)).assertIsDisplayed()
+        composeRule.waitUntil(timeoutMillis = 3_000) {
+            composeRule.onAllNodesWithText(context.getString(R.string.pairing_hid_ready_scan))
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
         composeRule.onNodeWithText(context.getString(R.string.pairing_hid_ready_scan)).assertIsDisplayed()
         captureScreen("StorePairing/HidScannerDialog", preferFullDisplay = true)
     }
