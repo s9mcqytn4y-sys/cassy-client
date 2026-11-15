@@ -284,4 +284,40 @@ class ServerConfigViewModelTest {
         vm.dismissMdnsDialog()
         assertFalse(vm.uiState.value.showMdnsDialog)
     }
+
+    @Test
+    fun discoverLocalServersFlow_emitsLatencyAndSupportsForceRescan() = runTest(testDispatcher) {
+        val repo = FakeServerSettingsRepository("https://demo.abbdullaziz.online")
+        var callCount = 0
+        val streamingDiscovery = object : LocalServerDiscoveryRepository {
+            override suspend fun discoverLocalServers(timeoutMs: Long): List<DiscoveredLocalServer> = emptyList()
+
+            override fun discoverLocalServersFlow(timeoutMs: Long): kotlinx.coroutines.flow.Flow<List<DiscoveredLocalServer>> =
+                kotlinx.coroutines.flow.flow {
+                    callCount += 1
+                    emit(
+                        listOf(
+                            DiscoveredLocalServer(
+                                serviceName = "Cassy Roastery Senopati (LAN)",
+                                host = "192.168.1.100",
+                                port = 8080,
+                                baseUrl = "http://192.168.1.100:8080",
+                                isTls = false,
+                                latencyMs = 12L
+                            )
+                        )
+                    )
+                }
+        }
+        val vm = ServerConfigViewModel(repo, localDiscovery = streamingDiscovery, enforceHttpsOnly = false)
+
+        vm.discoverLocalServers()
+        advanceUntilIdle()
+        assertEquals(1, callCount)
+        assertEquals(12L, vm.uiState.value.discoveredServers.single().latencyMs)
+
+        vm.discoverLocalServers(forceRescan = true)
+        advanceUntilIdle()
+        assertEquals(2, callCount)
+    }
 }

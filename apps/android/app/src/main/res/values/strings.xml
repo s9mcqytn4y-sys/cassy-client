@@ -282,11 +282,11 @@
     <string name="server_config_saved">Alamat server tersimpan.</string>
     <string name="server_config_guide_title">Panduan Alamat &amp; Jaringan</string>
     <string name="server_config_guide_body">Gunakan HTTPS publik untuk tablet fisik dan http://10.0.2.2:8080 untuk emulator lokal.</string>
-    <string name="server_config_guide_cloud_title">Cloud HTTPS:</string>
+    <string name="server_config_guide_cloud_title">Cloud HTTPS</string>
     <string name="server_config_guide_cloud_desc">Gunakan alamat HTTPS publik pada tablet kasir fisik (Internet).</string>
-    <string name="server_config_guide_lan_title">IP LAN Toko Lokal:</string>
+    <string name="server_config_guide_lan_title">IP LAN Toko Lokal</string>
     <string name="server_config_guide_lan_desc">Arahkan ke IP server lokal di jaringan LAN toko (misal: 192.168.1.100:8080).</string>
-    <string name="server_config_guide_emulator_title">Android Emulator:</string>
+    <string name="server_config_guide_emulator_title">Android Emulator</string>
     <string name="server_config_guide_emulator_desc">Gunakan http://10.0.2.2:8080 untuk pengujian pada emulator.</string>
     <string name="server_config_discover_mdns">Temukan Server Lokal (mDNS)</string>
     <string name="server_config_discovering_mdns">Mencari server lokal di Wi-Fi…</string>
@@ -360,6 +360,14 @@
     <string name="server_config_err_latency_note">HTTP %1$d (%2$d ms)</string>
     <string name="server_config_cleartext_warning">Alamat http:// lokal hanya berjalan jika host terdaftar di izin jaringan aman aplikasi.</string>
     <string name="splash_loading_subtitle">Memverifikasi sesi gerai terenkripsi…</string>
+    <string name="server_config_diag_overline_status">STATUS</string>
+    <string name="server_config_diag_overline_security">KEAMANAN</string>
+    <string name="server_config_diag_overline_verified">TERAKHIR DIUJI</string>
+    <string name="server_config_mdns_signal_strong">Sinyal: Kuat</string>
+    <string name="server_config_mdns_signal_moderate">Sinyal: Sedang</string>
+    <string name="server_config_mdns_signal_weak">Sinyal: Lemah</string>
+    <string name="server_config_mdns_latency">Latensi: %1$d ms</string>
+    <string name="server_config_mdns_scanning_footer">Memindai jaringan lokal…</string>
 
     <!-- Catalog Management Form Additions -->
     <string name="catalog_categories_header">Kategori Menu</string>

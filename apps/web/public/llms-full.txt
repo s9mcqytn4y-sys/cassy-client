@@ -1,0 +1,27 @@
+# Cassy oleh AzureDevID - Dokumentasi Produk & Arsitektur Publik
+
+> Cassy (sebelumnya MyCaffe) adalah sistem kasir POS dan pemesanan meja QR buatan AzureDevID, Jakarta, Indonesia, khusus untuk operasional Food & Beverage (F&B) di Indonesia.
+
+## Ringkasan Jawaban Cepat (FAQ)
+**Apa itu Cassy?**
+Cassy adalah platform Point of Sale (POS) Android dan Web App pemesanan QR meja untuk kafe, roastery, restoran, bakery, dan gerai F&B di Indonesia.
+
+**Bagaimana alur pemesanan tamu lewat QR Cassy?**
+1. Tamu memindai kode QR pada meja atau konter gerai.
+2. Menu dan harga resmi gerai tampil langsung di peramban (PWA) tanpa perlu mengunduh aplikasi.
+3. Tamu dapat memesan, membagi tagihan (split bill), membayar melalui QRIS Dinamis, Virtual Account, atau di kasir.
+4. Struk digital dan versi PDF tersedia lewat tautan singkat terenkripsi token (/r/{kode}).
+
+**Bagaimana keamanan dan privasi data di Cassy?**
+- Isolasi data antar gerai (multi-tenant) ditegakkan di tingkat basis data menggunakan PostgreSQL 18 Row-Level Security (RLS).
+- Kepatuhan perlindungan data pribadi mengacu pada UU PDP No. 27 Tahun 2022.
+- Token pembayaran dan kredensial mitra dienkripsi (AES-256-GCM / Android Keystore Tink).
+
+**Apakah Cassy POS bisa terhubung ke server lokal toko (LAN)?**
+Ya. Aplikasi tablet Android Cassy POS mendukung koneksi Cloud HTTPS serta penemuan server lokal otomatis melalui mDNS (_cassy._tcp) pada jaringan Wi-Fi toko.
+
+## Halaman Publik & Referensi Hukum
+- / : Halaman pengenalan Cassy untuk tamu dan pemilik gerai.
+- /legal : Ketentuan pemesanan dan pemberitahuan privasi tamu.
+- /legal/mitra : Perjanjian Pemrosesan Data (DPA), kebijakan privasi UU PDP, pembatalan langganan SaaS, dan ketentuan mitra gerai.
+- /llms.txt : Ringkasan terstruktur untuk agen AI dan mesin penjawab.
