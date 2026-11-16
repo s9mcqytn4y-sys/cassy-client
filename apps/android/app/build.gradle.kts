@@ -107,7 +107,7 @@ dependencies {
     implementation("io.insert-koin:koin-androidx-compose:4.0.0")
 
     // Security & Persistence: Google Tink AEAD (Android Keystore) + Jetpack DataStore
-    implementation("androidx.datastore:datastore:1.1.1")
+    implementation("androidx.datastore:datastore:1.3.0")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("com.google.crypto.tink:tink-android:1.15.0")
 
