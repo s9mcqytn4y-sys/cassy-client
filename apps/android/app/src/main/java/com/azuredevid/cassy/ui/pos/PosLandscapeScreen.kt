@@ -63,6 +63,7 @@ fun PosLandscapeScreen(
     onOpenDrawerKick: () -> Unit = {},
     onNavigateToSettings: () -> Unit,
     onNavigateToCatalog: () -> Unit = {},
+    onNavigateToKds: () -> Unit = {},
     onNavigateToTables: () -> Unit = {},
     onNavigateToPairing: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -137,6 +138,7 @@ fun PosLandscapeScreen(
                         isPrinterOnline = posState.isPrinterConfigured,
                         onNavigateToSettings = onNavigateToSettings,
                         onNavigateToCatalog = onNavigateToCatalog,
+                        onNavigateToKds = onNavigateToKds,
                         onNavigateToTables = onNavigateToTables,
                         onNavigateToPairing = onNavigateToPairing
                     )

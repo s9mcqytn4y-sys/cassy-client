@@ -15,6 +15,7 @@ import com.azuredevid.cassy.data.repository.DataStorePrinterSettingsRepository
 import com.azuredevid.cassy.data.repository.DataStoreServerSettingsRepository
 import com.azuredevid.cassy.data.repository.KtorAuthRepository
 import com.azuredevid.cassy.data.repository.KtorCatalogRepository
+import com.azuredevid.cassy.data.repository.KtorKdsRepository
 import com.azuredevid.cassy.data.repository.KtorOrderQuoteRepository
 import com.azuredevid.cassy.data.repository.KtorPosOrderRepository
 import com.azuredevid.cassy.data.repository.KtorShiftRepository
@@ -23,6 +24,8 @@ import com.azuredevid.cassy.data.repository.KtorTableManagementRepository
 import com.azuredevid.cassy.data.repository.ServerSettingsRepository
 import com.azuredevid.cassy.domain.repository.AuthRepository
 import com.azuredevid.cassy.domain.repository.CatalogRepository
+import com.azuredevid.cassy.domain.repository.KdsRepository
+import com.azuredevid.cassy.domain.repository.RealtimeEventSource
 import com.azuredevid.cassy.domain.repository.LocalServerDiscoveryRepository
 import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
@@ -32,6 +35,7 @@ import com.azuredevid.cassy.domain.repository.ShiftRepository
 import com.azuredevid.cassy.domain.repository.StoreGovernanceRepository
 import com.azuredevid.cassy.domain.repository.TableManagementRepository
 import com.azuredevid.cassy.ui.catalog.CatalogManagementViewModel
+import com.azuredevid.cassy.ui.kds.KdsViewModel
 import com.azuredevid.cassy.ui.pairing.StorePairingViewModel
 import com.azuredevid.cassy.ui.pos.PosViewModel
 import com.azuredevid.cassy.ui.settings.ServerConfigViewModel
@@ -67,6 +71,7 @@ val appModule = module {
             sessionManager = get()
         )
     }
+    single<RealtimeEventSource> { get<CassyRealtimeClient>() }
 
     single<ServerHealthMonitor> {
         AndroidServerHealthMonitor(
@@ -118,6 +123,13 @@ val repositoryModule = module {
 
     single<ShiftRepository> {
         KtorShiftRepository(
+            httpClient = get(),
+            serverSettings = get()
+        )
+    }
+
+    single<KdsRepository> {
+        KtorKdsRepository(
             httpClient = get(),
             serverSettings = get()
         )
@@ -193,6 +205,15 @@ val viewModelModule = module {
             serverSettings = get(),
             printerSettings = get(),
             printerManager = get(),
+            savedStateHandle = get()
+        )
+    }
+    viewModel {
+        KdsViewModel(
+            repository = get(),
+            sessionManager = get(),
+            realtime = get(),
+            storeSettings = get(),
             savedStateHandle = get()
         )
     }
