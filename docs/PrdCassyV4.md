@@ -50,7 +50,7 @@ Konteks operasional: tinjauan hukum naskah tamu dan tenant selesai; rotasi krede
 | B4 | Penyegaran AzureDevID: versi mono, ruang kosong, palet, kop surat, lockup | Vault `BrandAssetsLogo\AzureDevId\` | Tidak bertabrakan dengan pandan |
 | B5 | Token desain tunggal untuk web, Android, iOS | `packages/design-tokens` | Web, Compose, dan iOS dihasilkan atau diverifikasi dari satu berkas |
 | B6 | Dibatalkan 2026-11-13 (lihat Q6). Paket ikon vault dipindah ke Recycle Bin | - | - |
-| B7 | Kritik UI WPA, Android, iOS | `docs/DesignCritique2026-11.md` | Setiap temuan punya bukti, prioritas, dan perbaikan |
+| B7 | Kritik UI WPA, Android, iOS | [BacklogAndDebt.md](ProjectManagement/BacklogAndDebt.md) | Setiap temuan punya bukti, prioritas, dan perbaikan |
 | W1 | WPA pindah ke token baru dan fallback tinta netral | `apps/web` | E2E dan axe hijau, tanpa sisa warna espresso |
 | W2 | Refine copy WPA | `apps/web/src/lib/messages.ts` | Mengikuti tabel suara di atas |
 | W3 | Naskah legal versi final: tamu 1.0.0 tanpa label draf, judul ToS tenant memakai Cassy | Migrasi backend baru | Versi lama nonaktif, hash cocok isi, tenant yang sudah setuju tidak kehilangan catatan persetujuannya |

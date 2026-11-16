@@ -38,7 +38,7 @@
   "tailwindCSS.experimental.classRegex": [
     ["clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
   ],
-  "java.jdt.ls.java.home": "C:/Program Files/Java/jdk-17",
+  "java.import.gradle.java.home": "C:/Program Files/Java/jdk-17",
   "java.configuration.runtimes": [
     {
       "name": "JavaSE-17",
@@ -48,6 +48,15 @@
   ],
   "java.import.gradle.enabled": false,
   "java.import.gradle.wrapper.enabled": false,
+  "java.import.exclusions": [
+    "**/node_modules/**",
+    "**/.metadata/**",
+    "**/archetype-resources/**",
+    "**/META-INF/maven/**",
+    "**/Worktrees/**",
+    "**/.next/**",
+    "**/build/**"
+  ],
   "kotlin.java.home": "C:/Program Files/Java/jdk-17",
   "kotlin.languageServer.enabled": true,
   "kotlin.compiler.jvm.target": "17",

@@ -1,6 +1,6 @@
 # Rilis Pertama Aplikasi Tenant Cassy (Android)
 
-Status: disetujui arah, 2026-11-10. Diperbarui 2026-11-12 untuk PRD v4 (`docs/PrdCassyV4.md` di root monorepo): token baru, US1 sampai US4, dan aturan arsitektur. Rujukan: ADR-010 di repo backend dan `docs/WpaReview2026-11.md`. Semua operasional tenant berada di aplikasi ini. Web hanya melayani tamu QR.
+Status: disetujui arah, 2026-11-10. Diperbarui 2026-11-16 untuk PRD v4 ([PrdCassyV4.md](../../../docs/PrdCassyV4.md)), Master PRD ([MasterPrdCassy.md](../../../../../Docs/MasterPrdCassy.md)), dan UML Roadmap terpadu ([CassyUnifiedUmlAndRoadmap.md](../../../../../Docs/CassyUnifiedUmlAndRoadmap.md)). Semua operasional tenant berada di aplikasi ini. Web hanya melayani tamu QR.
 
 ## ADR: Android menjadi satu-satunya konsol tenant
 
