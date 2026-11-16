@@ -16,6 +16,7 @@ export interface OrderData {
   resume: ActiveOrder | null;
 }
 
+/** Loads table info, public menu catalog, CMS metadata, and active guest session/order state for a QR token. */
 export function useOrderData(token: string) {
   const [state, setState] = useState<LoadState>("loading");
   const [data, setData] = useState<OrderData | null>(null);
@@ -26,21 +27,25 @@ export function useOrderData(token: string) {
       const path = encodeURIComponent(token);
       const table = await apiFetch<TableInfo>(`/api/v1/public/qr/${path}`);
       const slug = encodeURIComponent(table.store_slug);
-      const [catalog, cmsResponse] = await Promise.all([
+      let resume = readActiveOrder(token);
+      const shouldStartSession = table.ordering_open && !resume;
+      const [catalog, cmsResponse, owned] = await Promise.all([
         apiFetch<{ categories?: CatalogCategory[]; products?: CatalogProduct[] }>(`/api/v1/public/stores/${slug}/catalog`),
-        apiFetch<{ cms?: StoreCms }>(`/api/v1/public/stores/${slug}/cms`).catch(() => ({ cms: {} }))
+        apiFetch<{ cms?: StoreCms }>(`/api/v1/public/stores/${slug}/cms`).catch(() => ({ cms: {} })),
+        resume
+          ? apiFetch<{ orders?: { id: string }[] }>("/api/v1/public/guest/orders").catch(() => null)
+          : Promise.resolve(null),
+        shouldStartSession
+          ? apiFetch(`/api/v1/public/qr/${path}/session`, { method: "POST", body: {} })
+          : Promise.resolve(null)
       ]);
       // A new session would orphan the saved order, so keep the cookie while this device still owns it.
-      let resume = readActiveOrder(token);
-      if (resume) {
-        const owned = await apiFetch<{ orders?: { id: string }[] }>("/api/v1/public/guest/orders").catch(() => null);
-        if (!owned?.orders?.some((o) => o.id === resume?.order.id)) {
-          writeActiveOrder(token, null);
-          resume = null;
+      if (resume && !owned?.orders?.some((o) => o.id === resume?.order.id)) {
+        writeActiveOrder(token, null);
+        resume = null;
+        if (table.ordering_open) {
+          await apiFetch(`/api/v1/public/qr/${path}/session`, { method: "POST", body: {} });
         }
-      }
-      if (table.ordering_open && !resume) {
-        await apiFetch(`/api/v1/public/qr/${path}/session`, { method: "POST", body: {} });
       }
       setData({
         table,
@@ -62,6 +67,7 @@ export function useOrderData(token: string) {
   return { state, data, reload: load };
 }
 
+/** Debounces server-authoritative order quote requests whenever the store slug or cart lines change. */
 export function useQuote(slug: string | undefined, lines: CartLine[]) {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [failed, setFailed] = useState(false);

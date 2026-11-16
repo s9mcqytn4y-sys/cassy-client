@@ -4,14 +4,14 @@
     {
       "label": "Web: Dev Server (:3000)",
       "type": "shell",
-      "command": "pnpm --filter @azuredevid/mycaffe-web run dev",
+      "command": "pnpm --filter @azuredevid/cassy-web run dev",
       "group": "build",
       "problemMatcher": []
     },
     {
       "label": "Web: Typecheck & Production Build",
       "type": "shell",
-      "command": "pnpm --filter @azuredevid/mycaffe-web run typecheck && pnpm --filter @azuredevid/mycaffe-web run build",
+      "command": "pnpm --filter @azuredevid/cassy-web run typecheck && pnpm --filter @azuredevid/cassy-web run build",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -21,7 +21,7 @@
     {
       "label": "Web: Playwright E2E Tests",
       "type": "shell",
-      "command": "pnpm --filter @azuredevid/mycaffe-web test:e2e",
+      "command": "pnpm --filter @azuredevid/cassy-web test:e2e",
       "group": "test",
       "problemMatcher": []
     },

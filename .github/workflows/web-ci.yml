@@ -28,6 +28,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  secret-scan:
+    name: Secret Scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        run: |
+          set -euo pipefail
+          GITLEAKS_VERSION=8.24.3
+          curl -sSLf "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o /tmp/gitleaks.tar.gz
+          curl -sSLf "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_checksums.txt" -o /tmp/gitleaks_checksums.txt
+          grep "gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" /tmp/gitleaks_checksums.txt | sed "s/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz/\/tmp\/gitleaks.tar.gz/" | sha256sum -c -
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          /tmp/gitleaks git --verbose
+
   web-verify-and-build:
     name: Web Lint, Typecheck, Tokens & Standalone Build
     runs-on: ubuntu-latest
@@ -70,7 +89,7 @@ jobs:
         run: pnpm run typecheck
 
       - name: Unit tests
-        run: pnpm --filter @azuredevid/mycaffe-web test:unit
+        run: pnpm --filter @azuredevid/cassy-web test:unit
 
       - name: Build Next.js Web App
         run: pnpm run build
@@ -122,7 +141,7 @@ jobs:
       - name: Run Playwright against the production build
         env:
           PLAYWRIGHT_CAPTURE_EVIDENCE: "1"
-        run: pnpm --filter @azuredevid/mycaffe-web test:e2e
+        run: pnpm --filter @azuredevid/cassy-web test:e2e
 
       - name: Upload Playwright UI v2.5.0 Evidence Screenshots
         if: always()

@@ -11,25 +11,26 @@ Reading this as: halaman pesan dari meja untuk tamu kafe di ponsel, memakai bran
 - **AzureDevID** muncul di halaman legal saja.
 - Package ID: `com.azuredevid.cassy`.
 
-## 2. Token warna
+## 2. Token warna (PRD v4: Pandan & Kunyit, sumber `packages/design-tokens/tokens.json`)
 
-Token dasar berlaku bila gerai belum mengatur brand.
+Token dasar berlaku bila gerai belum mengatur brand (tanpa warna cokelat/Espresso).
 
-| Token | Terang | Gelap | Peran |
+| Token | Terang (`cassyLight`) | Gelap (`cassyDark`) | Peran |
 |---|---|---|---|
-| `--bg-canvas` | `#FAF6F1` | `#140E0B` | Latar halaman |
-| `--bg-surface` | `#FFFFFF` | `#1E1612` | Kartu dan panel |
-| `--bg-muted` | `#F2EBE2` | `#2A1F1A` | Pembeda area |
-| `--text-primary` | `#2C1A12` | `#FAF6F1` | Teks utama |
-| `--text-secondary` | `#5C4738` | `#D6C6B8` | Teks pendukung |
-| `--brand-primary` | `#2C1A12` | `#F0CFAF` | Tombol utama, bisa ditimpa gerai |
-| `--brand-on-primary` | `#FAF6F1` | `#140E0B` | Teks di atas tombol utama |
+| `--bg-canvas` | `#F7F5F0` | `#0F1513` | Latar halaman putih tulang hangat / gelap tenang |
+| `--bg-surface` | `#FFFFFF` | `#18211E` | Kartu menu, panel checkout, dan struk |
+| `--bg-muted` | `#EFECE4` | `#222D29` | Pembeda area kategori dan ringkasan |
+| `--text-primary` | `#17211E` | `#ECEFEA` | Teks utama (tinta hijau kehitaman) |
+| `--text-secondary` | `#56605B` | `#A9B3AD` | Teks pendukung |
+| `--brand-primary` | `#1F5F52` | `#5FB8A2` | Aksi utama produk Cassy (Pandan) |
+| `--brand-accent` | `#E9A23B` | `#F2B65A` | Sorotan hangat dan indikator fokus (Kunyit) |
+| `--guest-primary` | `#17211E` | `#ECEFEA` | Fallback netral tombol bayar tamu bila gerai tanpa warna sendiri |
 
-Aturan warna gerai: nilai harus hex 6 digit. Klien menghitung kontras `--brand-primary` terhadap teks tombol. Bila di bawah 4,5:1, klien memakai token dasar. Status (`ok`, `warn`, `err`) tidak bisa ditimpa gerai.
+Aturan warna gerai: nilai harus hex 6 digit. Klien menghitung kontras `--brand-primary` terhadap teks tombol. Bila di bawah 4,5:1, klien memakai token fallback netral (`guestPrimary`). Status (`ok`, `warn`, `err`) tidak bisa ditimpa gerai.
 
 ## 3. Tipografi
 
-Satu keluarga, Plus Jakarta Sans, dimuat lewat `next/font`. Harga dan nomor pesanan memakai `tabular-nums`. Monospace hanya untuk hash dokumen legal. Rupiah ditulis `Rp 28.000`.
+`Plus Jakarta Sans` untuk antarmuka produk, dimuat lewat `next/font` (`Bricolage Grotesque` untuk wordmark/landing). Harga dan nomor pesanan memakai `tabular-nums`. `JetBrains Mono` untuk hash dokumen legal dan diagnostik perangkat. Rupiah ditulis `Rp 28.000`.
 
 ## 4. Navigasi
 

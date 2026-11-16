@@ -50,7 +50,7 @@ export default function LegalPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(legalGuestJsonLd) }}
       />
-      <Suspense>
+      <Suspense fallback={<div className="mx-auto max-w-2xl p-6 text-sm text-subink">Memuat dokumen...</div>}>
         <LegalView audience="guest" />
       </Suspense>
     </>

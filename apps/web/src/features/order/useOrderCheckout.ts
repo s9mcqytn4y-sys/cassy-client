@@ -24,6 +24,7 @@ interface UseOrderCheckoutParams {
   onQuoteStale: () => void;
 }
 
+/** Manages guest checkout submission, idempotent payment initiation, and split-bill share link recovery. */
 export function useOrderCheckout({
   resume,
   lines,

@@ -84,6 +84,10 @@ export function OrderApp({ token }: { token: string }) {
   }, []);
 
   useEffect(() => {
+    if (viewingPayment) setActionToast(null);
+  }, [viewingPayment]);
+
+  useEffect(() => {
     // A served order is done; a cancelled one stays so a guest who paid still sees where to ask for the refund.
     const served = tracked?.status === "served" || tracked?.status === "completed";
     if (state === "ready") writeActiveOrder(token, order && !served ? { order, payment, shares: shares ?? undefined } : null);

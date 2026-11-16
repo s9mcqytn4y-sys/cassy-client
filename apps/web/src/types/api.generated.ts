@@ -11,8 +11,42 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Liveness probe */
+        /** Readiness and health check */
         get: operations["getLiveness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/health/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Process liveness probe */
+        get: operations["getHealthLive"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** API v1 readiness probe */
+        get: operations["getApiHealth"];
         put?: never;
         post?: never;
         delete?: never;
@@ -479,6 +513,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/catalog/stamp-program": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The store stamp card program; inactive defaults until saved (catalog.manage, X17) */
+        get: operations["getStampProgram"];
+        /**
+         * Replace the store stamp card program (catalog.manage, audited, X17)
+         * @description An active program needs at least one reward product; reward products must be live and not bundles. One stamp is earned per paid direct order at or above min_order_amount.
+         */
+        put: operations["setStampProgram"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/catalog/sales-channels": {
         parameters: {
             query?: never;
@@ -923,6 +978,167 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pos/customers/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Find a customer by phone with their live stamps (order.pos.create, X16) */
+        post: operations["lookupPosCustomer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invoices/customers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Business customers with contacts (invoice.manage, X18) */
+        get: operations["listBusinessCustomers"];
+        put?: never;
+        /** Create a business customer (invoice.manage, audited, X18) */
+        post: operations["createBusinessCustomer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invoices/customers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change or deactivate a business customer (invoice.manage, audited) */
+        patch: operations["updateBusinessCustomer"];
+        trace?: never;
+    };
+    "/api/v1/invoices/uninvoiced-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Orders charged to accounts and not billed yet (invoice.manage) */
+        get: operations["listUninvoicedOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Invoices, open ones by due date first (invoice.manage) */
+        get: operations["listInvoices"];
+        put?: never;
+        /**
+         * Bill charged orders of one business customer (invoice.manage, audited, X18)
+         * @description The due date is the issue date in the store time zone plus the payment terms of the customer.
+         */
+        post: operations["createInvoice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invoices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One invoice with its orders and payments (invoice.manage) */
+        get: operations["getInvoice"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invoices/{id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download the invoice as PDF (invoice.manage) */
+        get: operations["getInvoicePdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invoices/{id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record an instalment or the rest of an invoice (invoice.manage, audited, X18)
+         * @description Payments are append-only and are records only; they do not move the cash drawer or the outlet fund.
+         */
+        post: operations["payInvoice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/business-customers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active business customers for the charge-to-account picker, without contacts (payment.tender.direct) */
+        get: operations["listPosBusinessCustomers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pos/sales-channels": {
         parameters: {
             query?: never;
@@ -1258,6 +1474,70 @@ export interface paths {
          * @description Requires the guest cookie and `X-CSRF-Protection: 1`. Another guest's order answers 404.
          */
         post: operations["sendGuestReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/guest/orders/{id}/splits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Status of each share of this guest's order, without tokens
+         * @description Only when `GUEST_SPLIT_ENABLED=true`.
+         */
+        get: operations["listGuestOrderSplits"];
+        put?: never;
+        /**
+         * Divide an unpaid QR order into per-person payment links
+         * @description Only when `GUEST_SPLIT_ENABLED=true`. Requires `X-CSRF-Protection: 1`. Works once, before any QR was created. Each token is returned only in this response.
+         */
+        post: operations["createGuestOrderSplits"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/split-shares/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What a link holder owes (store, label, amount, status)
+         * @description Only when `GUEST_SPLIT_ENABLED=true`.
+         */
+        get: operations["getSplitShare"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/split-shares/{token}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pay one share with dynamic QRIS
+         * @description Only when `GUEST_SPLIT_ENABLED=true`. Requires `X-CSRF-Protection: 1`.
+         */
+        post: operations["paySplitShare"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2251,6 +2531,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mobile/bootstrap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consolidated tablet POS and KDS runtime bootstrap configuration */
+        get: operations["getMobileBootstrap"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/receipts/{token}": {
         parameters: {
             query?: never;
@@ -2263,6 +2560,57 @@ export interface paths {
          * @description No customer or staff names. Unknown, tampered, expired or other-store tokens all answer 404.
          */
         get: operations["getPublicReceipt"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/receipts/{token}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Digital receipt PDF download behind a link token */
+        get: operations["getPublicReceiptPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/receipts/short/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Digital receipt resolved by short code */
+        get: operations["getPublicReceiptByShortCode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/receipts/short/{code}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Digital receipt PDF resolved by short code */
+        get: operations["getPublicReceiptPdfByShortCode"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2791,8 +3139,42 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Submit an idempotent self-service tenant onboarding application with legal consent hashes */
+        /** Submit an idempotent self-service tenant onboarding application and dispatch a 6-digit Email OTP */
         post: operations["submitOnboardingApplication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/onboarding/{id}/verify-otp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify the 6-digit Email OTP for an onboarding application (constant-time SHA-256, max 5 attempts) */
+        post: operations["verifyOnboardingEmailOTP"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/onboarding/{id}/resend-otp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Issue and send a fresh 6-digit Email OTP after a 60-second cooldown */
+        post: operations["resendOnboardingEmailOTP"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2957,6 +3339,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/store/network/mikrotik": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get tenant MikroTik RouterOS v7 VLAN, Dual-WAN, QoS, Winbox, and SFTP profile (owner) */
+        get: operations["getStoreMikrotikProfile"];
+        /** Save validated non-overlapping VLAN CIDRs, Winbox subnet lock, and SFTP-only port (blocks plain FTP port 21) */
+        put: operations["upsertStoreMikrotikProfile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/store/network/mikrotik/generate-rsc": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate downloadable MikroTik RouterOS v7 (.rsc) automation script, Winbox Safe Mode steps, and FileZilla SFTP policy */
+        post: operations["generateStoreMikrotikRsc"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/store/subscription/invoices": {
         parameters: {
             query?: never;
@@ -3054,6 +3471,23 @@ export interface paths {
         put?: never;
         /** Review and transition an onboarding application (under_review, approved, rejected) */
         post: operations["reviewPlatformOnboarding"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/onboarding/{id}/provision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Provision an unverified tenant store, owner account, cash drawer, and QR tables from an OTP-verified onboarding application */
+        post: operations["provisionPlatformOnboarding"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3657,6 +4091,15 @@ export interface components {
             ordering_open: boolean;
             /** @enum {string} */
             closed_reason?: "paused" | "store_closed" | "table_inactive";
+            /** @description Guest payment methods the store has enabled, in this order. */
+            payment_methods?: ("qris" | "gopay" | "shopeepay")[];
+            /**
+             * @description How an order reaches the guest; changes only the guest page wording, notices and sound.
+             * @enum {string}
+             */
+            service_mode?: "pickup" | "table";
+            /** @description True only when GUEST_SPLIT_ENABLED is on, so the guest page offers an equal split before paying. */
+            split_enabled?: boolean;
         };
         CashDrawer: {
             /** Format: uuid */
@@ -4054,7 +4497,7 @@ export interface components {
         HealthStatusResponse: {
             /** @example ok */
             status: string;
-            /** @example mycaffe-api */
+            /** @example cassy-api */
             service: string;
         };
         /** @description Receipt built only from order, item, option and payment snapshots (B1). */
@@ -4231,6 +4674,102 @@ export interface components {
              * @description Outlet cash fund expenses in the range (V13), outside the drawers
              */
             outlet_expenses?: number;
+        };
+        StampProgram: {
+            is_active: boolean;
+            /** Format: int64 */
+            stamps_required: number;
+            /** Format: int64 */
+            min_order_amount: number;
+            /** Format: int64 */
+            stamp_valid_days: number;
+            reward_product_ids: string[];
+        };
+        CustomerStamps: {
+            customer: {
+                /** Format: uuid */
+                id: string;
+                phone: string;
+                name: string;
+                /** Format: date-time */
+                phone_verified_at?: string;
+            };
+            verified: boolean;
+            program_active: boolean;
+            /**
+             * Format: int64
+             * @description Live stamps (not redeemed or expired and the order not fully refunded)
+             */
+            stamps: number;
+            /** Format: int64 */
+            stamps_required: number;
+            reward_ready: boolean;
+            reward_product_ids: string[];
+            /** Format: date-time */
+            next_expiry?: string;
+        };
+        BusinessCustomer: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            tax_id?: string;
+            email?: string;
+            phone?: string;
+            /** Format: int64 */
+            payment_terms_days: number;
+            is_active: boolean;
+        };
+        BusinessCustomerInput: {
+            name?: string;
+            tax_id?: string;
+            email?: string;
+            phone?: string;
+            /** Format: int64 */
+            payment_terms_days?: number;
+            is_active?: boolean;
+        };
+        InvoiceOrder: {
+            /** Format: uuid */
+            id: string;
+            order_number: string;
+            /** Format: int64 */
+            total_amount: number;
+            /** Format: date-time */
+            created_at: string;
+        };
+        Invoice: {
+            /** Format: uuid */
+            id: string;
+            number: number;
+            /** Format: uuid */
+            business_customer_id: string;
+            customer_name: string;
+            tax_id: string;
+            /** Format: int64 */
+            total_amount: number;
+            /** Format: int64 */
+            paid_amount: number;
+            /** Format: int64 */
+            remaining: number;
+            /** Format: date */
+            due_date: string;
+            overdue: boolean;
+            note: string;
+            /** Format: date-time */
+            issued_at: string;
+            orders?: components["schemas"]["InvoiceOrder"][];
+            payments?: {
+                /** Format: uuid */
+                id: string;
+                /** Format: int64 */
+                amount: number;
+                /** @enum {string} */
+                method: "transfer" | "cash" | "qris";
+                reference: string;
+                note: string;
+                /** Format: date-time */
+                paid_at: string;
+            }[];
         };
         SalesChannel: {
             /** Format: uuid */
@@ -4416,7 +4955,7 @@ export interface components {
          * @description platform pays delivery-app channel orders only and needs reconciliation_ref (the platform order number, X14)
          * @enum {string}
          */
-        PaymentMethod: "qris" | "gopay" | "shopeepay" | "bank_transfer" | "cash" | "static_qris" | "edc" | "platform";
+        PaymentMethod: "qris" | "gopay" | "shopeepay" | "bank_transfer" | "cash" | "static_qris" | "edc" | "platform" | "invoice";
         /** @enum {string} */
         PaymentStatus: "pending" | "authorized" | "paid" | "failed" | "cancelled" | "expired" | "partially_refunded" | "refunded" | "chargeback" | "partial_chargeback";
         /** @enum {string} */
@@ -4460,6 +4999,13 @@ export interface components {
              * @description POS only (ignored on public endpoints): prices the order at this active channel without promotions, service charge or tax (X13, X15)
              */
             sales_channel_id?: string;
+            /**
+             * Format: uuid
+             * @description POS only: a customer with a verified phone number, for the stamp card (X16)
+             */
+            customer_id?: string;
+            /** @description POS only, needs customer_id: index in items of the product whose one unit is the free stamp card reward (X17) */
+            reward_item_index?: number;
             /** @example idem-20261030-table04-001 */
             idempotency_key: string;
             /** @example Meja 04 */
@@ -4786,6 +5332,11 @@ export interface components {
             table_time_limit_minutes?: number;
             /** @description Warn this many minutes before a table's time ends; shorter than the limit. Default 10. */
             table_timer_warning_minutes?: number;
+            /**
+             * @description How a QR order reaches the guest (PRD v3 Q3). pickup (default) collected at the bar; table brought by staff.
+             * @enum {string}
+             */
+            qr_service_mode?: "pickup" | "table";
         };
         /** @description Mirrors `service.InitiatePaymentResult`. */
         InitiatePaymentResponse: {
@@ -4916,6 +5467,13 @@ export interface components {
              * @description POS only (ignored on public endpoints): prices the order at this active channel without promotions, service charge or tax (X13, X15)
              */
             sales_channel_id?: string;
+            /**
+             * Format: uuid
+             * @description POS only: a customer with a verified phone number, for the stamp card (X16)
+             */
+            customer_id?: string;
+            /** @description POS only, needs customer_id: index in items of the product whose one unit is the free stamp card reward (X17) */
+            reward_item_index?: number;
             /** @enum {string} */
             order_type: "dine_in" | "takeaway" | "delivery";
             /** @enum {string} */
@@ -4975,6 +5533,52 @@ export interface components {
                 expected_fingerprint?: string;
                 actual_fingerprint?: string;
                 quote: components["schemas"]["QuoteSummary"];
+            };
+        };
+        MobileBootstrapResponse: {
+            /** Format: uuid */
+            store_id: string;
+            store_slug: string;
+            store_name: string;
+            app_brand: {
+                display_name: string;
+                monogram_text: string;
+                bundle_id: string;
+                vector_monogram_url: string;
+                vector_logo_url: string;
+                vector_icon_url: string;
+            };
+            pos_layout: {
+                tablet_orientation: string;
+                layout_mode: string;
+                auto_lock_seconds: number;
+                tabular_numbers_enforced: boolean;
+                min_touch_target_px: number;
+            };
+            hardware: {
+                default_printer_interface: string;
+                default_printer_port: number;
+                cash_drawer_kick_on_cash: boolean;
+                cash_drawer_pulse_hex: string;
+                kds_auto_refresh_seconds: number;
+                kds_sound_alert_enabled: boolean;
+            };
+            payment_gateway: {
+                provider: string;
+                environment: string;
+                client_key: string;
+                merchant_id: string;
+                is_enabled: boolean;
+                validation_status: string;
+                fallback_static_qris_enabled: boolean;
+            };
+            staff_session: {
+                /** Format: uuid */
+                user_id: string;
+                full_name: string;
+                role: string;
+                email: string;
+                permissions: string[];
             };
         };
     };
@@ -5052,6 +5656,26 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Service is healthy */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthStatusResponse"];
+                };
+            };
+        };
+    };
+    getHealthLive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
             /** @description Process is alive */
             200: {
                 headers: {
@@ -5059,6 +5683,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthStatusResponse"];
+                };
+            };
+        };
+    };
+    getApiHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Database connection pool is healthy and ready */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthStatusResponse"];
+                };
+            };
+            /** @description Database connection is unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };
@@ -6019,6 +6672,53 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            422: components["responses"]["ValidationFailed"];
+        };
+    };
+    getStampProgram: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The program */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StampProgram"];
+                };
+            };
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    setStampProgram: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StampProgram"];
+            };
+        };
+        responses: {
+            /** @description The saved program */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StampProgram"];
+                };
+            };
+            403: components["responses"]["Forbidden"];
             422: components["responses"]["ValidationFailed"];
         };
     };
@@ -7042,6 +7742,334 @@ export interface operations {
             };
         };
     };
+    lookupPosCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @example 081234567890 */
+                    phone: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The customer and their stamps */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomerStamps"];
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationFailed"];
+        };
+    };
+    listBusinessCustomers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Customers, active first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        customers?: components["schemas"]["BusinessCustomer"][];
+                    };
+                };
+            };
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    createBusinessCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BusinessCustomerInput"];
+            };
+        };
+        responses: {
+            /** @description The customer */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessCustomer"];
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            /** @description The name is already used in this store */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            422: components["responses"]["ValidationFailed"];
+        };
+    };
+    updateBusinessCustomer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BusinessCustomerInput"];
+            };
+        };
+        responses: {
+            /** @description The customer */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessCustomer"];
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description The name is already used in this store */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            422: components["responses"]["ValidationFailed"];
+        };
+    };
+    listUninvoicedOrders: {
+        parameters: {
+            query?: {
+                business_customer_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Up to 500 orders, oldest first */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        orders?: components["schemas"]["InvoiceOrder"][];
+                    };
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationFailed"];
+        };
+    };
+    listInvoices: {
+        parameters: {
+            query?: {
+                status?: "open" | "paid";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Up to 200 invoices, without their orders and payments */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        invoices?: components["schemas"]["Invoice"][];
+                    };
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationFailed"];
+        };
+    };
+    createInvoice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    business_customer_id: string;
+                    order_ids: string[];
+                    note?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The invoice */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Invoice"];
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            /** @description Invoice number race, retry */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            422: components["responses"]["ValidationFailed"];
+        };
+    };
+    getInvoice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The invoice */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Invoice"];
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getInvoicePdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The PDF */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    payInvoice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: int64
+                     * @description At most what is still owed
+                     */
+                    amount: number;
+                    /** @enum {string} */
+                    method: "transfer" | "cash" | "qris";
+                    reference?: string;
+                    note?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The invoice after the payment */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Invoice"];
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationFailed"];
+        };
+    };
+    listPosBusinessCustomers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Active customers */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        customers?: components["schemas"]["BusinessCustomer"][];
+                    };
+                };
+            };
+            403: components["responses"]["Forbidden"];
+        };
+    };
     listPosSalesChannels: {
         parameters: {
             query?: never;
@@ -7836,6 +8864,144 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
+            };
+        };
+    };
+    listGuestOrderSplits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ResourceID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Live shares */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not this guest's order */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    createGuestOrderSplits: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Must be `1`. Forces a CORS preflight so cross-site forms cannot use the refresh cookie. */
+                "X-CSRF-Protection": components["parameters"]["CsrfProtectionHeader"];
+            };
+            path: {
+                id: components["parameters"]["ResourceID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    strategy: "equal" | "by_item";
+                    split_count?: number;
+                    splits?: {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+        };
+        responses: {
+            /** @description One link per person */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not this guest's order */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The order can no longer be divided */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getSplitShare: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The share */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unknown or expired link */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    paySplitShare: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Must be `1`. Forces a CORS preflight so cross-site forms cannot use the refresh cookie. */
+                "X-CSRF-Protection": components["parameters"]["CsrfProtectionHeader"];
+            };
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    idempotency_key: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Pending QRIS charge (or idempotent replay) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unknown or expired link */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -10220,6 +11386,35 @@ export interface operations {
             };
         };
     };
+    getMobileBootstrap: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Consolidated branding, layout, hardware, payment gateway, and staff session bootstrap */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MobileBootstrapResponse"];
+                };
+            };
+            /** @description Unauthenticated staff request */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     getPublicReceipt: {
         parameters: {
             query?: never;
@@ -10238,6 +11433,93 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Receipt"];
+                };
+            };
+            /** @description RECEIPT_LINK_INVALID */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getPublicReceiptPdf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description PDF receipt attachment */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description RECEIPT_LINK_INVALID */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getPublicReceiptByShortCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Receipt */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Receipt"];
+                };
+            };
+            /** @description RECEIPT_LINK_INVALID */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getPublicReceiptPdfByShortCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description PDF receipt attachment */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
                 };
             };
             /** @description RECEIPT_LINK_INVALID */
@@ -11597,8 +12879,76 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Application recorded (NIB/NPWP masked) */
+            /** @description Application recorded in pending_email_otp status (NIB/NPWP masked) */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    verifyOnboardingEmailOTP: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ResourceID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Email verified and application moved to submitted status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid or expired OTP code */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Maximum OTP verification attempts exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    resendOnboardingEmailOTP: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ResourceID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Fresh OTP dispatched */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Email already verified */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Cooldown active (60 seconds) */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11863,6 +13213,67 @@ export interface operations {
             };
         };
     };
+    getStoreMikrotikProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Store MikroTik RouterOS v7 profile */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    upsertStoreMikrotikProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Saved MikroTik RouterOS v7 profile */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Overlapping VLAN subnet or forbidden plain FTP port 21 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    generateStoreMikrotikRsc: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Generated .rsc script bundle with SHA-256 digest and Winbox guide */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     listStoreSubscriptionInvoices: {
         parameters: {
             query?: never;
@@ -12007,6 +13418,47 @@ export interface operations {
         responses: {
             /** @description Updated onboarding application */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    provisionPlatformOnboarding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ResourceID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Idempotent replay returning existing provisioned store */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description New tenant store provisioned (kyb_status=unverified) */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Store slug conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Email OTP unverified or weak initial owner PIN */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

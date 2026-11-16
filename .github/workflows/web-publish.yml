@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  IMAGE: ghcr.io/s9mcqytn4y-sys/mycaffe-web
+  IMAGE: ghcr.io/s9mcqytn4y-sys/cassy-web
 
 jobs:
   publish:

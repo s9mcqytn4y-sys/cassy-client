@@ -7,7 +7,7 @@ Dokumen ini menjadi rujukan resmi tim engineering dan AI agent (termasuk Hermes)
 | Lapisan | Lokasi & Alat | Tujuan | Kapan Dijalankan |
 |---|---|---|---|
 | **Tier 1: JVM Unit Tests** | `app/src/test/...` (`ktor-client-mock`, `kotlinx-coroutines-test`) | Menguji validasi form, state ViewModel, mapping error domain, routing KDS, dan parser QR tanpa emulator | Setiap edit lokal & wajib hijau pada `.github/workflows/android-ci.yml` (`./gradlew test`) |
-| **Tier 2: KVM Instrumentation & UI Showcase** | `app/src/androidTest/...` (`CassyUiShowcaseTest`, `.github/scripts/android-ui-screenshots.sh`) | Merender screen tablet lanskap (`1280x800`), menguji fokus/keyboard/permission dialog/scanner Compose nyata, serta mengambil screenshot PNG | Pada PR/push yang menyentuh `apps/android/**` via `.github/workflows/android-ui-screenshots.yml` (Ubuntu KVM) |
+| **Tier 2: KVM Instrumentation & UI Showcase** | `app/src/androidTest/...` (`CassyUiShowcaseTest`, `.github/scripts/RunAndroidUiScreenshots.sh`) | Merender screen tablet lanskap (`1280x800`), menguji fokus/keyboard/permission dialog/scanner Compose nyata, serta mengambil screenshot PNG | Pada PR/push yang menyentuh `apps/android/**` via `.github/workflows/android-ui-screenshots.yml` (Ubuntu KVM) |
 | **Tier 3: Screenshot Diff (Backlog)** | Roborazzi / Compose Preview diffing (tercatat di `docs/TechDebt.md`) | Deteksi regresi visual pixel-per-pixel pada JVM tanpa booting emulator penuh | Tahap lanjutan setelah PR Release One stabil |
 
 ## 2. Kendala Host Windows (8 GB RAM)

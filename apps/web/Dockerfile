@@ -24,7 +24,7 @@ ENV NODE_ENV=production
 ENV BUILD_STANDALONE=true
 ARG NEXT_PUBLIC_APP_URL
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
-RUN pnpm --filter @azuredevid/mycaffe-web build
+RUN pnpm --filter @azuredevid/cassy-web build
 
 FROM node:22-alpine AS runner
 WORKDIR /app

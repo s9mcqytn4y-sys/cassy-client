@@ -30,6 +30,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.security.GeneralSecurityException
 
+/** Manages Tink-encrypted staff session tokens, offline PIN verifiers, and Ktor session cookies. */
 interface SessionManager {
     val sessionFlow: StateFlow<StoredSession?>
     fun currentSession(): StoredSession?

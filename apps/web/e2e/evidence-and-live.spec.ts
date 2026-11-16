@@ -100,6 +100,9 @@ test.describe("UI v2.5.0 Visual Evidence & Regression Suite", () => {
 
     await page.getByRole("button", { name: /Lihat keranjang/ }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Bayar Rp 28.750" })).toBeVisible();
+    // Wait one animation frame after sheet mount so WebKit transition opacity settles before Axe contrast audit.
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
     await expectCleanA11y(page);
     await saveShot(page, testInfo, "GuestOrder", "CartSheet");
 

@@ -37,8 +37,15 @@ Trunk-based (`main`), short-lived branches (`feat/*`, `fix/*`, `docs/*`, `chore/
 | Area | Verification Command |
 |---|---|
 | Design Tokens | `pnpm run tokens:verify` |
-| Web PWA | `pnpm --filter @azuredevid/mycaffe-web typecheck`, `test:unit`, `build`, `test:e2e` |
-| Android POS | `apps/android/gradlew.bat -p apps/android test bundleDebug --no-daemon --max-workers=2` |
+| Web PWA | `pnpm --filter @azuredevid/cassy-web typecheck`, `test:unit`, `build`, `test:e2e` |
+| Android POS | `apps/android/gradlew.bat -p apps/android testDevDebugUnitTest bundleDevDebug --no-daemon --max-workers=2` |
 | iOS Bridge | `pnpm run ios:lint-objc` |
+
+## Coding Standards & Engineering Discipline
+
+- Enforce `/antislop`, `/antislop-code`, `/antislop-ui`, `/antislop-copywriting`, `/clean-code`, zero dead code, and core principles (`SOLID`, `DRY`, `KISS`, `YAGNI`, `WET`/`AHA`, `SoC`, `LoD`, `Composition`, `POLA`, `Fail Fast`, `Boy Scout Rule`).
+- **TypeScript / React (`apps/web`)**: Document exported hooks, API mappers, and financial/cart helpers with concise `TSDoc` (`/** ... */`, explaining invariants, not repeating TS types). Keep UI strictly Unidirectional Data Flow (UDF) with server-recomputed pricing.
+- **Kotlin / Android (`apps/android`)**: Document public ViewModels, repositories, and Tink/Ktor security boundaries with `KDoc` (`/** ... */`). Enforce structured concurrency (`viewModelScope` / injected dispatchers, zero `GlobalScope`), read-only `StateFlow`, `Channel` one-shot events, lambda event hoisting (UDF), and R8 compatibility.
+- **Scripts & Markdown**: `.ps1` uses `Verb-Noun` `PascalCase` (`4` spaces, UTF-8); `.sh` uses `PascalCase` (`2` spaces, `LF`, `set -eu`); `.md` uses `PascalCase` (`LF`).
 
 Tooling paths on Windows: `gh`, `adb` at `C:\Users\Acer\scoop\shims\adb.exe`, Android CLI at `C:\Users\Acer\AppData\AndroidCLI\android.exe`.

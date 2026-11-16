@@ -66,10 +66,10 @@ pnpm install
 pnpm run tokens:verify
 
 # Web PWA: typecheck, unit test, build, E2E
-pnpm --filter @azuredevid/mycaffe-web typecheck
-pnpm --filter @azuredevid/mycaffe-web test:unit
-pnpm --filter @azuredevid/mycaffe-web build
-pnpm --filter @azuredevid/mycaffe-web test:e2e
+pnpm --filter @azuredevid/cassy-web typecheck
+pnpm --filter @azuredevid/cassy-web test:unit
+pnpm --filter @azuredevid/cassy-web build
+pnpm --filter @azuredevid/cassy-web test:e2e
 
 # Android POS: unit tests & debug bundle
 apps/android/gradlew.bat -p apps/android test bundleDebug --no-daemon --max-workers=2

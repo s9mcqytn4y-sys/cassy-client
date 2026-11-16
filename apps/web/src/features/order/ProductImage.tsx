@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { UtensilsCrossed } from "lucide-react";
 
 /**
- * Fixed-size frame so a slow or broken photo never shifts the layout; a failed load leaves the muted frame.
+ * Fixed-size frame so a slow or broken photo never shifts the layout; failed loads show a muted placeholder icon.
  * `eager` is for photos in the first screen, so the largest content is not held back by lazy loading.
  */
 export function ProductImage({
@@ -22,9 +23,18 @@ export function ProductImage({
   eager?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [src]);
+
   return (
     <div className={`shrink-0 overflow-hidden bg-muted ${className}`}>
-      {failed ? null : (
+      {failed ? (
+        <span aria-hidden="true" className="grid h-full w-full place-items-center text-subink">
+          <UtensilsCrossed size={40} strokeWidth={1.5} />
+        </span>
+      ) : (
         <img
           src={src}
           alt={alt}
