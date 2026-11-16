@@ -509,4 +509,39 @@
     <string name="tables_poster_scan_hint">Pindai untuk lihat menu dan pesan</string>
     <string name="tables_poster_footer">Bayar langsung dari ponsel Anda</string>
     <string name="tables_pdf_file_name">tent-card-%1$s.pdf</string>
+
+    <!-- Kitchen Display System (Release One PR 8) -->
+    <string name="kds_nav_label">Dapur (KDS)</string>
+    <string name="kds_title">Layar Dapur</string>
+    <string name="kds_title_station">Layar Dapur: %1$s</string>
+    <string name="kds_station_bar">Barista</string>
+    <string name="kds_station_kitchen">Dapur Panas</string>
+    <string name="kds_column_queued">Antre</string>
+    <string name="kds_column_preparing">Diproses</string>
+    <string name="kds_column_ready">Siap</string>
+    <string name="kds_column_title">%1$s (%2$d)</string>
+    <string name="kds_empty_title">Belum ada pesanan</string>
+    <string name="kds_empty_subtitle">Pesanan baru untuk stasiun ini muncul di sini secara otomatis.</string>
+    <string name="kds_age_on_time">%1$d mnt</string>
+    <string name="kds_age_warning">%1$d mnt, segera</string>
+    <string name="kds_age_late">%1$d mnt, terlambat</string>
+    <string name="kds_a11y_ticket">Pesanan %1$s, menunggu %2$d menit</string>
+    <string name="kds_table_format">Meja %1$s</string>
+    <string name="kds_takeaway">Bawa pulang</string>
+    <string name="kds_round_format">Ronde %1$d</string>
+    <string name="kds_late_payment">Dibayar terlambat</string>
+    <string name="kds_line_format">%1$dx %2$s</string>
+    <string name="kds_line_note">Catatan: %1$s</string>
+    <string name="kds_btn_start">Mulai buat</string>
+    <string name="kds_btn_ready">Tandai siap</string>
+    <string name="kds_btn_served_table">Sudah diantar</string>
+    <string name="kds_btn_served_pickup">Sudah diambil</string>
+    <string name="kds_btn_recall">Kembalikan ke proses</string>
+    <string name="kds_conn_connecting">Menyambungkan pembaruan langsung.</string>
+    <string name="kds_conn_reconnecting">Koneksi terputus. Menyambung ulang, pesanan baru mungkin tertunda.</string>
+    <string name="kds_conn_disconnected">Pembaruan langsung mati. Ketuk Coba lagi untuk memuat ulang pesanan.</string>
+    <string name="kds_msg_stale_reloaded">Tiket sudah diubah dari layar lain. Daftar dimuat ulang.</string>
+    <string name="kds_error_no_station">Akun ini tidak punya akses ke layar dapur atau barista.</string>
+    <string name="kds_error_load">Tiket dapur gagal dimuat.</string>
+    <string name="kds_error_transition">Tiket gagal diperbarui.</string>
 </resources>

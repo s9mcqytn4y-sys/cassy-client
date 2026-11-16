@@ -509,4 +509,39 @@
     <string name="tables_poster_scan_hint">Scan to see the menu and order</string>
     <string name="tables_poster_footer">Pay straight from your phone</string>
     <string name="tables_pdf_file_name">tent-card-%1$s.pdf</string>
+
+    <!-- Kitchen Display System (Release One PR 8) -->
+    <string name="kds_nav_label">Kitchen (KDS)</string>
+    <string name="kds_title">Kitchen Display</string>
+    <string name="kds_title_station">Kitchen Display: %1$s</string>
+    <string name="kds_station_bar">Barista</string>
+    <string name="kds_station_kitchen">Hot Kitchen</string>
+    <string name="kds_column_queued">Queued</string>
+    <string name="kds_column_preparing">Preparing</string>
+    <string name="kds_column_ready">Ready</string>
+    <string name="kds_column_title">%1$s (%2$d)</string>
+    <string name="kds_empty_title">No orders yet</string>
+    <string name="kds_empty_subtitle">New orders for this station appear here automatically.</string>
+    <string name="kds_age_on_time">%1$d min</string>
+    <string name="kds_age_warning">%1$d min, hurry</string>
+    <string name="kds_age_late">%1$d min, late</string>
+    <string name="kds_a11y_ticket">Order %1$s, waiting %2$d minutes</string>
+    <string name="kds_table_format">Table %1$s</string>
+    <string name="kds_takeaway">Takeaway</string>
+    <string name="kds_round_format">Round %1$d</string>
+    <string name="kds_late_payment">Paid late</string>
+    <string name="kds_line_format">%1$dx %2$s</string>
+    <string name="kds_line_note">Note: %1$s</string>
+    <string name="kds_btn_start">Start</string>
+    <string name="kds_btn_ready">Mark ready</string>
+    <string name="kds_btn_served_table">Delivered to table</string>
+    <string name="kds_btn_served_pickup">Picked up</string>
+    <string name="kds_btn_recall">Back to preparing</string>
+    <string name="kds_conn_connecting">Connecting live updates.</string>
+    <string name="kds_conn_reconnecting">Connection lost. Reconnecting, new orders may be delayed.</string>
+    <string name="kds_conn_disconnected">Live updates are off. Tap Try again to reload orders.</string>
+    <string name="kds_msg_stale_reloaded">Another screen changed this ticket. The list was reloaded.</string>
+    <string name="kds_error_no_station">This account has no access to the kitchen or barista screen.</string>
+    <string name="kds_error_load">Kitchen tickets could not be loaded.</string>
+    <string name="kds_error_transition">The ticket could not be updated.</string>
 </resources>
