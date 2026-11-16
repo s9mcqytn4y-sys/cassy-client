@@ -19,6 +19,7 @@ import com.azuredevid.cassy.data.repository.KtorOrderQuoteRepository
 import com.azuredevid.cassy.data.repository.KtorPosOrderRepository
 import com.azuredevid.cassy.data.repository.KtorShiftRepository
 import com.azuredevid.cassy.data.repository.KtorStoreGovernanceRepository
+import com.azuredevid.cassy.data.repository.KtorTableManagementRepository
 import com.azuredevid.cassy.data.repository.ServerSettingsRepository
 import com.azuredevid.cassy.domain.repository.AuthRepository
 import com.azuredevid.cassy.domain.repository.CatalogRepository
@@ -29,12 +30,14 @@ import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
 import com.azuredevid.cassy.domain.repository.ServerHealthMonitor
 import com.azuredevid.cassy.domain.repository.ShiftRepository
 import com.azuredevid.cassy.domain.repository.StoreGovernanceRepository
+import com.azuredevid.cassy.domain.repository.TableManagementRepository
 import com.azuredevid.cassy.ui.catalog.CatalogManagementViewModel
 import com.azuredevid.cassy.ui.pairing.StorePairingViewModel
 import com.azuredevid.cassy.ui.pos.PosViewModel
 import com.azuredevid.cassy.ui.settings.ServerConfigViewModel
 import com.azuredevid.cassy.ui.settings.StoreSettingsViewModel
 import com.azuredevid.cassy.ui.shift.ShiftViewModel
+import com.azuredevid.cassy.ui.tables.TableManagementViewModel
 import io.ktor.client.HttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
@@ -119,6 +122,13 @@ val repositoryModule = module {
             serverSettings = get()
         )
     }
+
+    single<TableManagementRepository> {
+        KtorTableManagementRepository(
+            httpClient = get(),
+            serverSettings = get()
+        )
+    }
 }
 
 val viewModelModule = module {
@@ -173,6 +183,16 @@ val viewModelModule = module {
         CatalogManagementViewModel(
             catalogRepository = get(),
             sessionManager = get(),
+            savedStateHandle = get()
+        )
+    }
+    viewModel {
+        TableManagementViewModel(
+            repository = get(),
+            sessionManager = get(),
+            serverSettings = get(),
+            printerSettings = get(),
+            printerManager = get(),
             savedStateHandle = get()
         )
     }
