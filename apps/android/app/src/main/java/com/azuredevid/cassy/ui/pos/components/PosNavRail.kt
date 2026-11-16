@@ -18,6 +18,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.MenuBook
+import androidx.compose.material.icons.rounded.TableRestaurant
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -58,6 +59,7 @@ fun PosNavRail(
     isPrinterOnline: Boolean,
     onNavigateToSettings: () -> Unit,
     onNavigateToCatalog: () -> Unit = {},
+    onNavigateToTables: () -> Unit = {},
     onNavigateToPairing: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -195,6 +197,13 @@ fun PosNavRail(
                     text = stringResource(R.string.catalog_nav_label),
                     onClick = onNavigateToCatalog,
                     icon = Icons.AutoMirrored.Rounded.MenuBook,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                CassySecondaryButton(
+                    text = stringResource(R.string.tables_nav_label),
+                    onClick = onNavigateToTables,
+                    icon = Icons.Rounded.TableRestaurant,
                     modifier = Modifier.fillMaxWidth()
                 )
 

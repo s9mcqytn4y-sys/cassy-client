@@ -132,6 +132,38 @@ class EscPosReceiptBuilder(
         return this
     }
 
+    /**
+     * Prints a QR code with the printer's native QR engine (`GS ( k`, model 2), so the code stays sharp
+     * at any [moduleDots] size instead of being rasterised on the tablet. [data] must be ASCII (a URL);
+     * error correction is level M, which survives light scuffing on a table sticker.
+     *
+     * @param moduleDots dot width of one QR module, 1-16. 8 gives about 41 mm for a 70-character URL
+     *   on a 203 dpi 80 mm head.
+     */
+    fun qrCode(data: String, moduleDots: Int = 8): EscPosReceiptBuilder {
+        require(data.isNotEmpty()) { "QR data must not be empty" }
+        require(data.all { it.code in 0x20..0x7E }) { "QR data must be printable ASCII" }
+        require(moduleDots in 1..16) { "moduleDots must be 1-16" }
+        val bytes = data.toByteArray(Charsets.US_ASCII)
+        val storeLength = bytes.size + 3
+        require(storeLength <= 0xFFFF) { "QR data too long" }
+        // Model 2.
+        outputStream.write(byteArrayOf(0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00))
+        // Module size.
+        outputStream.write(byteArrayOf(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, moduleDots.toByte()))
+        // Error correction level M (0x31).
+        outputStream.write(byteArrayOf(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x31))
+        // Store data: pL pH = length of data + 3.
+        outputStream.write(
+            byteArrayOf(0x1D, 0x28, 0x6B, (storeLength and 0xFF).toByte(), (storeLength shr 8).toByte(), 0x31, 0x50, 0x30)
+        )
+        outputStream.write(bytes)
+        // Print the stored symbol.
+        outputStream.write(byteArrayOf(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30))
+        outputStream.write("\n".toByteArray(charset))
+        return this
+    }
+
     fun emptyLine(lines: Int = 1): EscPosReceiptBuilder {
         repeat(lines) {
             outputStream.write("\n".toByteArray(charset))

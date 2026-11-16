@@ -48,6 +48,7 @@ private data class StaffSessionResponseDto(
     @SerialName("access_token_expires_at") val accessTokenExpiresAt: String = "",
     @SerialName("session_expires_at") val sessionExpiresAt: String = "",
     val staff: StaffIdentityDto,
+    val permissions: List<String> = emptyList(),
     @SerialName("pin_change_required") val pinChangeRequired: Boolean = false,
     @SerialName("offline_pin_verifier") val offlinePinVerifier: OfflinePinVerifierDto? = null
 )
@@ -107,6 +108,7 @@ class KtorAuthRepository(
                 accessTokenExpiresAt = dto.accessTokenExpiresAt,
                 sessionExpiresAt = dto.sessionExpiresAt,
                 staff = staff,
+                permissions = dto.permissions,
                 pinChangeRequired = dto.pinChangeRequired,
                 deviceCredential = effectiveDeviceCred.ifBlank { null },
                 offlinePinVerifier = offlineVerifier
