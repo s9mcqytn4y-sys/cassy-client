@@ -5,7 +5,6 @@ import com.azuredevid.cassy.R
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.core.hardware.TableQrPosterCopy
 import com.azuredevid.cassy.core.security.DataStoreSessionManager
-import com.azuredevid.cassy.data.repository.ServerSettingsRepository
 import com.azuredevid.cassy.domain.error.DomainError
 import com.azuredevid.cassy.domain.error.DomainException
 import com.azuredevid.cassy.domain.model.StaffIdentity
@@ -55,11 +54,6 @@ class TableManagementViewModelTest {
             mutex.withLock { transform(state.value).also { state.value = it } }
     }
 
-    private class FakeServerSettings : ServerSettingsRepository {
-        override fun getBaseUrl(): String = "https://demo.cassy.test"
-        override fun setBaseUrl(url: String) = Unit
-    }
-
     private class FakePrinterSettings(var config: PrinterConfig = PrinterConfig()) : PrinterSettingsRepository {
         override val configFlow: Flow<PrinterConfig> = MutableStateFlow(config)
         override suspend fun getConfig(): PrinterConfig = config
@@ -93,7 +87,13 @@ class TableManagementViewModelTest {
 
         override suspend fun rotateQr(id: String): Result<TableEntry> {
             rotateCalls++
-            return Result.success(tables.first { it.id == id }.copy(qrToken = "rotated-token", qrRotatedAt = "2026-11-16T10:00:00Z"))
+            return Result.success(
+                tables.first { it.id == id }.copy(
+                    qrToken = "rotated-token",
+                    qrUrl = "https://pos.cassy.test/order/rotated-token",
+                    qrRotatedAt = "2026-11-16T10:00:00Z"
+                )
+            )
         }
     }
 
@@ -131,7 +131,6 @@ class TableManagementViewModelTest {
         val vm = TableManagementViewModel(
             repository = repo,
             sessionManager = session,
-            serverSettings = FakeServerSettings(),
             printerSettings = printerSettings,
             printerManager = PrinterPort9100Manager(ioDispatcher = testDispatcher),
             ioDispatcher = testDispatcher
@@ -180,7 +179,7 @@ class TableManagementViewModelTest {
     fun selectedFreeTable_exposesGuestOrderUrl() = runTest(testDispatcher) {
         val vm = viewModel()
         vm.selectTable("t-1")
-        assertEquals("https://demo.cassy.test/order/tok-t-1", vm.uiState.value.selectedQrUrl)
+        assertEquals("https://pos.cassy.test/order/tok-t-1", vm.uiState.value.selectedQrUrl)
     }
 
     @Test
@@ -233,6 +232,7 @@ class TableManagementViewModelTest {
 
         assertEquals(1, repo.rotateCalls)
         assertEquals("rotated-token", vm.uiState.value.tables.first { it.id == "t-1" }.qrToken)
+        assertEquals("https://pos.cassy.test/order/rotated-token", vm.uiState.value.tables.first { it.id == "t-1" }.qrUrl)
         assertEquals(CassyToastTone.SUCCESS, lastMessage().tone)
     }
 
@@ -274,6 +274,19 @@ class TableManagementViewModelTest {
     }
 
     @Test
+    fun printPoster_withoutBackendQrUrlRefusesInsteadOfGuessing() = runTest(testDispatcher) {
+        repo.tables[0] = repo.tables[0].copy(qrUrl = null)
+        printerSettings.config = PrinterConfig(cashierPrinterIp = "127.0.0.1", cashierPrinterPort = 9)
+        val vm = viewModel()
+
+        vm.printPoster("t-1", copy)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(TableMessage.Res(R.string.tables_error_server_url), lastMessage().message)
+        assertFalse(vm.uiState.value.isPrinting)
+    }
+
+    @Test
     fun printPoster_withoutCashierPrinterWarnsAndSendsNothing() = runTest(testDispatcher) {
         val vm = viewModel()
 
@@ -298,7 +311,7 @@ class TableManagementViewModelTest {
         server.close()
 
         val text = String(received, Charsets.ISO_8859_1)
-        assertTrue(text.contains("https://demo.cassy.test/order/tok-t-1"))
+        assertTrue(text.contains("https://pos.cassy.test/order/tok-t-1"))
         assertTrue(text.contains("Kopi Nusantara"))
         assertEquals(CassyToastTone.SUCCESS, lastMessage().tone)
         assertFalse(vm.uiState.value.isPrinting)
@@ -307,7 +320,7 @@ class TableManagementViewModelTest {
     private companion object {
         fun table(id: String, status: TableStatus, session: Boolean = false) = TableEntry(
             id = id, tableNumber = id.removePrefix("t-"), label = "", section = "", capacity = 4,
-            qrToken = "tok-$id", qrRotatedAt = "2026-11-10T08:00:00Z", isActive = true, status = status,
+            qrToken = "tok-$id", qrUrl = "https://pos.cassy.test/order/tok-$id", qrRotatedAt = "2026-11-10T08:00:00Z", isActive = true, status = status,
             hasOpenSession = session, mergedIntoTableId = null, unpaidOrders = 0
         )
     }

@@ -10,7 +10,7 @@ import org.junit.Test
 class TableEntryTest {
 
     private val free = TableEntry(
-        id = "t-1", tableNumber = "1", label = "", section = "", capacity = 4, qrToken = "tok",
+        id = "t-1", tableNumber = "1", label = "", section = "", capacity = 4, qrToken = "tok", qrUrl = "https://pos.cassy.test/order/tok",
         qrRotatedAt = "", isActive = true, status = TableStatus.AVAILABLE, hasOpenSession = false,
         mergedIntoTableId = null, unpaidOrders = 0
     )

@@ -504,7 +504,7 @@
     <string name="tables_error_print">The poster could not be printed. Check the cashier printer and try again.</string>
     <string name="tables_error_pdf">The tent card could not be saved.</string>
     <string name="tables_error_qr_hidden">This table QR is not available to your account.</string>
-    <string name="tables_error_server_url">The server address is not valid yet, so no QR can be made.</string>
+    <string name="tables_error_server_url">The server has not provided this table\'s QR link yet. Reload the tables.</string>
     <string name="tables_poster_heading">Table</string>
     <string name="tables_poster_scan_hint">Scan to see the menu and order</string>
     <string name="tables_poster_footer">Pay straight from your phone</string>

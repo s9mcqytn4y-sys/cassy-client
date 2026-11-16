@@ -10,10 +10,8 @@ import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.core.hardware.TableQrPosterBuilder
 import com.azuredevid.cassy.core.hardware.TableQrPosterCopy
 import com.azuredevid.cassy.core.security.SessionManager
-import com.azuredevid.cassy.core.util.TableQrUrl
 import com.azuredevid.cassy.core.util.TableTentCardPdfRenderer
 import com.azuredevid.cassy.core.util.TentCardContent
-import com.azuredevid.cassy.data.repository.ServerSettingsRepository
 import com.azuredevid.cassy.domain.error.DomainException
 import com.azuredevid.cassy.domain.model.QrRotationBlock
 import com.azuredevid.cassy.domain.model.TableDraft
@@ -51,7 +49,6 @@ data class TableManagementUiState(
     val isSubmitting: Boolean = false,
     val isPrinting: Boolean = false,
     val isExporting: Boolean = false,
-    val serverBaseUrl: String = "",
     val loadError: TableMessage? = null
 ) {
     val selectedTable: TableEntry?
@@ -59,7 +56,7 @@ data class TableManagementUiState(
 
     /** Guest URL of the selected table for the on-screen preview; null when the QR is hidden or unusable. */
     val selectedQrUrl: String?
-        get() = selectedTable?.takeIf { canManageQr }?.let { TableQrUrl.build(serverBaseUrl, it.qrToken) }
+        get() = selectedTable?.takeIf { canManageQr }?.qrUrl
 
     /** True while any network or printer action runs; actions stay disabled to avoid double submits. */
     val isBusy: Boolean
@@ -88,7 +85,6 @@ sealed interface TableManagementUiEffect {
 class TableManagementViewModel(
     private val repository: TableManagementRepository,
     private val sessionManager: SessionManager,
-    private val serverSettings: ServerSettingsRepository,
     private val printerSettings: PrinterSettingsRepository,
     private val printerManager: PrinterPort9100Manager,
     private val posterBuilder: TableQrPosterBuilder = TableQrPosterBuilder(),
@@ -129,7 +125,6 @@ class TableManagementViewModel(
                 it.copy(
                     isLoading = true,
                     loadError = null,
-                    serverBaseUrl = serverSettings.getBaseUrl(),
                     canManageTables = PERMISSION_TABLE_MANAGE in session.permissions,
                     canManageQr = PERMISSION_TABLE_QR_MANAGE in session.permissions
                 )
@@ -226,7 +221,9 @@ class TableManagementViewModel(
                     _uiState.update { state ->
                         state.copy(
                             isSubmitting = false,
-                            tables = state.tables.map { if (it.id == id) it.copy(qrToken = rotated.qrToken, qrRotatedAt = rotated.qrRotatedAt) else it }
+                            tables = state.tables.map {
+                                if (it.id == id) it.copy(qrToken = rotated.qrToken, qrUrl = rotated.qrUrl, qrRotatedAt = rotated.qrRotatedAt) else it
+                            }
                         )
                     }
                     emit(TableMessage.Res(R.string.tables_msg_qr_rotated, rotated.displayName), CassyToastTone.SUCCESS)
@@ -298,15 +295,14 @@ class TableManagementViewModel(
         }
     }
 
-    /** Guest URL for [table], or null after telling the user why no QR can be produced. */
-    private suspend fun qrUrlFor(table: TableEntry): String? {
+    /** Guest URL for [table] from the backend, or null after telling the user why no QR can be produced. */
+    private fun qrUrlFor(table: TableEntry): String? {
         if (!_uiState.value.canManageQr || table.qrToken == null) {
             emit(TableMessage.Res(R.string.tables_error_qr_hidden), CassyToastTone.WARNING)
             return null
         }
-        val url = TableQrUrl.build(serverSettings.getBaseUrl(), table.qrToken)
-        if (url == null) emit(TableMessage.Res(R.string.tables_error_server_url), CassyToastTone.ERROR)
-        return url
+        if (table.qrUrl == null) emit(TableMessage.Res(R.string.tables_error_server_url), CassyToastTone.ERROR)
+        return table.qrUrl
     }
 
     private fun storeName(): String = sessionManager.currentSession()?.staff?.storeName.orEmpty()

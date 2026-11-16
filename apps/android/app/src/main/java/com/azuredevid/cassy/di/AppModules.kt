@@ -190,7 +190,6 @@ val viewModelModule = module {
         TableManagementViewModel(
             repository = get(),
             sessionManager = get(),
-            serverSettings = get(),
             printerSettings = get(),
             printerManager = get(),
             savedStateHandle = get()
