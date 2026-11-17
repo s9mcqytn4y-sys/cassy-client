@@ -30,21 +30,41 @@ export function bankMeta(code?: string) {
   return VA_BANKS.find((b) => b.code === (code ?? "").toLowerCase());
 }
 
-export function PaymentChannelLogo({ method, className = "h-5 w-auto" }: { method: PayMethod; className?: string }) {
-  if (method === "bank_transfer") {
-    return (
-      <span className="inline-flex h-7 items-center justify-center rounded bg-white px-1.5 py-0.5 text-[#17211E] ring-1 ring-black/10">
-        <Landmark size={16} aria-hidden="true" />
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex h-7 items-center justify-center rounded bg-white px-1.5 py-0.5 ring-1 ring-black/10">
+/**
+ * Channel logo on a white chip; `bare` drops the chip when the caller already provides one.
+ */
+export function PaymentChannelLogo({
+  method,
+  className = "h-5 w-auto",
+  bare = false
+}: {
+  method: PayMethod;
+  className?: string;
+  bare?: boolean;
+}) {
+  const mark =
+    method === "bank_transfer" ? (
+      <Landmark size={18} aria-hidden="true" className="text-[#17211E]" />
+    ) : (
       <img src={METHOD_LOGO[method]} alt="" aria-hidden="true" className={`${className} object-contain`} />
-    </span>
+    );
+  if (bare) return mark;
+  return (
+    <span className="inline-flex h-7 items-center justify-center rounded bg-white px-1.5 py-0.5 ring-1 ring-black/10">{mark}</span>
   );
 }
 
+const METHOD_HINT: Record<PayMethod, "methodHintQris" | "methodHintGopay" | "methodHintShopeepay" | "methodHintBank"> = {
+  qris: "methodHintQris",
+  gopay: "methodHintGopay",
+  shopeepay: "methodHintShopeepay",
+  bank_transfer: "methodHintBank"
+};
+
+/**
+ * One full-width row per method (logo, name, hint, radio dot) so long labels never wrap into a
+ * ragged grid. The radio input stays native for keyboard and screen reader support.
+ */
 export function PaymentMethodPicker({
   methods,
   selected,
@@ -58,15 +78,15 @@ export function PaymentMethodPicker({
 }) {
   const { t } = useLocale();
   return (
-    <div className="mt-2 flex flex-wrap gap-2">
+    <div className="mt-2 flex flex-col gap-2">
       {methods.map((m) => {
         const active = selected === m;
         const label = m === "bank_transfer" ? t.bankTransferLabel : METHOD_LABEL[m];
         return (
           <label
             key={m}
-            className={`flex min-h-[48px] cursor-pointer items-center gap-2.5 rounded-xl border px-3.5 text-sm font-semibold motion-safe:transition-transform motion-safe:active:scale-[0.98] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 ${
-              active ? "border-brand bg-brand text-brand-fg shadow-sm" : "border-subtle bg-surface text-ink"
+            className={`flex min-h-[60px] cursor-pointer items-center gap-3 rounded-2xl border bg-surface px-3 py-2.5 motion-safe:transition-[border-color,box-shadow] motion-safe:duration-150 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 ${
+              active ? "border-brand shadow-[0_0_0_1px_var(--color-brand)]" : "border-subtle"
             } ${disabled ? "pointer-events-none opacity-60" : ""}`}
           >
             <input
@@ -78,8 +98,19 @@ export function PaymentMethodPicker({
               onChange={() => onSelect(m)}
               className="sr-only"
             />
-            <PaymentChannelLogo method={m} />
-            <span>{label}</span>
+            <span className="flex h-9 w-16 shrink-0 items-center justify-center rounded-lg bg-white ring-1 ring-black/10">
+              <PaymentChannelLogo method={m} bare className="h-6 w-auto max-w-[52px]" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold text-ink">{label}</span>
+              <span className="block text-xs text-subink">{t[METHOD_HINT[m]]}</span>
+            </span>
+            <span
+              aria-hidden="true"
+              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${active ? "border-brand" : "border-strong"}`}
+            >
+              <span className={`h-2.5 w-2.5 rounded-full bg-brand motion-safe:transition-transform ${active ? "scale-100" : "scale-0"}`} />
+            </span>
           </label>
         );
       })}
@@ -107,8 +138,8 @@ export function BankPicker({
           return (
             <label
               key={bank.code}
-              className={`flex min-h-[48px] cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border px-2 py-1.5 text-xs font-bold motion-safe:transition-transform motion-safe:active:scale-[0.98] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 ${
-                active ? "border-brand bg-brand text-brand-fg shadow-sm" : "border-subtle bg-surface text-ink"
+              className={`flex min-h-[56px] cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border bg-surface px-2 py-1.5 text-xs font-bold text-ink motion-safe:transition-[border-color,box-shadow] motion-safe:duration-150 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 ${
+                active ? "border-brand shadow-[0_0_0_1px_var(--color-brand)]" : "border-subtle"
               } ${disabled ? "pointer-events-none opacity-60" : ""}`}
             >
               <input
@@ -120,8 +151,8 @@ export function BankPicker({
                 onChange={() => onSelect(bank.code)}
                 className="sr-only"
               />
-              <span className="inline-flex h-5 items-center justify-center rounded bg-white px-1.5">
-                <img src={bank.logo} alt="" aria-hidden="true" className="h-3.5 w-auto object-contain" />
+              <span className="inline-flex h-7 w-full items-center justify-center rounded-md bg-white px-1.5">
+                <img src={bank.logo} alt="" aria-hidden="true" className="h-5 w-auto max-w-full object-contain" />
               </span>
               <span>{bank.label}</span>
             </label>
