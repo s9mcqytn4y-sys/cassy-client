@@ -18,7 +18,9 @@ enum class TableStatus(val wireValue: String) {
 /**
  * One non-archived table from `GET /api/v1/pos/tables`.
  *
- * [qrToken] is null when the staff member lacks `table.qr.manage`; QR actions must then stay hidden.
+ * [qrToken] and [qrUrl] are null when the staff member lacks `table.qr.manage`; QR actions must then stay
+ * hidden. [qrUrl] is the guest link the backend builds from its public web origin; the client prints it
+ * as is and never derives it from the API host, which differs from the web host in production.
  * [hasOpenSession] is true whenever the backend returned a session object, regardless of [status].
  */
 data class TableEntry(
@@ -28,6 +30,7 @@ data class TableEntry(
     val section: String,
     val capacity: Int,
     val qrToken: String?,
+    val qrUrl: String?,
     val qrRotatedAt: String,
     val isActive: Boolean,
     val status: TableStatus,

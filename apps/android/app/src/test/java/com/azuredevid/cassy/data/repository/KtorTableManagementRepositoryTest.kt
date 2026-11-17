@@ -59,7 +59,7 @@ class KtorTableManagementRepositoryTest {
     private val boardJson = """
         {"tables": [
           {"id": "t-1", "table_number": "1", "label": "", "section": "Teras", "capacity": 4,
-           "qr_token": "tok-one", "qr_rotated_at": "2026-11-10T08:00:00Z", "is_active": true,
+           "qr_token": "tok-one", "qr_url": "https://pos.cassy.test/order/tok-one", "qr_rotated_at": "2026-11-10T08:00:00Z", "is_active": true,
            "created_at": "x", "updated_at": "x", "status": "available", "unpaid_orders": 0, "unpaid_amount": 0},
           {"id": "t-2", "table_number": "2", "label": "Sofa", "section": "", "capacity": 6,
            "qr_rotated_at": "2026-11-10T08:00:00Z", "is_active": true, "created_at": "x", "updated_at": "x",
@@ -83,6 +83,7 @@ class KtorTableManagementRepositoryTest {
             assertEquals(TableStatus.AVAILABLE, status)
             assertFalse(hasOpenSession)
             assertEquals("tok-one", qrToken)
+            assertEquals("https://pos.cassy.test/order/tok-one", qrUrl)
             assertNull(qrRotationBlock())
         }
         with(tables[1]) {
@@ -90,6 +91,7 @@ class KtorTableManagementRepositoryTest {
             assertEquals(TableStatus.OCCUPIED, status)
             assertTrue(hasOpenSession)
             assertNull("qr_token is omitted without table.qr.manage", qrToken)
+            assertNull(qrUrl)
             assertEquals(2, unpaidOrders)
         }
         with(tables[2]) {
@@ -135,7 +137,7 @@ class KtorTableManagementRepositoryTest {
     @Test
     fun rotateQr_postsToRotateEndpoint() = runTest {
         val repo = repository {
-            json("""{"id":"t-1","table_number":"1","qr_token":"rotated","qr_rotated_at":"2026-11-16T10:00:00Z",
+            json("""{"id":"t-1","table_number":"1","qr_token":"rotated","qr_url":"javascript:alert(1)","qr_rotated_at":"2026-11-16T10:00:00Z",
                 "is_active":true,"created_at":"x","updated_at":"x"}""")
         }
 
@@ -144,6 +146,7 @@ class KtorTableManagementRepositoryTest {
         assertEquals(HttpMethod.Post, requests.single().method)
         assertEquals("/api/v1/pos/tables/t-1/rotate-qr", requests.single().url.encodedPath)
         assertEquals("rotated", rotated.qrToken)
+        assertNull("a non-http qr_url is never printed", rotated.qrUrl)
     }
 
     @Test

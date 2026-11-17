@@ -19,7 +19,7 @@ class TableQrPosterBuilder(
     private val paperWidth: EscPosReceiptBuilder.PaperWidth = EscPosReceiptBuilder.PaperWidth.WIDTH_80MM
 ) {
     /**
-     * @param qrUrl the URL from `TableQrUrl.build`; must be non-blank ASCII.
+     * @param qrUrl the backend `qr_url` of the table; must be non-blank ASCII.
      * @throws IllegalArgumentException when [qrUrl] cannot be encoded by the printer.
      */
     fun build(

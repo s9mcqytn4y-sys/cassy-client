@@ -12,7 +12,7 @@ import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import java.io.OutputStream
 
-/** Text and QR content of one tent card. Strings come from resources; the URL from [TableQrUrl]. */
+/** Text and QR content of one tent card. Strings come from resources; the URL is the backend `qr_url`. */
 data class TentCardContent(
     val storeName: String,
     val heading: String,

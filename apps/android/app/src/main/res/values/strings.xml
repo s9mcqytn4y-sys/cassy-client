@@ -504,7 +504,7 @@
     <string name="tables_error_print">Poster gagal dicetak. Periksa printer kasir lalu coba lagi.</string>
     <string name="tables_error_pdf">Tent card gagal disimpan.</string>
     <string name="tables_error_qr_hidden">QR meja ini tidak tersedia untuk akun Anda.</string>
-    <string name="tables_error_server_url">Alamat server belum valid, jadi QR tidak bisa dibuat.</string>
+    <string name="tables_error_server_url">Tautan QR meja belum tersedia dari server. Muat ulang daftar meja.</string>
     <string name="tables_poster_heading">Meja</string>
     <string name="tables_poster_scan_hint">Pindai untuk lihat menu dan pesan</string>
     <string name="tables_poster_footer">Bayar langsung dari ponsel Anda</string>
