@@ -89,6 +89,10 @@ assert.equal(safeDeeplink(" JavaScript:alert(1)"), null, "case and leading space
 assert.equal(safeDeeplink("data:text/html,x"), null);
 assert.equal(safeDeeplink("not a url"), null);
 assert.equal(safeDeeplink(undefined), null);
+assert.equal(safeDeeplink("shopeeid://main?x=1"), "shopeeid://main?x=1");
+assert.equal(safeDeeplink("http://evil.example/pay"), null, "plain http is not a wallet redirect");
+assert.equal(safeDeeplink("intent://x#Intent;scheme=evil;end"), null, "unknown schemes are dropped");
+assert.equal(safeDeeplink("file:///etc/passwd"), null);
 assert.equal(checkoutMessageKey("INVALID_PAYMENT"), "methodUnavailable");
 console.log("cart ok");
 

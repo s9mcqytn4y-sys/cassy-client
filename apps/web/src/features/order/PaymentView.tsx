@@ -235,12 +235,20 @@ export function PaymentView({
   const deeplink = wallet ? safeDeeplink(payment.deeplink_url) : null;
   const others = methods.filter((m) => m !== via);
   const selectedBankInfo = bankMeta(payment.bank ?? bank);
+  const deadline = payment.expires_at
+    ? new Date(payment.expires_at).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })
+    : null;
 
   return (
     <section className="mx-auto flex max-w-md flex-col items-center py-8 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-[max(2rem,env(safe-area-inset-top))] text-center">
       <h1 className="text-2xl font-bold">{isVa ? t.bankTransferLabel : wallet ? METHOD_LABEL[via] : t.scanToPay}</h1>
       <p className="mt-2 text-sm text-subink">{isVa ? t.vaHint : wallet ? t.walletHint : t.scanHint}</p>
       <p className="mt-5 text-3xl font-bold tabular-nums">{formatIdr(payment.amount)}</p>
+      {isVa && deadline && !expired ? (
+        <p className="mt-2 rounded-full bg-muted px-3 py-1 text-sm text-ink">
+          {t.payBefore} <strong>{deadline}</strong>
+        </p>
+      ) : null}
 
       {expired ? (
         <div role="alert" className="mt-6 flex flex-col items-center">
@@ -310,6 +318,18 @@ export function PaymentView({
                 <p role="alert" className="text-sm font-semibold text-[var(--state-err-fg)]">{t.methodUnavailable}</p>
               ) : null}
 
+              {payment.va_number || payment.bill_key ? (
+                <details className="group rounded-xl bg-muted px-4 py-3" open>
+                  <summary className="cursor-pointer list-none text-sm font-bold text-ink marker:hidden">{t.vaHowTitle}</summary>
+                  <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm leading-6 text-ink">
+                    <li>{t.vaStepOpen}</li>
+                    <li>{payment.bill_key ? t.vaStepMultipayment : t.vaStepTransfer}</li>
+                    <li>{t.vaStepConfirm}</li>
+                    <li>{t.vaStepDone}</li>
+                  </ol>
+                </details>
+              ) : null}
+
               <BankPicker
                 selected={bank}
                 disabled={retrying}
@@ -347,12 +367,9 @@ export function PaymentView({
               ) : null}
             </div>
           )}
-          {payment.expires_at ? (
+          {payment.expires_at && !isVa ? (
             <p className="mt-4 text-sm">
-              {t.payBefore}{" "}
-              <strong>
-                {new Date(payment.expires_at).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}
-              </strong>
+              {t.payBefore} <strong>{deadline}</strong>
             </p>
           ) : null}
           <p aria-live="polite" className="mt-2 text-sm text-subink">{t.waiting}</p>
