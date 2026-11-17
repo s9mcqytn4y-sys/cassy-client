@@ -18,6 +18,7 @@ import { ProductOptionsSheet } from "./ProductOptionsSheet";
 import { moneyTaken, orderPhase, writeActiveOrder } from "./status";
 import type { CatalogProduct, PayMethod, ServiceMode } from "./types";
 import { SplitView } from "./SplitView";
+import { CallWaiter } from "./CallWaiter";
 import { StoreHeader } from "./StoreHeader";
 import { useCartPersistence, useOnlineStatus, useOrderBell } from "./hooks";
 import { useOrderCheckout } from "./useOrderCheckout";
@@ -213,6 +214,12 @@ export function OrderApp({ token }: { token: string }) {
         tagline={tagline}
         announcement={announcement}
       />
+
+      {table.call_waiter_enabled && table.ordering_open ? (
+        <div className="mt-3 px-5">
+          <CallWaiter onNotify={notify} />
+        </div>
+      ) : null}
 
       {order && !viewingPayment ? (
         <div className="mt-4 px-5">
