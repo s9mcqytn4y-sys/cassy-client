@@ -113,6 +113,12 @@ export function PaymentView({
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+    const id = requestAnimationFrame(() => window.scrollTo(0, 0));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  useEffect(() => {
     setExpired(false);
     if (!payment.expires_at || phase !== "awaiting") return;
     const deadlineTime = new Date(payment.expires_at).getTime();
