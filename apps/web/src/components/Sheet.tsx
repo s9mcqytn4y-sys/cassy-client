@@ -32,7 +32,7 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
         e.preventDefault();
         onClose();
       }}
-      className="mx-auto mb-0 mt-auto max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-surface p-0 text-ink shadow-xl backdrop:bg-black/60"
+      className="fixed inset-x-0 bottom-0 m-0 mx-auto max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-surface p-0 text-ink shadow-xl backdrop:bg-black/60"
     >
       <div className="sticky top-0 z-10 bg-surface px-5 pb-3 pt-2">
         <span aria-hidden="true" className="mx-auto mb-2 block h-1 w-10 rounded-full bg-[var(--border-strong)] opacity-40" />

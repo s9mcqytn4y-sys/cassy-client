@@ -20,6 +20,7 @@ import type { CatalogProduct, PayMethod, ServiceMode } from "./types";
 import { SplitView } from "./SplitView";
 import { CallWaiter } from "./CallWaiter";
 import { StoreHeader } from "./StoreHeader";
+import { ActiveOrderMonitorBanner } from "./ActiveOrderMonitorBanner";
 import { useCartPersistence, useOnlineStatus, useOrderBell } from "./hooks";
 import { useOrderCheckout } from "./useOrderCheckout";
 import { useOrderData, useOrderProgress, useQuote } from "./useOrderData";
@@ -68,7 +69,7 @@ export function OrderApp({ token }: { token: string }) {
     onQuoteStale: () => void refresh()
   });
 
-  const tracked = useOrderProgress(order?.tracking ?? null);
+  const { tracked, refresh: refreshTrack } = useOrderProgress(order?.tracking ?? null);
   const phase = orderPhase(tracked);
 
   const [actionToast, setActionToast] = useState<string | null>(null);
@@ -85,7 +86,9 @@ export function OrderApp({ token }: { token: string }) {
   }, []);
 
   useEffect(() => {
-    if (viewingPayment) setActionToast(null);
+    if (!viewingPayment) return;
+    setActionToast(null);
+    if (typeof window !== "undefined") window.scrollTo(0, 0);
   }, [viewingPayment]);
 
   useEffect(() => {
@@ -114,7 +117,7 @@ export function OrderApp({ token }: { token: string }) {
 
   const { muted, toggleSound, toast } = useOrderBell(arrived, arrivedText, serviceMode);
   const online = useOnlineStatus(() => void refresh());
-  const notices = <Notices toast={actionToast ?? toast} offline={!online} offlineText={t.offline} />;
+  const notices = <Notices toast={cartOpen || optionsFor ? null : (actionToast ?? toast)} offline={!online} offlineText={t.offline} />;
 
   const sections = useMemo(() => menuSections(data?.categories ?? [], data?.products ?? [], t.otherMenu), [data, t.otherMenu]);
   // About the first screen at 360 to 390 px: two rows of the two-column grid.
@@ -142,12 +145,12 @@ export function OrderApp({ token }: { token: string }) {
       </div>
     );
   }
-  if (state === "missing") return <div className="p-5"><DataStateBox state="error" illustration="error" title={t.tableMissingTitle} description={t.tableMissingBody} /></div>;
+  if (state === "missing") return <div className="p-5"><DataStateBox state="error" illustration="notFound" title={t.tableMissingTitle} description={t.tableMissingBody} /></div>;
   if (state === "maintenance") {
     return <div className="p-5"><DataStateBox state="error" illustration="maintenance" title={t.maintenanceTitle} description={t.maintenanceBody} onRetry={reload} /></div>;
   }
   if (state === "failed" || !data) {
-    return <div className="p-5"><DataStateBox state="error" illustration="error" title={t.loadFailedTitle} description={t.loadFailedBody} onRetry={reload} /></div>;
+    return <div className="p-5"><DataStateBox state="error" illustration={online ? "paymentFailed" : "offline"} title={t.loadFailedTitle} description={t.loadFailedBody} onRetry={reload} /></div>;
   }
 
   const { table, cms } = data;
@@ -185,6 +188,7 @@ export function OrderApp({ token }: { token: string }) {
           onSwitch={(via, viaBank) => void newAttempt(via, viaBank)}
           onSelectBank={setBank}
           onNotify={notify}
+          onCheckStatus={refreshTrack}
           serviceMode={serviceMode}
           muted={muted}
           onToggleSound={toggleSound}
@@ -222,11 +226,18 @@ export function OrderApp({ token }: { token: string }) {
       ) : null}
 
       {order && !viewingPayment ? (
-        <div className="mt-4 px-5">
-          <button type="button" disabled={placing} onClick={resumePayment} className="btn-primary min-h-[56px] w-full text-base font-bold">
-            {t.resumePayment}
-          </button>
-          {checkoutError ? <p role="alert" className="mt-2 text-sm font-semibold text-[var(--state-err-fg)]">{checkoutError}</p> : null}
+        <div className="mt-1">
+          <ActiveOrderMonitorBanner
+            orderNumber={tracked?.order_number ?? order.number}
+            amount={payment?.amount}
+            expiresAt={tracked?.expires_at ?? payment?.expires_at}
+            status={tracked?.status}
+            paymentStatus={tracked?.payment_status}
+            busy={placing}
+            onOpenPayment={resumePayment}
+            onRenewQr={() => void newAttempt(payment?.method ?? method)}
+          />
+          {checkoutError ? <p role="alert" className="mt-2 px-5 text-sm font-semibold text-[var(--state-err-fg)]">{checkoutError}</p> : null}
         </div>
       ) : null}
 

@@ -24,7 +24,6 @@ Prioritas: **T** tinggi (bayar sebelum pilot), **S** sedang (bayar dalam rilis b
 | P1 | Mode antar meja hanya mencapai "Sudah diantar" bila KDS Android menandai `served` (US3) | T | Sebelum gerai antar meja memakai mode `table` |
 | P2 | Ikon Cassy PNG dibuat dari SVG vault di repo web, belum disimpan balik ke vault | R | Saat Director merapikan aset vault |
 | P3 | Halaman struk menampilkan nama varian tunggal seperti "Reguler" karena struk menyimpan snapshot varian. Disengaja, sama dengan struk kertas | R | Bila tenant meminta; butuh flag `has_variants` di snapshot pesanan |
-| P4 | Demo memakai nama grup add-on yang dirapikan lewat `db/seeds/demo_group_names.sql`, sedangkan `test_fixtures.sql` masih memakai nama lama | R | Saat fixture uji ditata ulang |
 
 ## Ditemukan pada Cassy POS Android (Release One)
 

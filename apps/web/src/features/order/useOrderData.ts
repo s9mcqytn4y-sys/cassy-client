@@ -112,6 +112,7 @@ interface Tracked {
   status?: string;
   payment_status?: string;
   order_number?: string;
+  expires_at?: string;
 }
 
 const POLL_MS = 10_000;
@@ -122,10 +123,12 @@ const POLL_MS = 10_000;
  */
 export function useOrderProgress(trackingToken: string | null) {
   const [tracked, setTracked] = useState<Tracked | null>(null);
+  const pollRef = useRef<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
     if (!trackingToken) {
       setTracked(null);
+      pollRef.current = null;
       return;
     }
     let stopped = false;
@@ -139,6 +142,7 @@ export function useOrderProgress(trackingToken: string | null) {
     };
     const stop = () => {
       stopped = true;
+      pollRef.current = null;
       clearInterval(timer);
       clearTimeout(retry);
       socket?.close();
@@ -156,6 +160,7 @@ export function useOrderProgress(trackingToken: string | null) {
         // The next poll or socket event retries.
       }
     };
+    pollRef.current = poll;
     const reconnectLater = () => {
       if (!stopped) retry = setTimeout(() => void connect(), reconnectDelay(attempt++));
     };
@@ -183,5 +188,9 @@ export function useOrderProgress(trackingToken: string | null) {
     return stop;
   }, [trackingToken]);
 
-  return tracked;
+  const refresh = useCallback(() => {
+    void pollRef.current?.();
+  }, []);
+
+  return { tracked, refresh };
 }

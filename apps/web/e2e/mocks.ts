@@ -7,11 +7,12 @@ const variant = (id: string, price: number) => ({ id, name: "Reguler", price, is
 export const CATALOG = {
   categories: [{ id: "coffee", name: "Kopi" }],
   products: [
-    { id: "croissant", category_id: "coffee", name: "Croissant", available: true, variants: [variant("v-c", 25000)], modifier_groups: [] },
+    { id: "croissant", category_id: "coffee", name: "Croissant", image_url: "/seeds/menu/croissant.webp", available: true, variants: [variant("v-c", 25000)], modifier_groups: [] },
     {
       id: "latte",
       category_id: "coffee",
       name: "Caffe Latte",
+      image_url: "/seeds/menu/caffe-latte.webp",
       available: true,
       variants: [variant("v-l", 32000)],
       modifier_groups: [
@@ -25,7 +26,7 @@ export const CATALOG = {
         }
       ]
     },
-    { id: "gone", category_id: "coffee", name: "Americano", available: false, variants: [variant("v-g", 20000)], modifier_groups: [] }
+    { id: "gone", category_id: "coffee", name: "Americano", image_url: "/seeds/menu/americano.webp", available: false, variants: [variant("v-g", 20000)], modifier_groups: [] }
   ]
 };
 

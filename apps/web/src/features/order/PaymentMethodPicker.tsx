@@ -62,8 +62,8 @@ const METHOD_HINT: Record<PayMethod, "methodHintQris" | "methodHintGopay" | "met
 };
 
 /**
- * One full-width row per method (logo, name, hint, radio dot) so long labels never wrap into a
- * ragged grid. The radio input stays native for keyboard and screen reader support.
+ * Grouped payment selector: QRIS highlighted as primary recommended option, followed by E-Wallets
+ * and Virtual Account transfers so choices are scannable at a glance.
  */
 export function PaymentMethodPicker({
   methods,
@@ -77,43 +77,66 @@ export function PaymentMethodPicker({
   onSelect: (method: PayMethod) => void;
 }) {
   const { t } = useLocale();
+  const qrisFirst = methods.includes("qris") ? (["qris"] as PayMethod[]) : [];
+  const wallets = methods.filter((m) => m === "gopay" || m === "shopeepay");
+  const bankTransfer = methods.filter((m) => m === "bank_transfer");
+  const groups: { title: string; items: PayMethod[]; highlightPrimary?: boolean }[] = [
+    ...(qrisFirst.length ? [{ title: t.qrisGroupTitle, items: qrisFirst, highlightPrimary: true }] : []),
+    ...(wallets.length ? [{ title: t.walletGroupTitle, items: wallets }] : []),
+    ...(bankTransfer.length ? [{ title: t.bankGroupTitle, items: bankTransfer }] : [])
+  ];
+
   return (
-    <div className="mt-2 flex flex-col gap-2">
-      {methods.map((m) => {
-        const active = selected === m;
-        const label = m === "bank_transfer" ? t.bankTransferLabel : METHOD_LABEL[m];
-        return (
-          <label
-            key={m}
-            className={`flex min-h-[60px] cursor-pointer items-center gap-3 rounded-2xl border bg-surface px-3 py-2.5 motion-safe:transition-[border-color,box-shadow] motion-safe:duration-150 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 ${
-              active ? "border-brand shadow-[0_0_0_1px_var(--color-brand)]" : "border-subtle"
-            } ${disabled ? "pointer-events-none opacity-60" : ""}`}
-          >
-            <input
-              type="radio"
-              name="pay-method"
-              value={m}
-              disabled={disabled}
-              checked={active}
-              onChange={() => onSelect(m)}
-              className="sr-only"
-            />
-            <span className="flex h-9 w-16 shrink-0 items-center justify-center rounded-lg bg-white ring-1 ring-black/10">
-              <PaymentChannelLogo method={m} bare className="h-6 w-auto max-w-[52px]" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold text-ink">{label}</span>
-              <span className="block text-xs text-subink">{t[METHOD_HINT[m]]}</span>
-            </span>
-            <span
-              aria-hidden="true"
-              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${active ? "border-brand" : "border-strong"}`}
-            >
-              <span className={`h-2.5 w-2.5 rounded-full bg-brand motion-safe:transition-transform ${active ? "scale-100" : "scale-0"}`} />
-            </span>
-          </label>
-        );
-      })}
+    <div className="mt-2 space-y-3">
+      {groups.map((group) => (
+        <div key={group.title} className="space-y-1.5">
+          <p className="text-xs font-bold uppercase tracking-wide text-subink">{group.title}</p>
+          <div className="flex flex-col gap-2">
+            {group.items.map((m) => {
+              const active = selected === m;
+              const label = m === "bank_transfer" ? t.bankTransferLabel : METHOD_LABEL[m];
+              return (
+                <label
+                  key={m}
+                  className={`flex min-h-[60px] cursor-pointer items-center gap-3 rounded-2xl border bg-surface px-3 py-2.5 motion-safe:transition-[border-color,box-shadow] motion-safe:duration-150 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 ${
+                    active ? "border-brand shadow-[0_0_0_1px_var(--color-brand)]" : "border-subtle"
+                  } ${disabled ? "pointer-events-none opacity-60" : ""}`}
+                >
+                  <input
+                    type="radio"
+                    name="pay-method"
+                    value={m}
+                    disabled={disabled}
+                    checked={active}
+                    onChange={() => onSelect(m)}
+                    className="sr-only"
+                  />
+                  <span className="flex h-9 w-16 shrink-0 items-center justify-center rounded-lg bg-white ring-1 ring-black/10">
+                    <PaymentChannelLogo method={m} bare className="h-6 w-auto max-w-[52px]" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      <span className="text-sm font-semibold text-ink">{label}</span>
+                      {group.highlightPrimary ? (
+                        <span className="rounded-full bg-[var(--state-ok-bg)] px-2 py-0.5 text-[11px] font-bold text-[var(--state-ok-fg)]">
+                          {t.qrisRecommended}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="block text-xs text-subink">{t[METHOD_HINT[m]]}</span>
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${active ? "border-brand" : "border-strong"}`}
+                  >
+                    <span className={`h-2.5 w-2.5 rounded-full bg-brand motion-safe:transition-transform ${active ? "scale-100" : "scale-0"}`} />
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

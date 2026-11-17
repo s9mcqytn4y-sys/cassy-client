@@ -91,7 +91,7 @@ test.describe("Cassy UX, VA Bank Transfer, Branded QR & A11y", () => {
     expect(serious).toEqual([]);
   });
 
-  test("Branded Cassy QR download (SVG + PNG) and toast feedback", async ({ page }) => {
+  test("Branded Cassy QRIS PNG-only download, live deadline monitor & toast feedback", async ({ page }) => {
     await mockStore(page, { payment_methods: ["qris"] });
     await mockCheckout(page);
     await page.goto("/order/T1");
@@ -99,35 +99,32 @@ test.describe("Cassy UX, VA Bank Transfer, Branded QR & A11y", () => {
     await page.getByRole("button", { name: /Lihat keranjang/ }).click();
     await page.getByRole("button", { name: "Bayar Rp 28.750" }).click();
 
-    await expect(page.getByRole("heading", { name: "Pindai QRIS" })).toBeVisible();
-
-    const [svgDownload] = await Promise.all([
-      page.waitForEvent("download"),
-      page.getByRole("button", { name: "Simpan SVG" }).click()
-    ]);
-    expect(svgDownload.suggestedFilename()).toMatch(/\.svg$/);
-    const svgPath = await svgDownload.path();
-    expect(svgPath).toBeTruthy();
-    const svgText = await fs.readFile(svgPath!, "utf-8");
-    expect(svgText).toContain("Cassy");
-    expect(svgText).toContain("#1F5F52");
+    await expect(page.getByRole("heading", { name: "Pindai QRIS untuk membayar" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Simpan SVG|Save SVG/i })).toHaveCount(0);
 
     const [pngDownload] = await Promise.all([
       page.waitForEvent("download"),
-      page.getByRole("button", { name: "Unduh QR" }).click()
+      page.getByRole("button", { name: "Unduh QRIS" }).click()
     ]);
     expect(pngDownload.suggestedFilename()).toMatch(/\.png$/);
-    await expect(page.getByText("Kode QR Cassy disimpan.")).toBeVisible();
+    await expect(page.getByText("Gambar QRIS Cassy disimpan.")).toBeVisible();
+
+    await page.getByRole("button", { name: "Kembali ke menu" }).click();
+    const monitor = page.getByRole("region", { name: "Pesanan aktif" });
+    await expect(monitor).toBeVisible();
+    await expect(monitor).toContainText("Bayar sebelum");
+    await monitor.getByRole("button", { name: "Lanjutkan pembayaran" }).click();
+    await expect(page.getByRole("heading", { name: "Pindai QRIS untuk membayar" })).toBeVisible();
   });
 
-  test("Maintenance, error & empty illustrations + email validation", async ({ page }) => {
+  test("Maintenance, error & empty SVG illustrations + email validation", async ({ page }) => {
     await page.route("**/api/v1/public/qr/MAINT", (r) => r.fulfill(json({ code: "MAINTENANCE" }, 503)));
     await page.goto("/order/MAINT");
-    await expect(page.locator('img[src="/brand/illustrations/maintenance-state.jpg"]')).toBeVisible();
+    await expect(page.locator('img[src="/brand/illustrations/state-maintenance.svg"]')).toBeVisible();
 
     await page.route("**/api/v1/public/qr/MISSING", (r) => r.fulfill(json({ code: "NOT_FOUND" }, 404)));
     await page.goto("/order/MISSING");
-    await expect(page.locator('img[src="/brand/illustrations/error-state.jpg"]')).toBeVisible();
+    await expect(page.locator('img[src="/brand/illustrations/state-404.svg"]')).toBeVisible();
 
     // Paid screen validates receipt email before network request.
     await mockStore(page, { payment_methods: ["qris"] });

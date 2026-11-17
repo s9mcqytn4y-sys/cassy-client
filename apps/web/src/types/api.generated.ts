@@ -4226,6 +4226,11 @@ export interface components {
             payment_status: string;
             /** Format: date-time */
             updated_at: string;
+            /**
+             * Format: date-time
+             * @description Deadline timestamp for pending unpaid orders.
+             */
+            expires_at?: string;
         };
         TableInput: {
             /** @description Required on create; unique per store among non-archived tables (case-insensitive) */
@@ -5567,6 +5572,13 @@ export interface components {
              * @enum {string}
              */
             qr_service_mode?: "pickup" | "table";
+            /** @description Active store payment channels; digital guest channels require verified Midtrans credentials. */
+            enabled_payment_methods?: ("qris" | "bank_transfer" | "gopay" | "shopeepay" | "cash" | "static_qris" | "edc")[];
+            /**
+             * @description Current validation status of store Midtrans BYOK credentials.
+             * @enum {string}
+             */
+            midtrans_validation_status?: "unverified" | "valid" | "invalid";
         };
         /** @description Mirrors `service.InitiatePaymentResult`. */
         InitiatePaymentResponse: {

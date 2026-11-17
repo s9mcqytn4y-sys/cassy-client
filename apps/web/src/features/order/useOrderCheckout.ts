@@ -97,6 +97,10 @@ export function useOrderCheckout({
 
   const checkout = useCallback(async () => {
     if (!quote) return;
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setCheckoutError(t.offlineCheckoutBlocked);
+      return;
+    }
     setPlacing(true);
     setCheckoutError(null);
     // One key per cart state, so a retry after a dropped connection cannot create a second order.
