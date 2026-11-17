@@ -4,6 +4,7 @@ import androidx.room.Room
 import com.azuredevid.cassy.core.audio.CassySoundPlayer
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.data.local.CassyDatabase
+import com.azuredevid.cassy.data.local.OfflineSyncCoordinator
 import com.azuredevid.cassy.core.hardware.ShiftReportThermalBuilder
 import com.azuredevid.cassy.core.security.AeadCipher
 import com.azuredevid.cassy.core.security.AndroidTinkAeadCipher
@@ -127,6 +128,13 @@ val repositoryModule = module {
         )
     }
 
+    single {
+        OfflineSyncCoordinator(
+            offlineOrderDao = get(),
+            posOrderRepository = get()
+        )
+    }
+
     single<ShiftRepository> {
         KtorShiftRepository(
             httpClient = get(),
@@ -180,6 +188,8 @@ val viewModelModule = module {
             sessionManager = get(),
             printerManager = get(),
             realtimeClient = get(),
+            soundPlayer = get(),
+            offlineSyncCoordinator = get(),
             savedStateHandle = get()
         )
     }
