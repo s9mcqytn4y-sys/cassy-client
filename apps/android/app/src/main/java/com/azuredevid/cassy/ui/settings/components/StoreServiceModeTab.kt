@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -41,9 +42,11 @@ import com.azuredevid.cassy.R
 import com.azuredevid.cassy.domain.model.QRServiceMode
 import com.azuredevid.cassy.ui.designsystem.CassyCard
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
+import com.azuredevid.cassy.ui.designsystem.CassyErrorBanner
 import com.azuredevid.cassy.ui.designsystem.CassyPrimaryButton
 import com.azuredevid.cassy.ui.designsystem.CassySecondaryButton
 import com.azuredevid.cassy.ui.designsystem.CassySectionHeader
+import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import com.azuredevid.cassy.ui.settings.StoreSettingsUiEvent
 import com.azuredevid.cassy.ui.settings.StoreSettingsUiState
 import com.azuredevid.cassy.ui.theme.statusWarnBg
@@ -57,14 +60,17 @@ fun StoreServiceModeTab(
 ) {
     val scrollState = rememberScrollState()
     val colors = MaterialTheme.colorScheme
+    val isMidtransVerified = state.validationStatus.equals("valid", ignoreCase = true)
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(CassyDimens.SpaceXl)
-            .verticalScroll(scrollState),
-        verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceLg)
-    ) {
+    Column(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = CassyDimens.SpaceXl, vertical = CassyDimens.SpaceLg)
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceLg)
+        ) {
         CassyCard {
             CassySectionHeader(
                 title = stringResource(R.string.service_section_title),
@@ -242,15 +248,83 @@ fun StoreServiceModeTab(
             }
         }
 
-        CassyPrimaryButton(
-            text = stringResource(
-                if (state.isSavingSettings) R.string.service_btn_saving else R.string.service_btn_save
-            ),
-            onClick = { onEvent(StoreSettingsUiEvent.SaveStoreSettings) },
-            loading = state.isSavingSettings,
-            icon = Icons.Rounded.Save,
-            modifier = Modifier.fillMaxWidth()
+        RemotePaymentMethodsCard(
+            enabledMethods = state.enabledPaymentMethods,
+            isMidtransVerified = isMidtransVerified,
+            onToggle = { method, enabled ->
+                onEvent(StoreSettingsUiEvent.ToggleRemotePaymentMethod(method, enabled))
+            }
         )
+        }
+
+        Surface(
+            color = colors.surface,
+            tonalElevation = 2.dp,
+            border = BorderStroke(1.dp, colors.outlineVariant)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = CassyDimens.SpaceXl, vertical = CassyDimens.SpaceMd)
+            ) {
+                CassyPrimaryButton(
+                    text = stringResource(
+                        if (state.isSavingSettings) R.string.service_btn_saving else R.string.service_btn_save
+                    ),
+                    onClick = { onEvent(StoreSettingsUiEvent.SaveStoreSettings) },
+                    loading = state.isSavingSettings,
+                    icon = Icons.Rounded.Save,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RemotePaymentMethodsCard(
+    enabledMethods: List<String>,
+    isMidtransVerified: Boolean,
+    onToggle: (String, Boolean) -> Unit
+) {
+    val channels = listOf(
+        "qris" to R.string.service_pay_qris,
+        "gopay" to R.string.service_pay_gopay,
+        "shopeepay" to R.string.service_pay_shopeepay,
+        "bank_transfer" to R.string.service_pay_bank
+    )
+    CassyCard {
+        Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd)) {
+            CassySectionHeader(
+                title = stringResource(R.string.service_remote_pay_title),
+                subtitle = stringResource(R.string.service_remote_pay_desc)
+            )
+            if (!isMidtransVerified) {
+                CassyErrorBanner(
+                    message = stringResource(R.string.service_remote_pay_unverified),
+                    tone = CassyToastTone.WARNING
+                )
+            }
+            channels.forEach { (key, labelRes) ->
+                val checked = enabledMethods.contains(key)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(labelRes),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Switch(
+                        checked = checked,
+                        enabled = isMidtransVerified || checked,
+                        onCheckedChange = { onToggle(key, it) }
+                    )
+                }
+            }
+        }
     }
 }
 

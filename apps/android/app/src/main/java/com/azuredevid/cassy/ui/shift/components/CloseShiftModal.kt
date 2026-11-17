@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.azuredevid.cassy.R
+import com.azuredevid.cassy.core.util.ThousandsSeparatorTransformation
 import com.azuredevid.cassy.domain.model.Shift
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
 import com.azuredevid.cassy.ui.designsystem.CassyErrorBanner
@@ -96,9 +97,10 @@ fun CloseShiftModal(
     ) {
         CassyTextField(
             value = countedCashInput,
-            onValueChange = onCountedCashChanged,
+            onValueChange = { onCountedCashChanged(it.filter(Char::isDigit).take(12)) },
             label = stringResource(R.string.shift_counted_cash_label),
             placeholder = "0",
+            visualTransformation = ThousandsSeparatorTransformation,
             supportingText = if (currentShift?.expectedCash == null) {
                 stringResource(R.string.shift_blind_count_hint)
             } else {

@@ -1,6 +1,9 @@
 package com.azuredevid.cassy.di
 
+import androidx.room.Room
+import com.azuredevid.cassy.core.audio.CassySoundPlayer
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
+import com.azuredevid.cassy.data.local.CassyDatabase
 import com.azuredevid.cassy.core.hardware.ShiftReportThermalBuilder
 import com.azuredevid.cassy.core.security.AeadCipher
 import com.azuredevid.cassy.core.security.AndroidTinkAeadCipher
@@ -41,6 +44,16 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val appModule = module {
+    single<CassySoundPlayer> { CassySoundPlayer(androidContext()) }
+    single<CassyDatabase> {
+        Room.databaseBuilder(
+            androidContext(),
+            CassyDatabase::class.java,
+            CassyDatabase.DATABASE_NAME
+        ).fallbackToDestructiveMigration().build()
+    }
+    single { get<CassyDatabase>().catalogCacheDao() }
+    single { get<CassyDatabase>().offlineOrderDao() }
     single<PrinterPort9100Manager> { PrinterPort9100Manager() }
     single<ShiftReportThermalBuilder> { ShiftReportThermalBuilder() }
     single<BiometricSecurityManager> { BiometricSecurityManager(androidContext()) }
@@ -93,7 +106,8 @@ val repositoryModule = module {
     single<CatalogRepository> {
         KtorCatalogRepository(
             httpClient = get(),
-            serverSettings = get()
+            serverSettings = get(),
+            catalogCacheDao = get()
         )
     }
 

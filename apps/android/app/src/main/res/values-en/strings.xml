@@ -384,7 +384,7 @@
     <string name="catalog_type_prepared">Prepared</string>
     <string name="catalog_type_ready">Ready to Serve</string>
     <string name="catalog_field_category">Category</string>
-    <string name="catalog_meta_format">IDR %1$s | %2$s | %3$d variants</string>
+    <string name="catalog_meta_format">IDR %1$s | %2$s | %3$s</string>
     <string name="catalog_variant_default">%1$s (Default)</string>
     <string name="catalog_variant_name_label">Variant Name (e.g. Large / Hot)</string>
     <string name="catalog_variant_price_label">Variant Price (IDR)</string>
@@ -415,6 +415,15 @@
     <string name="service_table_warning_value">%1$d min</string>
     <string name="service_btn_saving">Saving Policy…</string>
     <string name="service_btn_save">Save Operational Policy</string>
+    <string name="service_remote_pay_title">Guest Payment Channels (PWA)</string>
+    <string name="service_remote_pay_desc">Toggle payment methods visible on guest QR checkout. Requires verified Midtrans credentials.</string>
+    <string name="service_remote_pay_unverified">Midtrans credentials are not verified yet. Verify keys in the Midtrans BYOK tab before enabling digital channels.</string>
+    <string name="service_pay_qris">QRIS</string>
+    <string name="service_pay_gopay">GoPay</string>
+    <string name="service_pay_shopeepay">ShopeePay</string>
+    <string name="service_pay_bank">Bank Transfer (VA)</string>
+    <string name="qris_countdown_format">Pay before %1$s (%2$s)</string>
+    <string name="qris_expired_badge">QRIS Expired</string>
 
     <!-- Printer LAN Tab -->
     <string name="printer_tab_title">LAN Thermal Printer Configuration (Port 9100)</string>

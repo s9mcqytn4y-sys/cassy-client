@@ -1,6 +1,9 @@
 package com.azuredevid.cassy.data.repository
 
 import android.content.Context
+import com.azuredevid.cassy.data.local.CachedCategoryEntity
+import com.azuredevid.cassy.data.local.CachedProductEntity
+import com.azuredevid.cassy.data.local.CatalogCacheDao
 import com.azuredevid.cassy.data.model.CatalogCategory
 import com.azuredevid.cassy.data.model.CatalogProduct
 import com.azuredevid.cassy.data.model.CatalogSnapshot
@@ -27,26 +30,71 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class KtorCatalogRepository(
     private val context: Context? = null,
     private val httpClient: HttpClient,
     private val serverSettings: ServerSettingsRepository,
+    private val catalogCacheDao: CatalogCacheDao? = null,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : CatalogRepository {
 
+    private val cacheJson = Json { ignoreUnknownKeys = true }
+
     override suspend fun getCatalog(storeSlug: String): Result<List<CatalogProduct>> = withContext(ioDispatcher) {
+        val cleanSlug = storeSlug.trim()
         try {
             val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
-            val response = httpClient.get("$baseUrl/api/v1/public/stores/${storeSlug.trim()}/catalog")
+            val response = httpClient.get("$baseUrl/api/v1/public/stores/$cleanSlug/catalog")
             if (response.status.isSuccess()) {
-                val view = response.body<CatalogViewDto>()
-                return@withContext Result.success(view.toSnapshot().products)
+                val snapshot = response.body<CatalogViewDto>().toSnapshot()
+                persistSnapshot(cleanSlug, snapshot)
+                return@withContext Result.success(snapshot.products)
             }
+            val cached = readCachedProducts(cleanSlug)
+            if (cached.isNotEmpty()) return@withContext Result.success(cached)
             Result.failure(HttpErrorMapper.toDomainException(response, "Gagal memuat katalog menu dari server."))
         } catch (t: Throwable) {
+            val cached = readCachedProducts(cleanSlug)
+            if (cached.isNotEmpty()) return@withContext Result.success(cached)
             Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal memuat katalog menu."))
         }
+    }
+
+    private suspend fun persistSnapshot(storeSlug: String, snapshot: CatalogSnapshot) {
+        val dao = catalogCacheDao ?: return
+        val now = System.currentTimeMillis()
+        runCatching {
+            dao.replaceSnapshot(
+                storeSlug = storeSlug,
+                categories = snapshot.categories.map {
+                    CachedCategoryEntity(it.id, storeSlug, it.name, it.displayOrder, it.isActive, now)
+                },
+                products = snapshot.products.map {
+                    CachedProductEntity(
+                        id = it.id,
+                        storeSlug = storeSlug,
+                        categoryId = it.categoryId,
+                        name = it.name,
+                        basePriceIdr = it.basePriceIdr,
+                        isAvailable = it.isAvailable,
+                        payloadJson = cacheJson.encodeToString(it),
+                        updatedAtMs = now
+                    )
+                }
+            )
+        }
+    }
+
+    private suspend fun readCachedProducts(storeSlug: String): List<CatalogProduct> {
+        val dao = catalogCacheDao ?: return emptyList()
+        return runCatching {
+            dao.getProducts(storeSlug).mapNotNull { entity ->
+                runCatching { cacheJson.decodeFromString<CatalogProduct>(entity.payloadJson) }.getOrNull()
+            }
+        }.getOrDefault(emptyList())
     }
 
     override suspend fun getStaffCatalog(): Result<CatalogSnapshot> = withContext(ioDispatcher) {

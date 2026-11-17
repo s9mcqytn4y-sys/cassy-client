@@ -62,6 +62,7 @@ data class StoreSettingsUiState(
     val qrOrderingPaused: Boolean = false,
     val tableTimeLimitMinutes: Int = 90,
     val tableTimerWarningMinutes: Int = 15,
+    val enabledPaymentMethods: List<String> = emptyList(),
     val isSavingSettings: Boolean = false,
 
     // Local LAN Printer Config (Port 9100)
@@ -150,6 +151,7 @@ sealed interface StoreSettingsUiEvent {
     data class SetServiceMode(val mode: QRServiceMode) : StoreSettingsUiEvent
     data class ToggleEmergencyQrPause(val paused: Boolean) : StoreSettingsUiEvent
     data class UpdateTableTimeLimit(val minutes: Int) : StoreSettingsUiEvent
+    data class ToggleRemotePaymentMethod(val method: String, val enabled: Boolean) : StoreSettingsUiEvent
     data object SaveStoreSettings : StoreSettingsUiEvent
 
     // Printer LAN Events
@@ -254,7 +256,8 @@ class StoreSettingsViewModel(
                         qrServiceMode = settings.qrServiceMode,
                         qrOrderingPaused = settings.qrOrderingPaused,
                         tableTimeLimitMinutes = settings.tableTimeLimitMinutes,
-                        tableTimerWarningMinutes = settings.tableTimerWarningMinutes
+                        tableTimerWarningMinutes = settings.tableTimerWarningMinutes,
+                        enabledPaymentMethods = settings.enabledPaymentMethods
                     )
                 }
             }
@@ -295,6 +298,19 @@ class StoreSettingsViewModel(
             is StoreSettingsUiEvent.SetServiceMode -> _uiState.update { it.copy(qrServiceMode = event.mode) }
             is StoreSettingsUiEvent.ToggleEmergencyQrPause -> _uiState.update { it.copy(qrOrderingPaused = event.paused) }
             is StoreSettingsUiEvent.UpdateTableTimeLimit -> _uiState.update { it.copy(tableTimeLimitMinutes = event.minutes) }
+            is StoreSettingsUiEvent.ToggleRemotePaymentMethod -> {
+                _uiState.update { current ->
+                    if (!current.validationStatus.equals("valid", ignoreCase = true) && event.enabled) {
+                        return@update current.copy(errorMessage = "Midtrans BYOK harus terverifikasi sebelum mengaktifkan metode digital.")
+                    }
+                    val updated = if (event.enabled) {
+                        (current.enabledPaymentMethods + event.method).distinct()
+                    } else {
+                        current.enabledPaymentMethods.filterNot { it == event.method }
+                    }
+                    current.copy(enabledPaymentMethods = updated, errorMessage = null)
+                }
+            }
             StoreSettingsUiEvent.SaveStoreSettings -> saveSettings()
 
             is StoreSettingsUiEvent.UpdateCashierPrinterIp -> _uiState.update { it.copy(cashierPrinterIp = event.value) }
@@ -457,7 +473,8 @@ class StoreSettingsViewModel(
                 qrServiceMode = state.qrServiceMode,
                 qrOrderingPaused = state.qrOrderingPaused,
                 tableTimeLimitMinutes = state.tableTimeLimitMinutes,
-                tableTimerWarningMinutes = state.tableTimerWarningMinutes
+                tableTimerWarningMinutes = state.tableTimerWarningMinutes,
+                enabledPaymentMethods = state.enabledPaymentMethods.takeIf { it.isNotEmpty() }
             )
 
             repository.updateStoreSettings(patch)
@@ -468,6 +485,7 @@ class StoreSettingsViewModel(
                             isSavingSettings = false,
                             qrServiceMode = settings.qrServiceMode,
                             qrOrderingPaused = settings.qrOrderingPaused,
+                            enabledPaymentMethods = settings.enabledPaymentMethods,
                             successMessage = msg
                         )
                     }

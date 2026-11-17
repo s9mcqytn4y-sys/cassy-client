@@ -42,3 +42,8 @@
 -dontwarn androidx.camera.**
 -dontwarn com.google.mlkit.**
 -dontwarn com.google.zxing.**
+
+# Room Persistence
+-keep class * extends androidx.room.RoomDatabase
+-keep @androidx.room.Entity class *
+-dontwarn androidx.room.paging.**

@@ -127,6 +127,8 @@ data class StoreSettingsDto(
     val staticQrisFallbackMode: String = "auto",
     @SerialName("cashier_handles_bar")
     val cashierHandlesBar: Boolean = false,
+    @SerialName("enabled_payment_methods")
+    val enabledPaymentMethods: List<String> = emptyList(),
     @SerialName("outlet_daily_expense_limit")
     val outletDailyExpenseLimit: Long = 1000000L,
     @SerialName("default_opening_float")
@@ -146,7 +148,9 @@ data class StoreSettingsPatchDto(
     @SerialName("static_qris_fallback_mode")
     val staticQrisFallbackMode: String? = null,
     @SerialName("cashier_handles_bar")
-    val cashierHandlesBar: Boolean? = null
+    val cashierHandlesBar: Boolean? = null,
+    @SerialName("enabled_payment_methods")
+    val enabledPaymentMethods: List<String>? = null
 )
 
 

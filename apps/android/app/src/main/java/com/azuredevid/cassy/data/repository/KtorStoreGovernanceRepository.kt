@@ -153,7 +153,8 @@ class KtorStoreGovernanceRepository(
                 tableTimeLimitMinutes = patch.tableTimeLimitMinutes,
                 tableTimerWarningMinutes = patch.tableTimerWarningMinutes,
                 staticQrisFallbackMode = patch.staticQrisFallbackMode,
-                cashierHandlesBar = patch.cashierHandlesBar
+                cashierHandlesBar = patch.cashierHandlesBar,
+                enabledPaymentMethods = patch.enabledPaymentMethods
             )
 
             val response: HttpResponse = httpClient.patch("$baseUrl/api/v1/store/settings") {
@@ -203,6 +204,7 @@ class KtorStoreGovernanceRepository(
         tableTimeLimitMinutes = tableTimeLimitMinutes,
         tableTimerWarningMinutes = tableTimerWarningMinutes,
         staticQrisFallbackMode = staticQrisFallbackMode,
-        cashierHandlesBar = cashierHandlesBar
+        cashierHandlesBar = cashierHandlesBar,
+        enabledPaymentMethods = enabledPaymentMethods
     )
 }
