@@ -117,6 +117,23 @@ test.describe("Cassy UX, VA Bank Transfer, Branded QR & A11y", () => {
     await expect(page.getByRole("heading", { name: "Pindai QRIS untuk membayar" })).toBeVisible();
   });
 
+  test("PaymentSwitcherSheet pop-up switches QRIS to Mandiri VA cleanly", async ({ page }) => {
+    await mockStore(page, { payment_methods: ["qris", "gopay", "bank_transfer"] });
+    await mockCheckout(page);
+    await page.goto("/order/T1");
+    await page.getByRole("button", { name: "Tambah Croissant" }).click();
+    await page.getByRole("button", { name: /Lihat keranjang/ }).click();
+    await page.getByRole("button", { name: "Bayar Rp 28.750" }).click();
+
+    await page.getByRole("button", { name: "Bayar dengan metode lain" }).click();
+    const dialog = page.getByRole("dialog", { name: "Pilih metode pembayaran" });
+    await expect(dialog).toBeVisible();
+    await dialog.getByText("Transfer Bank (VA)", { exact: true }).click();
+    await dialog.getByText("Mandiri", { exact: true }).click();
+    await dialog.getByRole("button", { name: "Gunakan metode ini" }).click();
+    await expect(page.getByRole("heading", { name: "Transfer Bank (VA)" })).toBeVisible();
+  });
+
   test("Maintenance, error & empty SVG illustrations + email validation", async ({ page }) => {
     await page.route("**/api/v1/public/qr/MAINT", (r) => r.fulfill(json({ code: "MAINTENANCE" }, 503)));
     await page.goto("/order/MAINT");

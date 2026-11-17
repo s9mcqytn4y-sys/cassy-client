@@ -1,15 +1,32 @@
 // Order notice sounds synthesised with Web Audio (PRD v3 Q7): no audio files to ship or license.
 
-export type BellKind = "ready" | "delivered";
+export type BellKind = "paid" | "ready" | "delivered" | "expiringSoon";
 
-/** [frequency Hz, start s, length s]: two rising notes to call the guest, one soft note when it arrives. */
+/** [frequency Hz, start s, length s]: distinct acoustic chimes per order milestone. */
 export function bellNotes(kind: BellKind): [number, number, number][] {
-  return kind === "ready"
-    ? [
+  switch (kind) {
+    case "paid":
+      return [
+        [523.25, 0, 0.22],
+        [659.25, 0.11, 0.24],
+        [783.99, 0.22, 0.42]
+      ];
+    case "ready":
+      return [
         [880, 0, 0.35],
-        [1175, 0.18, 0.5]
-      ]
-    : [[660, 0, 0.45]];
+        [1174.66, 0.18, 0.5]
+      ];
+    case "delivered":
+      return [
+        [659.25, 0, 0.28],
+        [783.99, 0.14, 0.42]
+      ];
+    case "expiringSoon":
+      return [
+        [587.33, 0, 0.18],
+        [587.33, 0.24, 0.22]
+      ];
+  }
 }
 
 let ctx: AudioContext | null = null;

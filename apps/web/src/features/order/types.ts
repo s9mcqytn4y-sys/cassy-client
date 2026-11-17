@@ -48,6 +48,7 @@ export interface TableInfo {
   label: string;
   ordering_open: boolean;
   closed_reason?: string;
+  operating_hours?: Record<string, unknown>;
   // Guest methods the store enabled; older APIs omit it, which means QRIS only.
   payment_methods?: PayMethod[];
   // How the order reaches the guest; older APIs omit it, which means pickup.

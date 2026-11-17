@@ -4324,6 +4324,10 @@ export interface components {
             ordering_open: boolean;
             /** @enum {string} */
             closed_reason?: "paused" | "store_closed" | "table_inactive";
+            /** @description Optional per-day store operating hours configured in store CMS settings. */
+            operating_hours?: {
+                [key: string]: unknown;
+            };
             /** @description Guest payment methods the store has enabled, in this order. */
             payment_methods?: ("qris" | "gopay" | "shopeepay")[];
             /** @description Show the guest "Panggil Pelayan" entry (feature flag call_waiter). */

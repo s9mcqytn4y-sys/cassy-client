@@ -9,7 +9,8 @@ import { apiFetch } from "@/lib/api";
 import { formatIdr } from "@/lib/format";
 import type { Messages } from "@/lib/messages";
 import { isValidEmail, normalizeSubmissionText } from "@/lib/sanitize";
-import { BankPicker, bankMeta, METHOD_LABEL, MidtransTrustFooter, PaymentChannelLogo } from "./PaymentMethodPicker";
+import { BankPicker, bankMeta, METHOD_LABEL, MidtransTrustFooter } from "./PaymentMethodPicker";
+import { PaymentSwitcherSheet } from "./PaymentSwitcherSheet";
 import { progressStep, safeDeeplink, type OrderPhase } from "./status";
 import type { BankCode, PaymentInfo, PayMethod, ServiceMode } from "./types";
 
@@ -109,6 +110,7 @@ export function PaymentView({
   const [emailError, setEmailError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<"idle" | "sending" | "sent" | "failed">("idle");
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
   useEffect(() => {
     setExpired(false);
@@ -406,23 +408,30 @@ export function PaymentView({
       {error ? <p role="alert" className="mt-4 text-sm font-semibold text-[var(--state-err-fg)]">{error}</p> : null}
 
       {others.length > 0 ? (
-        <div className="mt-6 w-full rounded-2xl border border-subtle bg-surface p-4">
-          <p className="text-xs font-bold uppercase tracking-wide text-subink">{t.payOther}</p>
-          <div className="mt-2.5 flex flex-wrap justify-center gap-2">
-            {others.map((m) => (
-              <button
-                key={m}
-                type="button"
-                disabled={retrying}
-                onClick={() => onSwitch(m)}
-                className="btn-secondary inline-flex min-h-[48px] items-center gap-2 px-4 text-sm font-semibold motion-safe:transition-transform motion-safe:active:scale-[0.98]"
-              >
-                <PaymentChannelLogo method={m} className="h-4 w-auto" />
-                <span>{m === "bank_transfer" ? t.bankTransferLabel : METHOD_LABEL[m]}</span>
-              </button>
-            ))}
-          </div>
+        <div className="mt-5 w-full">
+          <button
+            type="button"
+            disabled={retrying}
+            onClick={() => setSwitcherOpen(true)}
+            className="btn-secondary min-h-[48px] w-full px-5 text-sm font-semibold motion-safe:transition-transform motion-safe:active:scale-[0.98]"
+          >
+            {t.payOther}
+          </button>
         </div>
+      ) : null}
+
+      {switcherOpen ? (
+        <PaymentSwitcherSheet
+          methods={methods}
+          currentMethod={via}
+          currentBank={bank}
+          retrying={retrying}
+          onConfirm={(nextMethod, nextBank) => {
+            if (nextBank) onSelectBank(nextBank);
+            onSwitch(nextMethod, nextBank);
+          }}
+          onClose={() => setSwitcherOpen(false)}
+        />
       ) : null}
 
       <MidtransTrustFooter />

@@ -20,6 +20,7 @@ import type { CatalogProduct, PayMethod, ServiceMode } from "./types";
 import { SplitView } from "./SplitView";
 import { CallWaiter } from "./CallWaiter";
 import { StoreHeader } from "./StoreHeader";
+import { StoreClosedBanner } from "./StoreClosedBanner";
 import { ActiveOrderMonitorBanner } from "./ActiveOrderMonitorBanner";
 import { useCartPersistence, useOnlineStatus, useOrderBell } from "./hooks";
 import { useOrderCheckout } from "./useOrderCheckout";
@@ -243,7 +244,7 @@ export function OrderApp({ token }: { token: string }) {
 
       {!table.ordering_open ? (
         <div className="mt-4 px-5">
-          <DataStateBox state="empty" title={t.closedTitle} description={t.closedBody} />
+          <StoreClosedBanner closedReason={table.closed_reason} operatingHours={table.operating_hours} />
         </div>
       ) : null}
 
