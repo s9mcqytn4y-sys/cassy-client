@@ -19,9 +19,11 @@ import com.azuredevid.cassy.data.repository.KtorKdsRepository
 import com.azuredevid.cassy.data.repository.KtorOrderQuoteRepository
 import com.azuredevid.cassy.data.repository.KtorPosOrderRepository
 import com.azuredevid.cassy.data.repository.KtorShiftRepository
+import com.azuredevid.cassy.data.repository.KtorSplitBillRepository
 import com.azuredevid.cassy.data.repository.KtorStoreGovernanceRepository
 import com.azuredevid.cassy.data.repository.KtorTableManagementRepository
 import com.azuredevid.cassy.data.repository.ServerSettingsRepository
+import com.azuredevid.cassy.domain.repository.SplitBillRepository
 import com.azuredevid.cassy.domain.repository.AuthRepository
 import com.azuredevid.cassy.domain.repository.CatalogRepository
 import com.azuredevid.cassy.domain.repository.KdsRepository
@@ -36,6 +38,7 @@ import com.azuredevid.cassy.domain.repository.StoreGovernanceRepository
 import com.azuredevid.cassy.domain.repository.TableManagementRepository
 import com.azuredevid.cassy.ui.catalog.CatalogManagementViewModel
 import com.azuredevid.cassy.ui.kds.KdsViewModel
+import com.azuredevid.cassy.ui.pos.split.SplitSettlementViewModel
 import com.azuredevid.cassy.ui.pairing.StorePairingViewModel
 import com.azuredevid.cassy.ui.pos.PosViewModel
 import com.azuredevid.cassy.ui.settings.ServerConfigViewModel
@@ -135,6 +138,13 @@ val repositoryModule = module {
         )
     }
 
+    single<SplitBillRepository> {
+        KtorSplitBillRepository(
+            httpClient = get(),
+            serverSettings = get()
+        )
+    }
+
     single<TableManagementRepository> {
         KtorTableManagementRepository(
             httpClient = get(),
@@ -214,6 +224,12 @@ val viewModelModule = module {
             realtime = get(),
             storeSettings = get(),
             savedStateHandle = get()
+        )
+    }
+    viewModel {
+        SplitSettlementViewModel(
+            splitBills = get(),
+            posOrders = get()
         )
     }
 }

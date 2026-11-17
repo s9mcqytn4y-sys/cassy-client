@@ -33,6 +33,9 @@ import com.azuredevid.cassy.ui.pos.components.PosCatalogGrid
 import com.azuredevid.cassy.ui.pos.components.PosNavRail
 import com.azuredevid.cassy.ui.pos.components.PosOrderSummaryPanel
 import com.azuredevid.cassy.ui.pos.components.PosQrisModal
+import com.azuredevid.cassy.ui.pos.split.SplitSettlementEffect
+import com.azuredevid.cassy.ui.pos.split.SplitSettlementViewModel
+import com.azuredevid.cassy.ui.pos.split.components.SplitSettlementDialog
 import com.azuredevid.cassy.ui.shift.ShiftUiEffect
 import com.azuredevid.cassy.ui.shift.ShiftViewModel
 import com.azuredevid.cassy.ui.shift.components.CashMovementModal
@@ -60,6 +63,7 @@ data class CartItem(
 fun PosLandscapeScreen(
     posViewModel: PosViewModel = koinViewModel(),
     shiftViewModel: ShiftViewModel = koinViewModel(),
+    splitViewModel: SplitSettlementViewModel = koinViewModel(),
     onOpenDrawerKick: () -> Unit = {},
     onNavigateToSettings: () -> Unit,
     onNavigateToCatalog: () -> Unit = {},
@@ -75,6 +79,23 @@ fun PosLandscapeScreen(
 
     val posState by posViewModel.uiState.collectAsStateWithLifecycle()
     val shiftState by shiftViewModel.uiState.collectAsStateWithLifecycle()
+    val splitState by splitViewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(posState.splitOrderId) {
+        posState.splitOrderId?.let { splitViewModel.open(it) }
+    }
+
+    LaunchedEffect(splitViewModel) {
+        splitViewModel.effects.collect { effect ->
+            when (effect) {
+                is SplitSettlementEffect.OpenDrawer -> posViewModel.kickDrawerForSplitCash()
+                is SplitSettlementEffect.BillSettled -> {
+                    splitViewModel.close()
+                    posViewModel.onSplitBillSettled(effect.order)
+                }
+            }
+        }
+    }
 
     LaunchedEffect(shiftViewModel) {
         shiftViewModel.effects.collect { effect ->
@@ -236,6 +257,20 @@ fun PosLandscapeScreen(
                                 posViewModel.startQrisPayment(shiftState.currentShift?.drawerId)
                             }
                         },
+                        onOpenSplitBill = {
+                            if (!shiftState.isShiftOpen) {
+                                scope.launch {
+                                    snackbarHostState.showCassySnackbar(
+                                        message = context.getString(R.string.shift_required_for_payment),
+                                        tone = CassyToastTone.WARNING
+                                    )
+                                }
+                                shiftViewModel.openShiftModal()
+                            } else {
+                                posViewModel.startSplitBill()
+                            }
+                        },
+                        onOpenOpenBills = { splitViewModel.showOpenBills() },
                         failoverWarning = posState.failoverAlert,
                         onReprintStations = { posViewModel.reprintStations() }
                     )
@@ -268,6 +303,44 @@ fun PosLandscapeScreen(
                     isCheckingStatus = posState.isCheckingQrisStatus,
                     onCheckStatus = { posViewModel.refreshQrisStatus() },
                     onDismiss = { posViewModel.dismissQrisModal() }
+                )
+            }
+
+            SplitSettlementDialog(
+                state = splitState,
+                rupiahFormat = rupiahFormat,
+                onDivide = { plan -> splitViewModel.divide(plan) },
+                onPayCash = { shareId -> splitViewModel.startCashForShare(shareId) },
+                onPayQris = { shareId -> splitViewModel.payShareQris(shareId, shiftState.currentShift?.drawerId) },
+                onOpenBill = { orderId -> splitViewModel.open(orderId) },
+                onDismiss = {
+                    splitViewModel.close()
+                    posViewModel.closeSplitBill()
+                }
+            )
+
+            val cashShare = splitState.cashShareId?.let { id -> splitState.bill?.shares?.firstOrNull { it.id == id } }
+            if (cashShare != null) {
+                PosCashModal(
+                    grandTotal = cashShare.remainingAmount,
+                    rupiahFormat = rupiahFormat,
+                    isSubmitting = splitState.payingShareId == cashShare.id,
+                    onDismiss = { splitViewModel.cancelCash() },
+                    onConfirmCashPayment = { tenderedLong, _ ->
+                        splitViewModel.payShareCash(cashShare.id, tenderedLong, shiftState.currentShift?.drawerId)
+                    }
+                )
+            }
+
+            val splitQris = splitState.activeQris
+            if (splitQris != null) {
+                PosQrisModal(
+                    orderNumber = splitState.bill?.order?.orderNumber.orEmpty(),
+                    payment = splitQris,
+                    rupiahFormat = rupiahFormat,
+                    isCheckingStatus = splitState.isBusy,
+                    onCheckStatus = { splitViewModel.checkQrisStatus() },
+                    onDismiss = { splitViewModel.dismissQris() }
                 )
             }
 
