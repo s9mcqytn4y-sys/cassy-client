@@ -519,8 +519,8 @@ class CassyUiShowcaseTest {
             }
         }
         composeRule.onNodeWithText(context.getString(R.string.pairing_screen_title)).assertIsDisplayed()
-        composeRule.onNodeWithText(context.getString(R.string.btn_scan_qr_camera)).assertIsDisplayed()
-        composeRule.onNodeWithText(context.getString(R.string.auth_btn_sign_in)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.btn_scan_qr_camera)).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.auth_btn_sign_in)).performScrollTo().assertIsDisplayed()
         captureScreen("StorePairing/DefaultOnline")
     }
 
@@ -540,9 +540,10 @@ class CassyUiShowcaseTest {
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.pairing_server_status_server_unreachable))
+            .performScrollTo()
             .assertIsDisplayed()
-        composeRule.onNodeWithText(context.getString(R.string.auth_err_store_slug_required)).assertIsDisplayed()
-        composeRule.onNodeWithText(context.getString(R.string.auth_btn_sign_in)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.auth_err_store_slug_required)).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.auth_btn_sign_in)).performScrollTo().assertIsDisplayed()
         captureScreen("StorePairing/Errors/ValidationAndOffline")
 
         composeRule.runOnIdle {
