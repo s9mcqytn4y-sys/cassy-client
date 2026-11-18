@@ -555,4 +555,16 @@
     <string name="order_table_unpaid">Belum bayar %1$s</string>
     <string name="order_table_free_text">Atau ketik nama meja</string>
     <string name="cart_line_sent">Sudah dikirim ke dapur</string>
+    <string name="service_msg_load_failed">Gagal memuat panggilan pelayan.</string>
+    <string name="service_msg_update_failed">Gagal memperbarui panggilan. Daftar dimuat ulang.</string>
+    <string name="service_panel_title">Panggilan pelayan</string>
+    <string name="service_panel_empty">Tidak ada tamu yang menunggu.</string>
+    <string name="service_row_title">Meja %1$s: %2$s</string>
+    <string name="service_row_waiting">Menunggu sejak %1$s</string>
+    <string name="service_row_taken">Sedang ditangani, dipanggil %1$s</string>
+    <string name="service_btn_take">Ambil</string>
+    <string name="service_btn_done">Selesai</string>
+    <plurals name="service_pill_count">
+        <item quantity="other">%d tamu memanggil</item>
+    </plurals>
 </resources>

@@ -73,6 +73,9 @@ import com.azuredevid.cassy.domain.repository.LocalServerDiscoveryRepository
 import com.azuredevid.cassy.domain.repository.MobileBootstrapData
 import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
 import com.azuredevid.cassy.domain.repository.PosTable
+import com.azuredevid.cassy.domain.repository.ServiceRequest
+import com.azuredevid.cassy.ui.pos.components.PosServiceRequestPill
+import com.azuredevid.cassy.ui.pos.components.PosServiceRequestsModal
 import com.azuredevid.cassy.ui.pos.CartItem
 import com.azuredevid.cassy.ui.pos.components.PosOrderSummaryPanel
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
@@ -741,6 +744,31 @@ class CassyUiShowcaseTest {
         composeRule.onNodeWithText(context.getString(R.string.order_table_board_title)).assertIsDisplayed()
         composeRule.onNodeWithText("VIP-01").assertIsDisplayed()
         captureScreen("PosTables/TableBoardPicker", preferFullDisplay = true)
+    }
+
+    @Test
+    fun serviceRequestQueue_rendersPillAndWaitingCalls() {
+        val requests = listOf(
+            ServiceRequest("sr-1", "M-02", "Minta bill", null, "open", "2026-11-19T08:02:00Z"),
+            ServiceRequest("sr-2", "VIP-01", "Air putih", "Tanpa es, 3 gelas", "acknowledged", "2026-11-19T08:05:00Z"),
+            ServiceRequest("sr-3", "G-01", "Panggil pelayan", null, "open", "2026-11-19T08:09:00Z")
+        )
+        composeRule.setContent {
+            CassyTheme(darkTheme = false) {
+                PosServiceRequestPill(count = requests.size, onClick = {})
+                PosServiceRequestsModal(
+                    requests = requests,
+                    busyRequestId = null,
+                    onAcknowledge = {},
+                    onDone = {},
+                    onDismiss = {}
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.service_panel_title)).assertIsDisplayed()
+        composeRule.onNodeWithText("Tanpa es, 3 gelas").assertExists()
+        captureScreen("PosServiceRequests/QueueModal", preferFullDisplay = true)
     }
 
     @Test

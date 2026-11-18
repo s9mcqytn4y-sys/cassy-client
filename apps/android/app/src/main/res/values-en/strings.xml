@@ -555,5 +555,18 @@
     <string name="order_table_unpaid">Unpaid %1$s</string>
     <string name="order_table_free_text">Or type a table name</string>
     <string name="cart_line_sent">Sent to the kitchen</string>
+    <string name="service_msg_load_failed">Could not load waiter calls.</string>
+    <string name="service_msg_update_failed">Could not update the call. The list was reloaded.</string>
+    <string name="service_panel_title">Waiter calls</string>
+    <string name="service_panel_empty">No guests are waiting.</string>
+    <string name="service_row_title">Table %1$s: %2$s</string>
+    <string name="service_row_waiting">Waiting since %1$s</string>
+    <string name="service_row_taken">Being handled, called at %1$s</string>
+    <string name="service_btn_take">Take</string>
+    <string name="service_btn_done">Done</string>
+    <plurals name="service_pill_count">
+        <item quantity="one">%d guest calling</item>
+        <item quantity="other">%d guests calling</item>
+    </plurals>
 </resources>
 

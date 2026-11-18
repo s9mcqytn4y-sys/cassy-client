@@ -15,6 +15,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -43,6 +44,8 @@ import com.azuredevid.cassy.ui.shift.components.OpenShiftModal
 import com.azuredevid.cassy.ui.shift.components.ShiftStatusBanner
 import com.azuredevid.cassy.ui.shift.components.XReportModal
 import kotlinx.coroutines.launch
+import com.azuredevid.cassy.ui.pos.components.PosServiceRequestPill
+import com.azuredevid.cassy.ui.pos.components.PosServiceRequestsModal
 import org.koin.androidx.compose.koinViewModel
 import java.text.NumberFormat
 import java.util.Locale
@@ -62,6 +65,7 @@ data class CartItem(
 fun PosLandscapeScreen(
     posViewModel: PosViewModel = koinViewModel(),
     shiftViewModel: ShiftViewModel = koinViewModel(),
+    serviceRequestViewModel: ServiceRequestViewModel = koinViewModel(),
     onOpenDrawerKick: () -> Unit = {},
     onNavigateToSettings: () -> Unit,
     onNavigateToCatalog: () -> Unit = {},
@@ -75,6 +79,13 @@ fun PosLandscapeScreen(
 
     val posState by posViewModel.uiState.collectAsStateWithLifecycle()
     val shiftState by shiftViewModel.uiState.collectAsStateWithLifecycle()
+    val serviceState by serviceRequestViewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(serviceRequestViewModel) {
+        serviceRequestViewModel.errors.collect { message ->
+            snackbarHostState.showCassySnackbar(message = message.asString(context), tone = CassyToastTone.ERROR)
+        }
+    }
 
     LaunchedEffect(shiftViewModel) {
         shiftViewModel.effects.collect { effect ->
@@ -325,6 +336,25 @@ fun PosLandscapeScreen(
                     isCheckingStatus = posState.isCheckingQrisStatus,
                     onCheckStatus = { posViewModel.refreshQrisStatus() },
                     onDismiss = { posViewModel.dismissQrisModal() }
+                )
+            }
+
+            if (serviceState.requests.isNotEmpty()) {
+                PosServiceRequestPill(
+                    count = serviceState.requests.size,
+                    onClick = { serviceRequestViewModel.openPanel() },
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = CassyDimens.SpaceSm)
+                )
+            }
+            if (serviceState.isPanelOpen) {
+                PosServiceRequestsModal(
+                    requests = serviceState.requests,
+                    busyRequestId = serviceState.busyRequestId,
+                    onAcknowledge = { serviceRequestViewModel.acknowledge(it) },
+                    onDone = { serviceRequestViewModel.markDone(it) },
+                    onDismiss = { serviceRequestViewModel.closePanel() }
                 )
             }
 

@@ -175,9 +175,8 @@ class PosViewModel(
         val client = realtimeClient ?: return
         viewModelScope.launch {
             client.events.collect { event ->
-                if (event.type.contains("service_request", ignoreCase = true) ||
-                    event.type.contains("call_waiter", ignoreCase = true)
-                ) {
+                // Chime only for a new call; acknowledge and done from another device stay silent.
+                if (event.type.equals("service_request.created", ignoreCase = true)) {
                     soundPlayer?.play(CassyAudioCue.CALL_WAITER)
                 } else if (event.type.contains("order.created", ignoreCase = true)) {
                     soundPlayer?.play(CassyAudioCue.NEW_QR_ORDER)
