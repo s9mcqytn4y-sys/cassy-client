@@ -63,6 +63,8 @@ data class StoreSettingsUiState(
     val tableTimeLimitMinutes: Int = 90,
     val tableTimerWarningMinutes: Int = 15,
     val enabledPaymentMethods: List<String> = emptyList(),
+    // Last list the server confirmed; null until settings load.
+    val savedPaymentMethods: List<String>? = null,
     val isSavingSettings: Boolean = false,
 
     // Local LAN Printer Config (Port 9100)
@@ -257,7 +259,8 @@ class StoreSettingsViewModel(
                         qrOrderingPaused = settings.qrOrderingPaused,
                         tableTimeLimitMinutes = settings.tableTimeLimitMinutes,
                         tableTimerWarningMinutes = settings.tableTimerWarningMinutes,
-                        enabledPaymentMethods = settings.enabledPaymentMethods
+                        enabledPaymentMethods = settings.enabledPaymentMethods,
+                        savedPaymentMethods = settings.enabledPaymentMethods
                     )
                 }
             }
@@ -474,7 +477,10 @@ class StoreSettingsViewModel(
                 qrOrderingPaused = state.qrOrderingPaused,
                 tableTimeLimitMinutes = state.tableTimeLimitMinutes,
                 tableTimerWarningMinutes = state.tableTimerWarningMinutes,
-                enabledPaymentMethods = state.enabledPaymentMethods.takeIf { it.isNotEmpty() }
+                // Only a real change is sent, empty included: the server then explains why it rejects an empty list.
+                enabledPaymentMethods = state.enabledPaymentMethods.takeIf {
+                    state.savedPaymentMethods != null && it != state.savedPaymentMethods
+                }
             )
 
             repository.updateStoreSettings(patch)
@@ -486,6 +492,7 @@ class StoreSettingsViewModel(
                             qrServiceMode = settings.qrServiceMode,
                             qrOrderingPaused = settings.qrOrderingPaused,
                             enabledPaymentMethods = settings.enabledPaymentMethods,
+                            savedPaymentMethods = settings.enabledPaymentMethods,
                             successMessage = msg
                         )
                     }
