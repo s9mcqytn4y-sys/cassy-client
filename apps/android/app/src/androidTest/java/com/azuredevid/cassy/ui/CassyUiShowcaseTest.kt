@@ -76,6 +76,9 @@ import com.azuredevid.cassy.domain.repository.PosTable
 import com.azuredevid.cassy.domain.repository.ServiceRequest
 import com.azuredevid.cassy.ui.pos.components.PosServiceRequestPill
 import com.azuredevid.cassy.ui.pos.components.PosServiceRequestsModal
+import com.azuredevid.cassy.ui.pos.components.PosTabItemVoidDialog
+import com.azuredevid.cassy.ui.pos.TabItemVoidUiState
+import com.azuredevid.cassy.ui.pos.TabVoidStep
 import com.azuredevid.cassy.ui.pos.CartItem
 import com.azuredevid.cassy.ui.pos.components.PosOrderSummaryPanel
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
@@ -782,6 +785,43 @@ class CassyUiShowcaseTest {
         composeRule.onNodeWithText(context.getString(R.string.service_panel_title)).assertIsDisplayed()
         composeRule.onNodeWithText("Tanpa es, 3 gelas").assertExists()
         captureScreen("PosServiceRequests/QueueModal", preferFullDisplay = true)
+    }
+
+    @Test
+    fun tabItemVoid_rendersOwnerStepAndRemoteWait() {
+        val owner = TabItemVoidUiState(
+            tabId = "tab-1",
+            itemId = "line-1",
+            itemName = "Wagyu Rice Bowl",
+            maxQuantity = 3,
+            quantity = 2,
+            reason = "Tamu batal pesan",
+            pin = "482913",
+            step = TabVoidStep.OWNER
+        )
+        val state = androidx.compose.runtime.mutableStateOf(owner)
+        composeRule.setContent {
+            CassyTheme(darkTheme = false) {
+                PosTabItemVoidDialog(
+                    state = state.value,
+                    onQuantityChange = {},
+                    onReasonChange = {},
+                    onPinChange = {},
+                    onOwnerPinChange = {},
+                    onSubmit = {},
+                    onAskOwner = {},
+                    onDismiss = {}
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.tab_void_owner_needed)).assertExists()
+        captureScreen("PosTabItemVoid/OwnerNeeded", preferFullDisplay = true)
+
+        state.value = owner.copy(step = TabVoidStep.WAITING)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.tab_void_waiting)).assertExists()
+        captureScreen("PosTabItemVoid/WaitingForOwner", preferFullDisplay = true)
     }
 
     @Test

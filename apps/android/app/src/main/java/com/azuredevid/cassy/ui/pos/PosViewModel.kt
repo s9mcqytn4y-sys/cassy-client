@@ -314,7 +314,7 @@ class PosViewModel(
     fun decreaseItemQuantity(productId: String) {
         if (_uiState.value.isCartLocked || _uiState.value.pendingSplitId != null) return
         _uiState.update { state ->
-            // Taking back something already sent is a void that needs approval (later slice); only unsent lines shrink.
+            // Taking back a sent line is a void with its own PIN flow (TabItemVoidViewModel); only unsent lines shrink here.
             val updatedCart = state.cart.mapNotNull { item ->
                 if (item.product.id != productId || item.isSentToKitchen) {
                     item
@@ -361,19 +361,24 @@ class PosViewModel(
         val repo = tableTabRepository ?: return
         viewModelScope.launch {
             repo.openTab(UUID.randomUUID().toString(), table.id, table.tableNumber).onSuccess { tab ->
-                _uiState.update { state ->
-                    val products = state.allProducts.associateBy { it.id }
-                    // shortcut: lines whose product left the catalog are not shown, though the server total still counts them; add a placeholder line if that happens in practice.
-                    val sent = tab.items.groupBy { it.productId }.mapNotNull { (productId, lines) ->
-                        products[productId]?.let { CartItem(it, lines.sumOf { l -> l.quantity }, isSentToKitchen = true) }
-                    }
-                    state.copy(activeTabId = tab.id, cart = sent + state.cart.filterNot { it.isSentToKitchen })
-                }
-                refreshQuote()
+                applyTabOrder(tab)
             }.onFailure { err ->
                 _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_tab_open_failed)))
             }
         }
+    }
+
+    /** Replaces the sent rows with the tab's server lines (after a resume, a round or a void); unsent rows stay. */
+    fun applyTabOrder(tab: PosOrder) {
+        _uiState.update { state ->
+            val products = state.allProducts.associateBy { it.id }
+            // shortcut: lines whose product left the catalog are not shown, though the server total still counts them; add a placeholder line if that happens in practice.
+            val sent = tab.items.groupBy { it.productId }.mapNotNull { (productId, lines) ->
+                products[productId]?.let { CartItem(it, lines.sumOf { l -> l.quantity }, isSentToKitchen = true, sentLines = lines) }
+            }
+            state.copy(activeTabId = tab.id, cart = sent + state.cart.filterNot { it.isSentToKitchen })
+        }
+        refreshQuote()
     }
 
     /** Opens the tab when needed and sends the unsent cart lines as one round; returns the tab id. */
@@ -395,6 +400,8 @@ class PosViewModel(
         repo.submitRound(tabId, roundKey, unsent.map { CreatePosOrderItemInput(it.product.id, it.quantity, it.notes) })
             .getOrElse { return Result.failure(it) }
         _uiState.update { state -> state.copy(pendingRoundKey = null, cart = state.cart.map { it.copy(isSentToKitchen = true) }) }
+        // Pick up the server line ids of the new round so its lines can be voided later.
+        repo.getTab(tabId).onSuccess { applyTabOrder(it) }
         return Result.success(tabId)
     }
 

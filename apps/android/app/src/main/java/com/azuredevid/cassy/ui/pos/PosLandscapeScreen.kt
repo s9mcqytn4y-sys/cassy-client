@@ -26,6 +26,7 @@ import com.azuredevid.cassy.R
 import com.azuredevid.cassy.data.model.CatalogProduct
 import com.azuredevid.cassy.data.model.OrderQuoteItem
 import com.azuredevid.cassy.data.model.OrderQuoteRequest
+import com.azuredevid.cassy.domain.model.PosOrderItem
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
 import com.azuredevid.cassy.ui.designsystem.CassySnackbarHost
 import com.azuredevid.cassy.ui.designsystem.CassyToastTone
@@ -46,6 +47,7 @@ import com.azuredevid.cassy.ui.shift.components.XReportModal
 import kotlinx.coroutines.launch
 import com.azuredevid.cassy.ui.pos.components.PosServiceRequestPill
 import com.azuredevid.cassy.ui.pos.components.PosServiceRequestsModal
+import com.azuredevid.cassy.ui.pos.components.PosTabItemVoidDialog
 import org.koin.androidx.compose.koinViewModel
 import java.text.NumberFormat
 import java.util.Locale
@@ -55,7 +57,9 @@ data class CartItem(
     val product: CatalogProduct,
     val quantity: Int = 1,
     val notes: String = "",
-    val isSentToKitchen: Boolean = false
+    val isSentToKitchen: Boolean = false,
+    /** Server lines of an open tab behind this sent row; a void targets one of them by id. */
+    val sentLines: List<PosOrderItem> = emptyList()
 )
 
 /**
@@ -66,6 +70,7 @@ fun PosLandscapeScreen(
     posViewModel: PosViewModel = koinViewModel(),
     shiftViewModel: ShiftViewModel = koinViewModel(),
     serviceRequestViewModel: ServiceRequestViewModel = koinViewModel(),
+    tabItemVoidViewModel: TabItemVoidViewModel = koinViewModel(),
     onOpenDrawerKick: () -> Unit = {},
     onNavigateToSettings: () -> Unit,
     onNavigateToCatalog: () -> Unit = {},
@@ -80,6 +85,28 @@ fun PosLandscapeScreen(
     val posState by posViewModel.uiState.collectAsStateWithLifecycle()
     val shiftState by shiftViewModel.uiState.collectAsStateWithLifecycle()
     val serviceState by serviceRequestViewModel.uiState.collectAsStateWithLifecycle()
+    val voidState by tabItemVoidViewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(tabItemVoidViewModel) {
+        tabItemVoidViewModel.voided.collect { result ->
+            posViewModel.applyTabOrder(result.tab)
+            snackbarHostState.showCassySnackbar(
+                message = context.getString(R.string.tab_void_msg_done, result.itemName),
+                tone = CassyToastTone.SUCCESS
+            )
+        }
+    }
+
+    // A sent row of an open tab is voided line by line from its newest round; unsent rows just shrink.
+    val handleDecrease: (CartItem) -> Unit = { item ->
+        val tabId = posState.activeTabId
+        val line = item.sentLines.lastOrNull()
+        if (!item.isSentToKitchen) {
+            posViewModel.decreaseItemQuantity(item.product.id)
+        } else if (tabId != null && line != null && posState.pendingSplitId == null) {
+            tabItemVoidViewModel.open(tabId, line, item.product.name)
+        }
+    }
 
     LaunchedEffect(serviceRequestViewModel) {
         serviceRequestViewModel.errors.collect { message ->
@@ -243,7 +270,7 @@ fun PosLandscapeScreen(
                             isShiftOpen = shiftState.isShiftOpen,
                             isSubmittingOrder = posState.isSubmittingOrder,
                             onIncreaseQuantity = { item -> posViewModel.increaseItemQuantity(item.product.id) },
-                            onDecreaseQuantity = { item -> posViewModel.decreaseItemQuantity(item.product.id) },
+                            onDecreaseQuantity = handleDecrease,
                             quote = posState.quote,
                             quoteError = posState.quoteError?.asString(),
                             rupiahFormat = rupiahFormat,
@@ -288,7 +315,7 @@ fun PosLandscapeScreen(
                         isCartLocked = posState.isCartLocked,
                         isSubmittingOrder = posState.isSubmittingOrder,
                         onIncreaseQuantity = { item -> posViewModel.increaseItemQuantity(item.product.id) },
-                        onDecreaseQuantity = { item -> posViewModel.decreaseItemQuantity(item.product.id) },
+                        onDecreaseQuantity = handleDecrease,
                         quote = posState.quote,
                         quoteError = posState.quoteError?.asString(),
                         rupiahFormat = rupiahFormat,
@@ -346,6 +373,18 @@ fun PosLandscapeScreen(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(top = CassyDimens.SpaceSm)
+                )
+            }
+            if (voidState.isOpen) {
+                PosTabItemVoidDialog(
+                    state = voidState,
+                    onQuantityChange = tabItemVoidViewModel::setQuantity,
+                    onReasonChange = tabItemVoidViewModel::setReason,
+                    onPinChange = tabItemVoidViewModel::setPin,
+                    onOwnerPinChange = tabItemVoidViewModel::setOwnerPin,
+                    onSubmit = tabItemVoidViewModel::submit,
+                    onAskOwner = tabItemVoidViewModel::requestOwnerApproval,
+                    onDismiss = tabItemVoidViewModel::dismiss
                 )
             }
             if (serviceState.isPanelOpen) {

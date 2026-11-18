@@ -20,6 +20,18 @@ data class PosTable(
 data class ClosedTab(val order: PosOrder, val splitId: String)
 
 /**
+ * Takes [quantity] units off one sent line. [pin] is always the cashier's own; above the store's owner
+ * threshold the server also needs [ownerPin] or an approved remote request ([approvalId]).
+ */
+data class TabItemVoidInput(
+    val quantity: Int,
+    val reason: String,
+    val pin: String,
+    val ownerPin: String? = null,
+    val approvalId: String? = null
+)
+
+/**
  * Dine-in open bills (tabs) bound to a table. The server owns the bill: each kitchen send is a round,
  * and closing the tab freezes the total and creates the split the payment must name.
  */
@@ -33,6 +45,12 @@ interface TableTabRepository {
     suspend fun openTab(idempotencyKey: String, tableId: String, tableNumber: String): Result<PosOrder>
 
     suspend fun submitRound(orderId: String, idempotencyKey: String, items: List<CreatePosOrderItemInput>): Result<Unit>
+
+    /** The open tab with every sent line (all rounds), each carrying the server line id a void needs. */
+    suspend fun getTab(orderId: String): Result<PosOrder>
+
+    /** Voids part or all of one line; returns the tab as it now stands. */
+    suspend fun voidItem(orderId: String, itemId: String, input: TabItemVoidInput): Result<PosOrder>
 
     suspend fun closeTab(orderId: String): Result<ClosedTab>
 }

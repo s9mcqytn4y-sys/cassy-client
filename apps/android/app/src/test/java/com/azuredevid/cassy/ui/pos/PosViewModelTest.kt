@@ -22,6 +22,7 @@ import com.azuredevid.cassy.domain.model.CreatePosOrderItemInput
 import com.azuredevid.cassy.domain.model.PosOrderItem
 import com.azuredevid.cassy.domain.repository.ClosedTab
 import com.azuredevid.cassy.domain.repository.PosTable
+import com.azuredevid.cassy.domain.repository.TabItemVoidInput
 import com.azuredevid.cassy.domain.repository.TableTabRepository
 import com.azuredevid.cassy.domain.repository.CatalogRepository
 import com.azuredevid.cassy.domain.repository.NoStaffSessionException
@@ -339,6 +340,19 @@ class PosViewModelTest {
             return Result.success(Unit)
         }
 
+        // The server bill: resumed lines plus one line per item of every submitted round.
+        override suspend fun getTab(orderId: String): Result<PosOrder> = Result.success(
+            PosOrder(
+                id = orderId,
+                orderNumber = "TAB-001",
+                items = resumeItems + rounds.flatten().mapIndexed { i, it ->
+                    PosOrderItem(id = "round-line-$i", productId = it.productId, snapshotName = "", quantity = it.quantity)
+                }
+            )
+        )
+
+        override suspend fun voidItem(orderId: String, itemId: String, input: TabItemVoidInput): Result<PosOrder> = error("unused")
+
         override suspend fun closeTab(orderId: String): Result<ClosedTab> {
             closedTabId = orderId
             return Result.success(ClosedTab(PosOrder(id = orderId, orderNumber = "TAB-001", totalAmount = 61600L), "split-1"))
@@ -385,6 +399,8 @@ class PosViewModelTest {
         assertEquals(1, tabs.openedKeys.size)
         assertEquals(listOf(CreatePosOrderItemInput("p-1", 1)), tabs.rounds.single())
         assertTrue(vm.uiState.value.cart.single().isSentToKitchen)
+        // The sent row now knows its server line, so it can be voided.
+        assertEquals("round-line-0", vm.uiState.value.cart.single().sentLines.single().id)
 
         // A second coffee after the first round goes on its own unsent line, not onto the sent one.
         vm.addProductToCart(latte)

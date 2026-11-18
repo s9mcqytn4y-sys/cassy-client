@@ -21,6 +21,7 @@ import com.azuredevid.cassy.data.repository.KtorAuthRepository
 import com.azuredevid.cassy.data.repository.KtorCatalogRepository
 import com.azuredevid.cassy.data.repository.KtorOrderQuoteRepository
 import com.azuredevid.cassy.data.repository.KtorPosOrderRepository
+import com.azuredevid.cassy.data.repository.KtorApprovalRepository
 import com.azuredevid.cassy.data.repository.KtorServiceRequestRepository
 import com.azuredevid.cassy.data.repository.KtorTableTabRepository
 import com.azuredevid.cassy.data.repository.KtorShiftRepository
@@ -31,6 +32,7 @@ import com.azuredevid.cassy.domain.repository.CatalogRepository
 import com.azuredevid.cassy.domain.repository.LocalServerDiscoveryRepository
 import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
+import com.azuredevid.cassy.domain.repository.ApprovalRepository
 import com.azuredevid.cassy.domain.repository.ServiceRequestRepository
 import com.azuredevid.cassy.domain.repository.TableTabRepository
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
@@ -41,6 +43,7 @@ import com.azuredevid.cassy.ui.catalog.CatalogManagementViewModel
 import com.azuredevid.cassy.ui.pairing.StorePairingViewModel
 import com.azuredevid.cassy.ui.pos.PosViewModel
 import com.azuredevid.cassy.ui.pos.ServiceRequestViewModel
+import com.azuredevid.cassy.ui.pos.TabItemVoidViewModel
 import com.azuredevid.cassy.ui.settings.ServerConfigViewModel
 import com.azuredevid.cassy.ui.settings.StoreSettingsViewModel
 import com.azuredevid.cassy.ui.shift.ShiftViewModel
@@ -140,6 +143,13 @@ val repositoryModule = module {
         )
     }
 
+    single<ApprovalRepository> {
+        KtorApprovalRepository(
+            httpClient = get(),
+            serverSettings = get()
+        )
+    }
+
     single<TableTabRepository> {
         KtorTableTabRepository(
             httpClient = get(),
@@ -163,6 +173,12 @@ val repositoryModule = module {
 }
 
 val viewModelModule = module {
+    viewModel {
+        TabItemVoidViewModel(
+            tabs = get(),
+            approvals = get()
+        )
+    }
     viewModel {
         ServiceRequestViewModel(
             repository = get(),

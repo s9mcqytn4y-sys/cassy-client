@@ -8,6 +8,7 @@ import com.azuredevid.cassy.domain.model.CreatePosOrderItemInput
 import com.azuredevid.cassy.domain.model.PosOrder
 import com.azuredevid.cassy.domain.repository.ClosedTab
 import com.azuredevid.cassy.domain.repository.PosTable
+import com.azuredevid.cassy.domain.repository.TabItemVoidInput
 import com.azuredevid.cassy.domain.repository.TableTabRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -72,6 +73,15 @@ private data class SubmitRoundRequestDto(
 private data class CloseTabRequestDto(val strategy: String = "full")
 
 @Serializable
+private data class VoidTabItemRequestDto(
+    val quantity: Int,
+    val reason: String,
+    val pin: String,
+    @SerialName("owner_pin") val ownerPin: String? = null,
+    @SerialName("approval_id") val approvalId: String? = null
+)
+
+@Serializable
 private data class PaymentSplitDto(val id: String)
 
 @Serializable
@@ -127,15 +137,43 @@ class KtorTableTabRepository(
             }
         }
 
-    private suspend fun getTab(orderId: String): Result<PosOrder> {
-        val response = httpClient.get("${baseUrl()}/api/v1/pos/tabs/$orderId")
-        if (!response.status.isSuccess()) {
-            return Result.failure(HttpErrorMapper.toDomainException(response, "Gagal memuat tagihan meja."))
+    override suspend fun getTab(orderId: String): Result<PosOrder> = withContext(ioDispatcher) {
+        try {
+            val response = httpClient.get("${baseUrl()}/api/v1/pos/tabs/$orderId")
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal memuat tagihan meja."))
+            }
+            val detail = response.body<TabDetailResponseDto>()
+            // Items live on the rounds; flatten them so the cart can show the whole running bill.
+            Result.success(detail.order.toDomain().copy(items = detail.rounds.flatMap { r -> r.items.map { it.toDomain() } }))
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal memuat tagihan meja."))
         }
-        val detail = response.body<TabDetailResponseDto>()
-        // Items live on the rounds; flatten them so the cart can show the whole running bill.
-        return Result.success(detail.order.toDomain().copy(items = detail.rounds.flatMap { r -> r.items.map { it.toDomain() } }))
     }
+
+    override suspend fun voidItem(orderId: String, itemId: String, input: TabItemVoidInput): Result<PosOrder> =
+        withContext(ioDispatcher) {
+            try {
+                val response = httpClient.post("${baseUrl()}/api/v1/pos/tabs/$orderId/items/$itemId/void") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        VoidTabItemRequestDto(
+                            quantity = input.quantity,
+                            reason = input.reason,
+                            pin = input.pin,
+                            ownerPin = input.ownerPin?.ifBlank { null },
+                            approvalId = input.approvalId
+                        )
+                    )
+                }
+                if (!response.status.isSuccess()) {
+                    return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal membatalkan item."))
+                }
+                Result.success(response.body<TabOrderResponseDto>().order.toDomain())
+            } catch (t: Throwable) {
+                Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal membatalkan item."))
+            }
+        }
 
     override suspend fun submitRound(
         orderId: String,

@@ -309,8 +309,8 @@ fun PosOrderSummaryPanel(
                                     ) {
                                         OutlinedButton(
                                             onClick = { onDecreaseQuantity(item) },
-                                            // A sent line is on the kitchen ticket and the bill; taking it back is a void.
-                                            enabled = !isCartLocked && !item.isSentToKitchen,
+                                            // A sent line can only be taken back as a void of a server tab line.
+                                            enabled = !isCartLocked && (!item.isSentToKitchen || item.sentLines.isNotEmpty()),
                                             shape = RoundedCornerShape(CassyDimens.RadiusButton),
                                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                                             contentPadding = PaddingValues(0.dp),

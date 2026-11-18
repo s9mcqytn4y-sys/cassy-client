@@ -568,5 +568,22 @@
         <item quantity="one">%d guest calling</item>
         <item quantity="other">%d guests calling</item>
     </plurals>
+    <string name="tab_void_title">Void item</string>
+    <string name="tab_void_subtitle">%1$s, %2$d sent</string>
+    <string name="tab_void_quantity">Quantity to void</string>
+    <string name="tab_void_reason">Reason</string>
+    <string name="tab_void_reason_hint">Example: guest cancelled</string>
+    <string name="tab_void_pin">Cashier PIN</string>
+    <string name="tab_void_owner_pin">Owner PIN</string>
+    <string name="tab_void_owner_needed">This item is above the cashier limit. Enter the owner PIN, or ask the owner to approve on their phone.</string>
+    <string name="tab_void_waiting">Waiting for the owner to approve on their phone. Keep this window open.</string>
+    <string name="tab_void_btn_submit">Void item</string>
+    <string name="tab_void_btn_ask_owner">Ask owner to approve</string>
+    <string name="tab_void_btn_close">Close</string>
+    <string name="tab_void_msg_done">%1$s removed from the bill</string>
+    <string name="tab_void_msg_failed">The item could not be voided. Try again.</string>
+    <string name="tab_void_msg_request_failed">The request to the owner could not be sent. Try again.</string>
+    <string name="tab_void_msg_rejected">The owner rejected this void.</string>
+    <string name="tab_void_msg_expired">The approval window has passed. Send a new request or use the owner PIN.</string>
 </resources>
 

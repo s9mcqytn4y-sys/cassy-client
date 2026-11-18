@@ -567,4 +567,21 @@
     <plurals name="service_pill_count">
         <item quantity="other">%d tamu memanggil</item>
     </plurals>
+    <string name="tab_void_title">Batalkan item</string>
+    <string name="tab_void_subtitle">%1$s, sudah dikirim %2$d</string>
+    <string name="tab_void_quantity">Jumlah yang dibatalkan</string>
+    <string name="tab_void_reason">Alasan</string>
+    <string name="tab_void_reason_hint">Contoh: tamu batal pesan</string>
+    <string name="tab_void_pin">PIN kasir</string>
+    <string name="tab_void_owner_pin">PIN owner</string>
+    <string name="tab_void_owner_needed">Nilai item ini di atas batas kasir. Masukkan PIN owner, atau minta owner menyetujui dari HP-nya.</string>
+    <string name="tab_void_waiting">Menunggu owner menyetujui di HP-nya. Biarkan jendela ini terbuka.</string>
+    <string name="tab_void_btn_submit">Batalkan item</string>
+    <string name="tab_void_btn_ask_owner">Minta persetujuan owner</string>
+    <string name="tab_void_btn_close">Tutup</string>
+    <string name="tab_void_msg_done">%1$s dibatalkan dari tagihan</string>
+    <string name="tab_void_msg_failed">Item gagal dibatalkan. Coba lagi.</string>
+    <string name="tab_void_msg_request_failed">Permintaan ke owner gagal dikirim. Coba lagi.</string>
+    <string name="tab_void_msg_rejected">Owner menolak pembatalan ini.</string>
+    <string name="tab_void_msg_expired">Waktu persetujuan habis. Kirim permintaan baru atau pakai PIN owner.</string>
 </resources>
