@@ -18,6 +18,8 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -70,6 +72,9 @@ import com.azuredevid.cassy.domain.repository.DiscoveredLocalServer
 import com.azuredevid.cassy.domain.repository.LocalServerDiscoveryRepository
 import com.azuredevid.cassy.domain.repository.MobileBootstrapData
 import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
+import com.azuredevid.cassy.domain.repository.PosTable
+import com.azuredevid.cassy.ui.pos.CartItem
+import com.azuredevid.cassy.ui.pos.components.PosOrderSummaryPanel
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import com.azuredevid.cassy.domain.repository.PrinterConfig
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
@@ -664,7 +669,7 @@ class CassyUiShowcaseTest {
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.catalog_mgmt_title)).assertIsDisplayed()
-        composeRule.onNodeWithText("Paket Nasi Ayam Bakar").assertIsDisplayed()
+        composeRule.onNodeWithText("Paket Nasi Ayam Bakar").performScrollTo().assertIsDisplayed()
         captureScreen("CatalogManagement/CatalogMain")
     }
 
@@ -692,6 +697,50 @@ class CassyUiShowcaseTest {
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_printer)).performClick()
         composeRule.onNodeWithText(context.getString(R.string.printer_tab_title)).assertIsDisplayed()
         captureScreen("StoreSettings/Tabs/PrinterTab")
+    }
+
+    @Test
+    fun posTableBoard_rendersStatesAndRunningBill() {
+        val rupiah = NumberFormat.getIntegerInstance(Locale("id", "ID"))
+        val coffee = sampleProducts.first()
+        val tables = listOf(
+            PosTable("t-1", "M-01", "Meja A1", "Indoor", 2, "available", 0L),
+            PosTable("t-2", "M-02", "Meja A2", "Indoor", 2, "occupied", 61_600L),
+            PosTable("t-3", "M-03", "Sofa", "Indoor", 4, "settled", 0L),
+            PosTable("t-4", "G-01", "Teras", "Garden", 4, "available", 0L),
+            PosTable("t-5", "VIP-01", "Ruang VIP", "VIP", 8, "occupied", 245_000L)
+        )
+        composeRule.setContent {
+            CassyTheme(darkTheme = false) {
+                PosOrderSummaryPanel(
+                    panelWidth = 420.dp,
+                    tableName = "M-02",
+                    orderType = "DINE-IN",
+                    onToggleOrderType = {},
+                    // One sent line from the open tab plus a new unsent line of the same product.
+                    cart = listOf(CartItem(coffee, 2, isSentToKitchen = true), CartItem(coffee, 1)),
+                    isCartLocked = false,
+                    onIncreaseQuantity = {},
+                    onDecreaseQuantity = {},
+                    quote = OrderQuote(subtotalAmount = 84_000L, taxAmount = 8_400L, totalAmount = 92_400L),
+                    rupiahFormat = rupiah,
+                    onOpenDrawerKick = {},
+                    onSendToKitchen = {},
+                    onOpenCashModal = {},
+                    onOpenQrisModal = {},
+                    failoverWarning = null,
+                    onReprintStations = {},
+                    tables = tables,
+                    selectedTableId = "t-2"
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        captureScreen("PosTables/OpenBillCart", preferFullDisplay = true)
+        composeRule.onNodeWithText(context.getString(R.string.order_table_tap_hint)).performClick()
+        composeRule.onNodeWithText(context.getString(R.string.order_table_board_title)).assertIsDisplayed()
+        composeRule.onNodeWithText("VIP-01").assertIsDisplayed()
+        captureScreen("PosTables/TableBoardPicker", preferFullDisplay = true)
     }
 
     @Test
