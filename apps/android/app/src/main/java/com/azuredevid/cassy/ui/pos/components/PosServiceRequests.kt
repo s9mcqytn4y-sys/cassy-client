@@ -86,19 +86,19 @@ fun PosServiceRequestsModal(
         }
         requests.forEachIndexed { index, request ->
             if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-            Row(
+            // Text on top, actions below: on a phone the buttons beside the text squeezed the table name away.
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = CassyDimens.SpaceSm),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
+                verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column {
                     Text(
                         text = stringResource(R.string.service_row_title, request.tableNumber, request.label),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                     val status = if (request.isAcknowledged) {
@@ -112,18 +112,23 @@ fun PosServiceRequestsModal(
                     }
                 }
                 val busy = busyRequestId != null
-                if (!request.isAcknowledged) {
-                    CassySecondaryButton(
-                        text = stringResource(R.string.service_btn_take),
-                        onClick = { onAcknowledge(request.id) },
+                Row(
+                    modifier = Modifier.align(Alignment.End),
+                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
+                ) {
+                    if (!request.isAcknowledged) {
+                        CassySecondaryButton(
+                            text = stringResource(R.string.service_btn_take),
+                            onClick = { onAcknowledge(request.id) },
+                            enabled = !busy
+                        )
+                    }
+                    CassyPrimaryButton(
+                        text = stringResource(R.string.service_btn_done),
+                        onClick = { onDone(request.id) },
                         enabled = !busy
                     )
                 }
-                CassyPrimaryButton(
-                    text = stringResource(R.string.service_btn_done),
-                    onClick = { onDone(request.id) },
-                    enabled = !busy
-                )
             }
         }
     }
