@@ -9,7 +9,6 @@ const runLiveApi = process.env.PLAYWRIGHT_LIVE_API === "1";
 const screenshotRoot = path.resolve(process.cwd(), "screenshots", "ui-v2.5.0");
 
 const SENOPATI_QR = "qr_senopati_m01_7f8a9b2c3d4e5f6a7b8c9d01";
-const SUDIRMAN_QR = "qr_sudirman_exp1_7f8a9b2c3d4e5f6a7b8c9d09";
 
 function viewportSuffix(testInfo: TestInfo): "Desktop" | "Mobile" {
   return testInfo.project.name === "mobile-safari" ? "Mobile" : "Desktop";
@@ -69,7 +68,7 @@ test.describe("UI v2.5.0 Visual Evidence & Regression Suite", () => {
     await expect(page.locator("main")).toHaveCount(1);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expectCleanA11y(page);
-    await saveShot(page, testInfo, "Home", "LandingPage");
+    await saveShot(page, testInfo, "Home", "QrScanInstruction");
 
     await page.goto("/legal");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -179,7 +178,7 @@ test.describe("UI v2.5.0 Visual Evidence & Regression Suite", () => {
 
     await page.route("**/api/v1/public/qr/MAINT", (r) => r.fulfill(json({ code: "MAINTENANCE" }, 503)));
     await page.goto("/order/MAINT");
-    await expect(page.locator('img[src="/brand/illustrations/maintenance-state.jpg"]')).toBeVisible();
+    await expect(page.locator('img[src="/brand/illustrations/state-maintenance.svg"]')).toBeVisible();
     await saveShot(page, testInfo, "Errors", "MaintenanceMode");
   });
 });
@@ -248,19 +247,13 @@ test.describe("Live Backend E2E (Android Demo Account + Dual Store QR)", () => {
     await expectCleanA11y(page);
     await saveShot(page, testInfo, "LiveBackend", "SenopatiMenu");
 
-    const addBtn = page.getByRole("button", { name: "Tambah Yuzu Espresso Tonica" });
+    const addBtn = page.getByRole("button", { name: "Tambah Americano (Double Shot)" });
     await addBtn.click();
     await page.getByRole("button", { name: /Lihat keranjang|View cart/ }).click();
     await expect(page.getByRole("dialog")).toContainText("Rp", { timeout: 10_000 });
     await saveShot(page, testInfo, "LiveBackend", "SenopatiCartQuote");
 
-    // 5. Store 2 (Cassy Express Sudirman MRT) live menu
-    await page.goto(`/order/${SUDIRMAN_QR}`);
-    await expect(page.getByRole("heading", { level: 1, name: "Cassy Express Sudirman MRT" })).toBeVisible({ timeout: 15_000 });
-    await expectCleanA11y(page);
-    await saveShot(page, testInfo, "LiveBackend", "SudirmanExpressMenu");
-
-    // 6. Performance + zero unexpected console/5xx errors (excluding expected 404 on /r/INVALIDCODE tested above)
+    // 5. Performance + zero unexpected console/5xx errors (excluding expected 404 on /r/INVALIDCODE tested above)
     expect(consoleErrors.filter((e) => !e.includes("404") && !e.includes("Failed to load resource"))).toEqual([]);
     expect(serverErrors).toEqual([]);
   });

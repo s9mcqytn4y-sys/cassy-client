@@ -89,15 +89,21 @@ assert.equal(safeDeeplink(" JavaScript:alert(1)"), null, "case and leading space
 assert.equal(safeDeeplink("data:text/html,x"), null);
 assert.equal(safeDeeplink("not a url"), null);
 assert.equal(safeDeeplink(undefined), null);
+assert.equal(safeDeeplink("shopeeid://main?x=1"), "shopeeid://main?x=1");
+assert.equal(safeDeeplink("http://evil.example/pay"), null, "plain http is not a wallet redirect");
+assert.equal(safeDeeplink("intent://x#Intent;scheme=evil;end"), null, "unknown schemes are dropped");
+assert.equal(safeDeeplink("file:///etc/passwd"), null);
 assert.equal(checkoutMessageKey("INVALID_PAYMENT"), "methodUnavailable");
 console.log("cart ok");
 
-// Bell: "ready" calls the guest with two rising notes; "delivered" is one soft note.
+// Bell: distinct harmonic chimes for paid, ready, delivered, and expiringSoon.
 const { bellNotes } = await import("./bell.ts");
 const ready = bellNotes("ready");
 assert.equal(ready.length, 2);
 assert.ok(ready[1][0] > ready[0][0] && ready[1][1] > ready[0][1]);
-assert.equal(bellNotes("delivered").length, 1);
+assert.equal(bellNotes("delivered").length, 2);
+assert.equal(bellNotes("paid").length, 3);
+assert.equal(bellNotes("expiringSoon").length, 2);
 
 // Maintenance: only nginx's 503 with code MAINTENANCE counts, not every 503.
 const { ApiError, isMaintenance } = await import("../../lib/api.ts");

@@ -58,10 +58,23 @@ test("tombol kembali menutup sheet tanpa meninggalkan menu", async ({ page }) =>
   await expect(page.getByRole("heading", { level: 1, name: "Kopi Senja" })).toBeVisible();
 });
 
-test("meja tutup tetap menampilkan menu tanpa tombol pesan", async ({ page }) => {
-  await mockStore(page, { ordering_open: false });
+test("meja tutup tetap menampilkan menu dan jam operasional tanpa tombol pesan", async ({ page }) => {
+  await mockStore(page, {
+    ordering_open: false,
+    closed_reason: "store_closed",
+    operating_hours: {
+      mon: "08:00 - 22:00",
+      tue: "08:00 - 22:00",
+      wed: "08:00 - 22:00",
+      thu: "08:00 - 22:00",
+      fri: "08:00 - 23:00",
+      sat: "09:00 - 23:00",
+      sun: "09:00 - 22:00"
+    }
+  });
   await page.goto("/order/T1");
-  await expect(page.getByText("Pemesanan lewat QR sedang tutup")).toBeVisible();
+  await expect(page.getByText("Gerai belum membuka pemesanan")).toBeVisible();
+  await expect(page.getByText(/Jam buka hari ini/)).toBeVisible();
   await expect(page.getByText("Croissant")).toBeVisible();
   await expect(page.getByRole("button", { name: "Tambah Croissant" })).toHaveCount(0);
 });
@@ -322,7 +335,10 @@ test("bayar dengan GoPay membuka aplikasi lalu bisa pindah ke QRIS", async ({ pa
   await expect(page.getByRole("link", { name: "Buka aplikasi untuk membayar" })).toHaveAttribute("href", "gojek://gopay/merchanttransfer?tref=1");
   expect(bodies[0].method).toBe("gopay");
 
-  await page.getByRole("button", { name: "QRIS" }).click();
+  await page.getByRole("button", { name: "Bayar dengan metode lain" }).click();
+  const switcher = page.getByRole("dialog", { name: "Pilih metode pembayaran" });
+  await switcher.getByText("QRIS", { exact: true }).click();
+  await switcher.getByRole("button", { name: "Gunakan metode ini" }).click();
   await expect(page.getByRole("heading", { name: "Pindai QRIS" })).toBeVisible();
   expect(bodies[1].method).toBe("qris");
   expect(bodies[1].idempotency_key).not.toBe(bodies[0].idempotency_key);

@@ -26,10 +26,9 @@ export function CategoryNav({ sections }: { sections: { id: string; name: string
   }, [sections]);
 
   useEffect(() => {
-    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     nav.current
       ?.querySelector('[aria-current="true"]')
-      ?.scrollIntoView({ block: "nearest", inline: "center", behavior: reduced ? "auto" : "smooth" });
+      ?.scrollIntoView({ block: "nearest", inline: "center", behavior: "auto" });
   }, [active]);
 
   return (
@@ -45,8 +44,11 @@ export function CategoryNav({ sections }: { sections: { id: string; name: string
           aria-current={active === s.id ? "true" : undefined}
           onClick={() => {
             setActive(s.id);
-            const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-            document.getElementById(sectionId(s.id))?.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
+            const target = document.getElementById(sectionId(s.id));
+            if (target) {
+              const y = target.getBoundingClientRect().top + window.scrollY - 16;
+              window.scrollTo({ top: Math.max(0, y), behavior: "auto" });
+            }
           }}
           className={`min-h-[44px] shrink-0 snap-center rounded-full border px-4 text-sm font-semibold motion-safe:transition-all motion-safe:active:scale-[0.97] ${
             active === s.id

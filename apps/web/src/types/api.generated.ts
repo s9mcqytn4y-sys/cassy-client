@@ -2244,8 +2244,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Rename a device; the prefix cannot change (device.manage, audited) */
-        patch: operations["renameDevice"];
+        /** Rename a device and/or change its role; the prefix cannot change (device.manage, audited) */
+        patch: operations["updateDevice"];
         trace?: never;
     };
     "/api/v1/store/devices/{id}/revoke": {
@@ -2733,6 +2733,164 @@ export interface paths {
          * @description Re-reads the object from the bucket and checks its real size (5 MB), its magic bytes against the declared type and its dimensions (at least 200 x 200, at most 25 megapixels). JPEG EXIF orientation is applied, then every metadata block is dropped by re-encoding. Writes JPEG (quality 80) variants 200, 600 and 1200 px wide (never upscaled), deletes the raw upload, sets products.image_url to the 600 px variant and audits PRODUCT_IMAGE_CHANGED. A rejected file is deleted from the bucket. products.image_url cannot be set through the catalog API.
          */
         post: operations["completeMediaUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/store/features": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Feature flags of the caller's store (any staff) */
+        get: operations["listStoreFeatures"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/store/features/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Turn one feature flag on or off (store.settings.manage, audited as FEATURE_FLAG_CHANGED) */
+        put: operations["setStoreFeature"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/store/service-request-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Call-waiter templates of the store, active first (any staff) */
+        get: operations["listServiceRequestTemplates"];
+        put?: never;
+        /** Add a call-waiter template (store.settings.manage, at most 12 active) */
+        post: operations["createServiceRequestTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/store/service-request-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Rename, reorder or (de)activate a template; templates are never deleted */
+        patch: operations["updateServiceRequestTemplate"];
+        trace?: never;
+    };
+    "/api/v1/store/service-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Guest service requests by status, oldest first (order.read.store); realtime service_request.created and service_request.updated reach the pos channel */
+        get: operations["listServiceRequests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/store/service-requests/{id}/acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark an open request as being handled (order.read.store) */
+        post: operations["acknowledgeServiceRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/store/service-requests/{id}/done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark an open or acknowledged request as done (order.read.store) */
+        post: operations["finishServiceRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/guest/service-request-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active call-waiter templates for the guest store (guest cookie, 403 CALL_WAITER_DISABLED when off) */
+        get: operations["guestServiceRequestTemplates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/guest/service-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Requests of this guest session only, newest first (max 20) */
+        get: operations["guestListServiceRequests"];
+        put?: never;
+        /**
+         * Call a waiter from the guest table (guest cookie and X-CSRF-Protection)
+         * @description Requires feature flag call_waiter and an open table session. A repeat for a template that is still open or acknowledged at the same table returns that request. At most 5 requests per guest session in 10 minutes (429). The note is trimmed, control characters are removed, max 80 characters.
+         */
+        post: operations["guestCreateServiceRequest"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3392,6 +3550,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/store/subscription/invoices/{id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retry a missing Lane 1 QRIS charge or reconcile a pending invoice with Midtrans (owner)
+         * @description A pending invoice without a QR is charged again with the same order id and Idempotency-Key. A pending invoice with a QR is checked with Midtrans and the status is applied through the webhook path (amount verified, a paid invoice is never downgraded). Other statuses are returned unchanged.
+         */
+        post: operations["syncStoreSubscriptionInvoice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/store/clearance": {
         parameters: {
             query?: never;
@@ -3856,12 +4034,62 @@ export interface components {
             clear_quota?: boolean;
             is_active?: boolean;
         };
+        ServiceRequestTemplate: {
+            /** Format: uuid */
+            id: string;
+            label: string;
+            sort_order: number;
+            is_active: boolean;
+        };
+        /** @description label is required on create, any field on update. */
+        ServiceRequestTemplateInput: {
+            label?: string;
+            sort_order?: number;
+            is_active?: boolean;
+        };
+        ServiceRequest: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            table_id: string;
+            table_number: string;
+            /** Format: uuid */
+            template_id: string;
+            /** @description Template label at the time of the request. */
+            label: string;
+            note?: string;
+            /** @enum {string} */
+            status: "open" | "acknowledged" | "done" | "cancelled";
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            acknowledged_at?: string;
+            /** Format: date-time */
+            done_at?: string;
+        };
+        /** @description Every known per-store flag with the store override applied. Defaults: call_waiter and whatsapp off, the others on. Package pricing is layered on top later. */
+        FeatureFlags: {
+            call_waiter: boolean;
+            kds: boolean;
+            queue_display: boolean;
+            dual_screen: boolean;
+            open_bill: boolean;
+            split_bill: boolean;
+            stock: boolean;
+            whatsapp: boolean;
+        };
+        /**
+         * @description Mode the Android app opens in, assigned by the owner. Defaults to pos.
+         * @enum {string}
+         */
+        DeviceRole: "pos" | "kds" | "queue_display" | "backoffice";
         Device: {
             /** Format: uuid */
             id: string;
             name: string;
             /** @description Printed on offline queue numbers (e.g. X1-007). */
             prefix: string;
+            role: components["schemas"]["DeviceRole"];
             /** Format: date-time */
             revoked_at?: string;
             /** Format: date-time */
@@ -3998,6 +4226,11 @@ export interface components {
             payment_status: string;
             /** Format: date-time */
             updated_at: string;
+            /**
+             * Format: date-time
+             * @description Deadline timestamp for pending unpaid orders.
+             */
+            expires_at?: string;
         };
         TableInput: {
             /** @description Required on create; unique per store among non-archived tables (case-insensitive) */
@@ -4091,8 +4324,14 @@ export interface components {
             ordering_open: boolean;
             /** @enum {string} */
             closed_reason?: "paused" | "store_closed" | "table_inactive";
+            /** @description Optional per-day store operating hours configured in store CMS settings. */
+            operating_hours?: {
+                [key: string]: unknown;
+            };
             /** @description Guest payment methods the store has enabled, in this order. */
             payment_methods?: ("qris" | "gopay" | "shopeepay")[];
+            /** @description Show the guest "Panggil Pelayan" entry (feature flag call_waiter). */
+            call_waiter_enabled?: boolean;
             /**
              * @description How an order reaches the guest; changes only the guest page wording, notices and sound.
              * @enum {string}
@@ -5337,6 +5576,13 @@ export interface components {
              * @enum {string}
              */
             qr_service_mode?: "pickup" | "table";
+            /** @description Active store payment channels; digital guest channels require verified Midtrans credentials. */
+            enabled_payment_methods?: ("qris" | "bank_transfer" | "gopay" | "shopeepay" | "cash" | "static_qris" | "edc")[];
+            /**
+             * @description Current validation status of store Midtrans BYOK credentials.
+             * @enum {string}
+             */
+            midtrans_validation_status?: "unverified" | "valid" | "invalid";
         };
         /** @description Mirrors `service.InitiatePaymentResult`. */
         InitiatePaymentResponse: {
@@ -10735,6 +10981,7 @@ export interface operations {
                     name: string;
                     /** @description Upper-cased; printed on offline queue numbers (e.g. X1-007); fixed after registration. */
                     prefix: string;
+                    role?: components["schemas"]["DeviceRole"];
                 };
             };
         };
@@ -10753,7 +11000,7 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
         };
     };
-    renameDevice: {
+    updateDevice: {
         parameters: {
             query?: never;
             header?: never;
@@ -10765,12 +11012,13 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    name: string;
+                    name?: string;
+                    role?: components["schemas"]["DeviceRole"];
                 };
             };
         };
         responses: {
-            /** @description Renamed */
+            /** @description Updated */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -10824,6 +11072,8 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        device_role: components["schemas"]["DeviceRole"];
+                        features: components["schemas"]["FeatureFlags"];
                         catalog_version: string;
                         /** Format: date-time */
                         first_served_at: string;
@@ -11939,6 +12189,330 @@ export interface operations {
             };
             /** @description MEDIA_UNAVAILABLE */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listStoreFeatures: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Flags */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        features: components["schemas"]["FeatureFlags"];
+                    };
+                };
+            };
+        };
+    };
+    setStoreFeature: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: "call_waiter" | "kds" | "queue_display" | "dual_screen" | "open_bill" | "split_bill" | "stock" | "whatsapp";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    enabled: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description All flags after the change */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        features: components["schemas"]["FeatureFlags"];
+                    };
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            422: components["responses"]["ValidationFailed"];
+        };
+    };
+    listServiceRequestTemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Templates */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        templates: components["schemas"]["ServiceRequestTemplate"][];
+                    };
+                };
+            };
+        };
+    };
+    createServiceRequestTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceRequestTemplateInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceRequestTemplate"];
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            /** @description Too many active templates */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            422: components["responses"]["ValidationFailed"];
+        };
+    };
+    updateServiceRequestTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceRequestTemplateInput"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceRequestTemplate"];
+                };
+            };
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Too many active templates */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            422: components["responses"]["ValidationFailed"];
+        };
+    };
+    listServiceRequests: {
+        parameters: {
+            query?: {
+                status?: "open" | "acknowledged" | "done" | "cancelled";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Requests */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        service_requests: components["schemas"]["ServiceRequest"][];
+                    };
+                };
+            };
+        };
+    };
+    acknowledgeServiceRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Acknowledged */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceRequest"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            /** @description Not open */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    finishServiceRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceRequest"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            /** @description Already done or cancelled */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    guestServiceRequestTemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Templates */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        templates: components["schemas"]["ServiceRequestTemplate"][];
+                    };
+                };
+            };
+            /** @description Call waiter disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    guestListServiceRequests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Requests */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        service_requests: components["schemas"]["ServiceRequest"][];
+                    };
+                };
+            };
+        };
+    };
+    guestCreateServiceRequest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    template_id: string;
+                    note?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Created, or the live request for this template and table */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceRequest"];
+                };
+            };
+            /** @description Call waiter disabled */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationFailed"];
+            /** @description Too many requests in the window */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -13301,13 +13875,35 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Created platform subscription invoice */
+            /** @description Created platform subscription invoice. When the QRIS charge fails the invoice stays pending with an empty provider_qr_string; call the sync endpoint to retry. */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
+        };
+    };
+    syncStoreSubscriptionInvoice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The invoice after the retry or reconciliation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     requestAccountClearance: {

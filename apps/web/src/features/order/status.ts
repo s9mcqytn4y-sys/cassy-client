@@ -42,11 +42,15 @@ const CHECKOUT_MESSAGES: Record<string, keyof Messages> = {
 };
 
 // The link comes from Midtrans through our API; still never hand a script or data URL to the browser.
+// Wallet redirects Midtrans returns: GoPay and ShopeePay app schemes, or an https page (simulator, web
+// checkout). Anything else is dropped, so a tampered payment response cannot send the guest elsewhere.
+const DEEPLINK_SCHEMES = new Set(["https:", "gojek:", "shopeeid:"]);
+
+/** Returns the wallet redirect when its scheme is on the allowlist, otherwise null. */
 export function safeDeeplink(url?: string): string | null {
   if (!url) return null;
   try {
-    const scheme = new URL(url).protocol;
-    return ["javascript:", "data:", "file:", "vbscript:", "blob:"].includes(scheme) ? null : url;
+    return DEEPLINK_SCHEMES.has(new URL(url.trim()).protocol) ? url.trim() : null;
   } catch {
     return null;
   }

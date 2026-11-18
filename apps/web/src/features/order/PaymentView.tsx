@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Check, CircleCheck, CircleX, Copy } from "lucide-react";
+import { Check, CircleCheck, Clock, Copy, RefreshCw } from "lucide-react";
 import { useLocale } from "@/components/Providers";
 import { QrCodeSvg } from "@/components/QrCodeSvg";
+import { StateIllustration } from "@/components/StateIllustration";
 import { apiFetch } from "@/lib/api";
 import { formatIdr } from "@/lib/format";
 import type { Messages } from "@/lib/messages";
 import { isValidEmail, normalizeSubmissionText } from "@/lib/sanitize";
-import { BankPicker, bankMeta, METHOD_LABEL, MidtransTrustFooter, PaymentChannelLogo } from "./PaymentMethodPicker";
+import { BankPicker, bankMeta, METHOD_LABEL, MidtransTrustFooter } from "./PaymentMethodPicker";
+import { PaymentSwitcherSheet } from "./PaymentSwitcherSheet";
 import { progressStep, safeDeeplink, type OrderPhase } from "./status";
 import type { BankCode, PaymentInfo, PayMethod, ServiceMode } from "./types";
 
@@ -75,6 +77,7 @@ export function PaymentView({
   onSwitch,
   onSelectBank,
   onNotify,
+  onCheckStatus,
   onBack,
   onOrderAgain
 }: {
@@ -96,22 +99,41 @@ export function PaymentView({
   onSwitch: (method: PayMethod, bank?: BankCode) => void;
   onSelectBank: (bank: BankCode) => void;
   onNotify?: (message: string) => void;
+  onCheckStatus?: () => void;
   onBack: () => void;
   onOrderAgain: () => void;
 }) {
   const { t, locale } = useLocale();
   const [expired, setExpired] = useState(false);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<"idle" | "sending" | "sent" | "failed">("idle");
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const id = requestAnimationFrame(() => window.scrollTo(0, 0));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   useEffect(() => {
     setExpired(false);
     if (!payment.expires_at || phase !== "awaiting") return;
-    const remaining = new Date(payment.expires_at).getTime() - Date.now();
-    const timer = setTimeout(() => setExpired(true), Math.max(remaining, 0));
-    return () => clearTimeout(timer);
+    const deadlineTime = new Date(payment.expires_at).getTime();
+    setNowMs(Date.now());
+    const remaining = deadlineTime - Date.now();
+    if (remaining <= 0) {
+      setExpired(true);
+      return;
+    }
+    const tick = setInterval(() => {
+      const current = Date.now();
+      setNowMs(current);
+      if (deadlineTime - current <= 0) setExpired(true);
+    }, 1000);
+    return () => clearInterval(tick);
   }, [payment.expires_at, phase]);
 
   const copyValue = async (field: string, text: string) => {
@@ -149,18 +171,16 @@ export function PaymentView({
     const title = phase === "refunded" ? t.refundedTitle : t.cancelledTitle;
     const body = phase === "refunded" ? t.refundedBody : moneyTaken ? t.cancelledPaidBody : t.cancelledBody;
     return (
-      <section className="mx-auto max-w-md px-5 py-10">
-        <span className="inline-block text-[var(--state-err-fg)] motion-safe:animate-shake">
-          <CircleX size={56} />
-        </span>
-        <h1 className="mt-3 text-2xl font-bold">{title}</h1>
+      <section className="mx-auto max-w-md px-5 py-10 text-center">
+        <StateIllustration kind="paymentFailed" width={152} height={114} className="mb-4" />
+        <h1 className="text-2xl font-bold text-ink">{title}</h1>
         {orderNumber ? (
-          <p className="mt-6 text-sm text-subink">
+          <p className="mt-5 text-sm text-subink">
             {t.orderNumber}
-            <span className="block text-4xl font-bold text-ink">{orderNumber}</span>
+            <span className="block text-4xl font-bold tabular-nums text-ink">{orderNumber}</span>
           </p>
         ) : null}
-        <p role="status" className="mt-4 text-base">{body}</p>
+        <p role="status" className="mt-4 text-base text-ink">{body}</p>
         <button type="button" onClick={onOrderAgain} className="btn-primary mt-8 min-h-[56px] w-full text-base font-bold">
           {t.orderAgain}
         </button>
@@ -235,21 +255,41 @@ export function PaymentView({
   const deeplink = wallet ? safeDeeplink(payment.deeplink_url) : null;
   const others = methods.filter((m) => m !== via);
   const selectedBankInfo = bankMeta(payment.bank ?? bank);
+  const deadline = payment.expires_at
+    ? new Date(payment.expires_at).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })
+    : null;
+  const remainingSec = payment.expires_at ? Math.max(0, Math.floor((new Date(payment.expires_at).getTime() - nowMs) / 1000)) : null;
+  const countdownText =
+    remainingSec !== null
+      ? `${String(Math.floor(remainingSec / 60)).padStart(2, "0")}:${String(remainingSec % 60).padStart(2, "0")}`
+      : null;
+  const expiringSoon = remainingSec !== null && remainingSec > 0 && remainingSec <= 60;
 
   return (
-    <section className="mx-auto flex max-w-md flex-col items-center py-8 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-[max(2rem,env(safe-area-inset-top))] text-center">
+    <section className="mx-auto flex max-w-md flex-col items-center py-5 pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] pt-[max(1.25rem,env(safe-area-inset-top))] text-center">
+      {via === "qris" ? (
+        <span className="mb-2 inline-flex items-center rounded-full bg-[var(--state-ok-bg)] px-3 py-1 text-xs font-bold text-[var(--state-ok-fg)]">
+          QRIS | {t.qrisRecommended}
+        </span>
+      ) : null}
       <h1 className="text-2xl font-bold">{isVa ? t.bankTransferLabel : wallet ? METHOD_LABEL[via] : t.scanToPay}</h1>
-      <p className="mt-2 text-sm text-subink">{isVa ? t.vaHint : wallet ? t.walletHint : t.scanHint}</p>
-      <p className="mt-5 text-3xl font-bold tabular-nums">{formatIdr(payment.amount)}</p>
+      <p className="mt-1.5 text-sm text-subink">{isVa ? t.vaHint : wallet ? t.walletHint : t.scanHint}</p>
+      <p className="mt-3 text-3xl font-bold tabular-nums">{formatIdr(payment.amount)}</p>
+      {payment.expires_at && deadline && !expired ? (
+        <p className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-sm tabular-nums ${expiringSoon ? "bg-[var(--state-warn-bg)] font-bold text-[var(--state-warn-fg)]" : "bg-muted text-ink"}`}>
+          <Clock size={14} aria-hidden="true" />
+          <span>{t.payBefore} <strong>{deadline}</strong></span>
+          {countdownText ? <span className="opacity-80">({countdownText})</span> : null}
+        </p>
+      ) : null}
 
       {expired ? (
-        <div role="alert" className="mt-6 flex flex-col items-center">
-          <span className="text-[var(--state-err-fg)] motion-safe:animate-shake">
-            <CircleX size={40} />
-          </span>
-          <p className="mt-2 font-semibold">{t.expired}</p>
-          <button type="button" disabled={retrying} onClick={onNewQr} className="btn-primary mt-3 min-h-[56px] px-6 font-bold">
-            {t.newQr}
+        <div role="alert" className="mt-6 w-full rounded-2xl border border-subtle bg-surface p-6 text-center">
+          <StateIllustration kind="sessionExpired" width={144} height={108} className="mb-3" />
+          <p className="font-semibold text-ink">{t.expired}</p>
+          <button type="button" disabled={retrying} onClick={onNewQr} className="btn-primary mt-4 min-h-[56px] w-full px-6 font-bold">
+            <RefreshCw size={17} aria-hidden="true" />
+            <span>{t.newQr}</span>
           </button>
         </div>
       ) : (
@@ -310,6 +350,18 @@ export function PaymentView({
                 <p role="alert" className="text-sm font-semibold text-[var(--state-err-fg)]">{t.methodUnavailable}</p>
               ) : null}
 
+              {payment.va_number || payment.bill_key ? (
+                <details className="group rounded-xl bg-muted px-4 py-3" open>
+                  <summary className="cursor-pointer list-none text-sm font-bold text-ink marker:hidden">{t.vaHowTitle}</summary>
+                  <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm leading-6 text-ink">
+                    <li>{t.vaStepOpen}</li>
+                    <li>{payment.bill_key ? t.vaStepMultipayment : t.vaStepTransfer}</li>
+                    <li>{t.vaStepConfirm}</li>
+                    <li>{t.vaStepDone}</li>
+                  </ol>
+                </details>
+              ) : null}
+
               <BankPicker
                 selected={bank}
                 disabled={retrying}
@@ -329,7 +381,7 @@ export function PaymentView({
               <p role="alert" className="mt-6 text-sm font-semibold">{t.methodUnavailable}</p>
             )
           ) : (
-            <div className="mt-6 rounded-2xl border border-subtle bg-white p-4">
+            <div className="mt-5 w-full space-y-3 rounded-2xl border border-subtle bg-white p-5">
               {payment.qr_string ? (
                 <QrCodeSvg
                   value={payment.qr_string}
@@ -338,54 +390,74 @@ export function PaymentView({
                     storeName,
                     orderLabel: orderNumber,
                     amountLabel: formatIdr(payment.amount),
+                    deadlineLabel: deadline ? `${t.payBefore} ${deadline}` : undefined,
                     filename: `cassy-qris-${orderNumber ?? orderId}`,
                     pngLabel: t.downloadQrPng,
-                    svgLabel: t.downloadQrSvg,
                     onDownloaded: () => onNotify?.(t.qrDownloaded)
                   }}
                 />
               ) : null}
+              <details className="rounded-xl bg-[#F7F5F0] px-4 py-3 text-left text-[#17211E]">
+                <summary className="cursor-pointer list-none text-sm font-bold marker:hidden">{t.qrisHowTitle}</summary>
+                <ol className="mt-2 list-decimal space-y-1 pl-5 text-xs leading-relaxed text-[#4B5854]">
+                  <li>{t.qrisStep1}</li>
+                  <li>{t.qrisStep2}</li>
+                  <li>{t.qrisStep3}</li>
+                </ol>
+              </details>
             </div>
           )}
-          {payment.expires_at ? (
-            <p className="mt-4 text-sm">
-              {t.payBefore}{" "}
-              <strong>
-                {new Date(payment.expires_at).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}
-              </strong>
-            </p>
-          ) : null}
-          <p aria-live="polite" className="mt-2 text-sm text-subink">{t.waiting}</p>
+          <p aria-live="polite" className="mt-3 text-sm text-subink">{t.waiting}</p>
         </>
       )}
 
       {error ? <p role="alert" className="mt-4 text-sm font-semibold text-[var(--state-err-fg)]">{error}</p> : null}
 
       {others.length > 0 ? (
-        <div className="mt-6 w-full">
-          <p className="text-sm font-bold">{t.payOther}</p>
-          <div className="mt-2 flex flex-wrap justify-center gap-2">
-            {others.map((m) => (
-              <button
-                key={m}
-                type="button"
-                disabled={retrying}
-                onClick={() => onSwitch(m)}
-                className="btn-secondary inline-flex min-h-[48px] items-center gap-2 px-4 text-sm font-semibold motion-safe:transition-transform motion-safe:active:scale-[0.98]"
-              >
-                <PaymentChannelLogo method={m} className="h-4 w-auto" />
-                <span>{m === "bank_transfer" ? t.bankTransferLabel : METHOD_LABEL[m]}</span>
-              </button>
-            ))}
-          </div>
+        <div className="mt-5 w-full">
+          <button
+            type="button"
+            disabled={retrying}
+            onClick={() => setSwitcherOpen(true)}
+            className="btn-secondary min-h-[48px] w-full px-5 text-sm font-semibold motion-safe:transition-transform motion-safe:active:scale-[0.98]"
+          >
+            {t.payOther}
+          </button>
         </div>
+      ) : null}
+
+      {switcherOpen ? (
+        <PaymentSwitcherSheet
+          methods={methods}
+          currentMethod={via}
+          currentBank={bank}
+          retrying={retrying}
+          onConfirm={(nextMethod, nextBank) => {
+            if (nextBank) onSelectBank(nextBank);
+            onSwitch(nextMethod, nextBank);
+          }}
+          onClose={() => setSwitcherOpen(false)}
+        />
       ) : null}
 
       <MidtransTrustFooter />
 
-      <button type="button" onClick={onBack} className="btn-secondary mt-6 min-h-[44px] px-5 font-semibold motion-safe:transition-transform motion-safe:active:scale-[0.98]">
-        {t.back}
-      </button>
+      <div className="mt-6 flex flex-wrap justify-center gap-3">
+        {onCheckStatus ? (
+          <button
+            type="button"
+            disabled={retrying}
+            onClick={onCheckStatus}
+            className="btn-secondary inline-flex min-h-[44px] items-center gap-1.5 px-4 text-sm font-semibold motion-safe:transition-transform motion-safe:active:scale-[0.98]"
+          >
+            <RefreshCw size={14} aria-hidden="true" />
+            <span>{t.checkStatus}</span>
+          </button>
+        ) : null}
+        <button type="button" onClick={onBack} className="btn-secondary min-h-[44px] px-5 font-semibold motion-safe:transition-transform motion-safe:active:scale-[0.98]">
+          {t.back}
+        </button>
+      </div>
     </section>
   );
 }

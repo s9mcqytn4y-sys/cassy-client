@@ -1,10 +1,10 @@
-# PRD v4: Re-branding Cassy dan AzureDevID, refine UI, Android Rilis Satu, landing
+# PRD v4: Re-branding Cassy dan AzureDevID, refine UI, Android Rilis Satu, aset ilustrasi brand
 
-Status: disetujui Director, 2026-11-12. Pengganti arah visual di PRD v3. Rujukan: `docs/PrdWpaV3.md`, `apps/android/docs/ReleaseOnePlan.md`, `docs/TechDebt.md`.
+Status: disetujui Director, 2026-11-12 (diperbarui 2026-11-18: scope landing page dihapus dari workspace). Pengganti arah visual di PRD v3. Rujukan: `docs/PrdWpaV3.md`, `apps/android/docs/ReleaseOnePlan.md`, `docs/TechDebt.md`.
 
 ## Ringkasan
 
-Cassy pindah dari "POS kafe" menjadi platform pesan dan kasir untuk semua usaha makanan dan minuman di Indonesia. Identitas Espresso & Crema yang terlalu kopi diganti palet pandan dan kunyit. Pekerjaan berjalan tiga fase: fondasi brand dan WPA, Android Rilis Satu di atas token baru, lalu ilustrasi 3D dan landing.
+Cassy pindah dari "POS kafe" menjadi platform pesan dan kasir untuk semua usaha makanan dan minuman di Indonesia. Identitas Espresso & Crema yang terlalu kopi diganti palet pandan dan kunyit. Pekerjaan berjalan tiga fase: fondasi brand dan WPA QR Order, Android Rilis Satu di atas token baru, serta pematangan aset ilustrasi vektor & foto katalog.
 
 Konteks operasional: tinjauan hukum naskah tamu dan tenant selesai; rotasi kredensial ditutup oleh Director; belum ada VPS, semua backend tetap di lingkungan lokal (WSL).
 
@@ -13,17 +13,17 @@ Konteks operasional: tinjauan hukum naskah tamu dan tenant selesai; rotasi krede
 | # | Topik | Keputusan |
 |---|---|---|
 | Q1 | Pasar | Semua usaha F&B: restoran, kafe, bakery, food court, cloud kitchen, kios. Ritel belum, karena fitur barcode dan varian SKU belum ada |
-| Q2 | Arsitektur brand | Tiga lapis. Gerai memimpin aplikasi tamu. Cassy brand produk (landing, POS, KDS, onboarding, "Ditenagai Cassy"). AzureDevID entitas hukum (legal, invoice, footer email, profil perusahaan) |
+| Q2 | Arsitektur brand | Tiga lapis. Gerai memimpin aplikasi tamu. Cassy brand produk (QR PWA, POS, KDS, onboarding, "Ditenagai Cassy"). AzureDevID entitas hukum (legal, invoice, footer email, profil perusahaan) |
 | Q3 | Kepribadian | Hangat dan praktis: rekan kerja yang tenang dan cekatan di dapur yang sibuk. Presisi lewat detail, bukan kemewahan |
 | Q4 | Warna | Pandan (utama), kunyit (aksen), putih tulang hangat, tinta hijau kehitaman. Warna status terpisah dan lolos WCAG AA. Tanpa cokelat |
-| Q5 | Huruf | Plus Jakarta Sans untuk UI produk. Display face terpisah untuk brand dan landing (kandidat Bricolage Grotesque), dipilih lewat uji wordmark |
+| Q5 | Huruf | Plus Jakarta Sans untuk UI produk. Display face terpisah untuk brand (kandidat Bricolage Grotesque), dipilih lewat uji wordmark |
 | Q6 | Ikon | Diperbarui 2026-11-13: pustaka standar per stack, tanpa paket ikon buatan sendiri. Web memakai `lucide-react`, Android memakai Material Symbols (`androidx.compose.material.icons`) |
-| Q7 | Ilustrasi | Satu sumber 3D isometrik di Blender: GLB untuk landing, render PNG/WebP untuk paket ilustrasi, jiplakan SVG untuk ukuran kecil |
+| Q7 | Ilustrasi | Enam ilustrasi SVG vektor ringan berpalet Pandan-Kunyit-Tinta untuk status UI (`404`, `offline`, `maintenance`, `payment_failed`, `session_expired`, `empty_menu`) dan paket foto produk seragam di Cloudflare R2 |
 | Q8 | AzureDevID | Penyegaran. Logo AD dan biru dipertahankan, ditambah versi mono, aturan ruang kosong, kop surat, dan lockup "oleh AzureDevID" |
 | Q9 | Fallback tamu | Gerai tanpa warna, atau warnanya gagal kontras 4.5:1, memakai tinta netral, bukan pandan dan bukan espresso |
-| Q10 | Urutan | Brand dan WPA, lalu Android Rilis Satu, lalu ilustrasi dan landing |
+| Q10 | Urutan | Brand dan WPA QR Order, lalu Android Rilis Satu, lalu aset vektor & remote ops |
 | Q11 | Arsitektur Android | Satu modul, lapisan ketat per fitur, Koin, satu klien Ktor, DataStore dengan Tink. Tanpa Paging 3 dan tanpa Retrofit di Rilis Satu |
-| Q12 | Hosting landing | `apps/landing` di Cloudflare Pages, `cassy.abbdullaziz.online`. Tombol demo menuju `demo.abbdullaziz.online` |
+| Q12 | Halaman akar PWA | `apps/web` `/` berfungsi murni sebagai halaman instruksi pindai QR meja + tautan `/legal` dan `/legal/mitra`, tanpa halaman pemasaran |
 
 ## Persona brand
 
@@ -59,13 +59,12 @@ Konteks operasional: tinjauan hukum naskah tamu dan tenant selesai; rotasi krede
 
 Rencana dan urutan PR ada di `apps/android/docs/ReleaseOnePlan.md`, diperbarui untuk token baru, US1 sampai US4 dari PRD v3, dan aturan arsitektur Q11.
 
-## Fase 3: ilustrasi dan landing
+## Fase 3: Aset Vektor Brand & Foto Produk R2
 
 | ID | Keluaran | Kriteria terima |
 |---|---|---|
-| I1 | Delapan adegan isometrik Blender: depan gerai dan QR meja, tamu memesan di ponsel, dapur dan KDS, kasir dan struk, ambil di bar, antar ke meja, pemeliharaan, menu kosong | Satu sudut kamera, satu pencahayaan, palet B2; GLB di bawah 1,5 MB per adegan |
-| L1 | Landing `apps/landing`: React, React Three Fiber, GSAP 3, zustand. Cerita kamera melintasi adegan I1, ditambah bagian standar SaaS: masalah, cara kerja, fitur, harga, FAQ, ajakan coba demo | LCP di bawah 2,5 detik di ponsel kelas menengah, versi tanpa 3D untuk `prefers-reduced-motion` dan perangkat lemah, lolos axe |
-| L2 | Deploy Cloudflare Pages ke `cassy.abbdullaziz.online` | Pratinjau per PR, produksi dari `main` |
+| I1 | Enam ilustrasi SVG brand (`state-404.svg`, `state-offline.svg`, `state-maintenance.svg`, `state-payment-failed.svg`, `state-session-expired.svg`, `state-empty-menu.svg`) | Konsisten palet B2 Pandan-Kunyit-Tinta, render tajam di light/dark mode tanpa raster `.jpg` |
+| I2 | Paket foto produk WebP 1:1 seragam di Cloudflare R2 (`cassy-media`) untuk seluruh item katalog seed | Tervalidasi visual tanpa pemotongan objek, tersinkron di `db/seeds/development.sql` |
 
 ## Risiko
 
