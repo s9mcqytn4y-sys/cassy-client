@@ -540,7 +540,6 @@ class CassyUiShowcaseTest {
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.pairing_server_status_server_unreachable))
-            .performScrollTo()
             .assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.auth_err_store_slug_required)).performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.auth_btn_sign_in)).performScrollTo().assertIsDisplayed()
