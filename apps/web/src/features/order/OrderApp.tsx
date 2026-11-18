@@ -248,7 +248,7 @@ export function OrderApp({ token }: { token: string }) {
         </div>
       ) : null}
 
-      <div className="px-5">
+      <div className="px-5 pb-8">
         {sections.length === 0 ? (
           <div className="mt-4"><DataStateBox state="empty" illustration="empty" title={t.emptyTitle} description={t.emptyBody} /></div>
         ) : (
