@@ -75,6 +75,10 @@ class TabItemVoidViewModel(
 
     private var pollJob: Job? = null
 
+    private companion object {
+        const val OWNER_DECISION_WINDOW_MS = 125_000L
+    }
+
     fun open(tabId: String, line: PosOrderItem, itemName: String) {
         pollJob?.cancel()
         _uiState.value = TabItemVoidUiState(tabId = tabId, itemId = line.id, itemName = itemName, maxQuantity = line.quantity)
@@ -114,13 +118,14 @@ class TabItemVoidViewModel(
         }
     }
 
-    // shortcut: polls instead of listening for approval.decided on the socket; 40 small GETs at most per request.
+    // shortcut: polls instead of listening for approval.decided on the socket; about 40 small GETs per request.
     private fun waitForOwner(approvalId: String) {
         pollJob?.cancel()
         pollJob = viewModelScope.launch {
-            while (true) {
+            // The owner has 2 minutes to decide; past that, an offline tablet must not spin forever.
+            repeat((OWNER_DECISION_WINDOW_MS / pollIntervalMs).toInt() + 1) {
                 delay(pollIntervalMs)
-                val status = approvals.get(approvalId).getOrNull()?.status ?: continue
+                val status = approvals.get(approvalId).getOrNull()?.status ?: return@repeat
                 when (status) {
                     "pending" -> Unit
                     "approved" -> {
@@ -131,6 +136,7 @@ class TabItemVoidViewModel(
                     else -> return@launch backToOwner(R.string.tab_void_msg_expired)
                 }
             }
+            backToOwner(R.string.tab_void_msg_expired)
         }
     }
 

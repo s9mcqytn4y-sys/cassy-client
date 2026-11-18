@@ -568,7 +568,7 @@
         <item quantity="other">%d tamu memanggil</item>
     </plurals>
     <string name="tab_void_title">Batalkan item</string>
-    <string name="tab_void_subtitle">%1$s, sudah dikirim %2$d</string>
+    <string name="tab_void_subtitle">%1$s, maksimal %2$d</string>
     <string name="tab_void_quantity">Jumlah yang dibatalkan</string>
     <string name="tab_void_reason">Alasan</string>
     <string name="tab_void_reason_hint">Contoh: tamu batal pesan</string>

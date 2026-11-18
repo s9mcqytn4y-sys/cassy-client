@@ -125,6 +125,24 @@ class TabItemVoidViewModelTest {
     }
 
     @Test
+    fun anUnreachableServerEndsTheWaitAfterTheOwnerWindow() = runTest {
+        val unreachable = object : ApprovalRepository {
+            override suspend fun requestVoidItem(itemId: String, quantity: Int, reason: String) =
+                Result.success(OwnerApproval("ap-1", "pending"))
+            override suspend fun get(id: String): Result<OwnerApproval> = Result.failure(IllegalStateException("offline"))
+        }
+        val vm = TabItemVoidViewModel(FakeTabs(cashierLimit = 0), unreachable, pollIntervalMs = 3_000)
+        vm.fillForm(2)
+        vm.submit()
+        dispatcher.scheduler.advanceUntilIdle()
+
+        vm.requestOwnerApproval()
+        dispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(TabVoidStep.OWNER, vm.uiState.value.step)
+    }
+
+    @Test
     fun theQuantityIsFrozenWhileWaitingForTheOwner() = runTest {
         val vm = TabItemVoidViewModel(FakeTabs(cashierLimit = 0), FakeApprovals(ArrayDeque(listOf("pending"))), pollIntervalMs = 1_000_000)
         vm.fillForm(2)

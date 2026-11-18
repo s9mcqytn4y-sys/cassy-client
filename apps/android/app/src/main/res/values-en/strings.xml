@@ -569,7 +569,7 @@
         <item quantity="other">%d guests calling</item>
     </plurals>
     <string name="tab_void_title">Void item</string>
-    <string name="tab_void_subtitle">%1$s, %2$d sent</string>
+    <string name="tab_void_subtitle">%1$s, up to %2$d</string>
     <string name="tab_void_quantity">Quantity to void</string>
     <string name="tab_void_reason">Reason</string>
     <string name="tab_void_reason_hint">Example: guest cancelled</string>

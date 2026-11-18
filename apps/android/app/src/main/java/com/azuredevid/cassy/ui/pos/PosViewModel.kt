@@ -739,7 +739,14 @@ class PosViewModel(
             val repo = tableTabRepository ?: return Result.failure(IllegalStateException("table tabs unavailable"))
             val tabId = submitTabRound(snapshot).getOrElse { return Result.failure(it) }
             val closed = repo.closeTab(tabId).getOrElse { return Result.failure(it) }
-            _uiState.update { it.copy(pendingOrder = closed.order, pendingSplitId = closed.splitId) }
+            // A closed tab cannot be voided, so its rows drop the line ids that enable the void button.
+            _uiState.update { state ->
+                state.copy(
+                    pendingOrder = closed.order,
+                    pendingSplitId = closed.splitId,
+                    cart = state.cart.map { it.copy(sentLines = emptyList()) }
+                )
+            }
             return Result.success(closed.order)
         }
         val key = snapshot.pendingOrderIdempotencyKey ?: UUID.randomUUID().toString()
