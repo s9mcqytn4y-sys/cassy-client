@@ -111,6 +111,7 @@ import com.azuredevid.cassy.ui.theme.CassyTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import android.view.accessibility.AccessibilityNodeInfo
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -126,8 +127,20 @@ class CassyUiShowcaseTest {
     private val context: Context
         get() = ApplicationProvider.getApplicationContext()
 
+    /**
+     * The CI emulator often shows "Pixel Launcher isn't responding" over the app. When the active
+     * window is that system dialog, press Wait so the full-display capture shows Cassy, not the ANR.
+     */
+    private fun dismissSystemAnrDialog() {
+        val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow ?: return
+        if (root.packageName != "android") return
+        root.findAccessibilityNodeInfosByText("Wait").firstOrNull()?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+        SystemClock.sleep(500L)
+    }
+
     private fun captureScreen(name: String, preferFullDisplay: Boolean = false) {
         composeRule.waitForIdle()
+        if (preferFullDisplay) dismissSystemAnrDialog()
         runCatching {
             val fullDisplayBitmap = if (
                 preferFullDisplay &&

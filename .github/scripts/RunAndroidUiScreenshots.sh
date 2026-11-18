@@ -16,8 +16,6 @@ PY
 ensure_tablet_landscape() {
   adb shell settings put system accelerometer_rotation 0
   adb shell svc power stayon true
-  # Emulator-only: a launcher ANR dialog otherwise lands on top of the captured screens.
-  adb shell settings put global hide_error_dialogs 1
   adb shell input keyevent KEYCODE_WAKEUP
   adb shell wm dismiss-keyguard
 
@@ -43,8 +41,6 @@ ensure_tablet_landscape() {
 ensure_mobile_portrait() {
   adb shell settings put system accelerometer_rotation 0
   adb shell svc power stayon true
-  # Emulator-only: a launcher ANR dialog otherwise lands on top of the captured screens.
-  adb shell settings put global hide_error_dialogs 1
   adb shell input keyevent KEYCODE_WAKEUP
   adb shell wm dismiss-keyguard
 
