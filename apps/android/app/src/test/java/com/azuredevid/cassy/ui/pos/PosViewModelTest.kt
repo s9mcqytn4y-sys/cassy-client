@@ -21,6 +21,7 @@ import com.azuredevid.cassy.domain.model.StoredSession
 import com.azuredevid.cassy.domain.model.CreatePosOrderItemInput
 import com.azuredevid.cassy.domain.model.PosOrderItem
 import com.azuredevid.cassy.domain.repository.ClosedTab
+import com.azuredevid.cassy.domain.repository.TabSplit
 import com.azuredevid.cassy.domain.repository.PosTable
 import com.azuredevid.cassy.domain.repository.TabItemVoidInput
 import com.azuredevid.cassy.domain.repository.TableTabRepository
@@ -327,6 +328,7 @@ class PosViewModelTest {
         val openedKeys = mutableListOf<String>()
         val rounds = mutableListOf<List<CreatePosOrderItemInput>>()
         var closedTabId: String? = null
+        var closedSplitCount: Int? = null
 
         override suspend fun listTables(): Result<List<PosTable>> = Result.success(emptyList())
 
@@ -353,9 +355,11 @@ class PosViewModelTest {
 
         override suspend fun voidItem(orderId: String, itemId: String, input: TabItemVoidInput): Result<PosOrder> = error("unused")
 
-        override suspend fun closeTab(orderId: String): Result<ClosedTab> {
+        override suspend fun closeTab(orderId: String, splitCount: Int): Result<ClosedTab> {
             closedTabId = orderId
-            return Result.success(ClosedTab(PosOrder(id = orderId, orderNumber = "TAB-001", totalAmount = 61600L), "split-1"))
+            closedSplitCount = splitCount
+            val shares = (1..splitCount).map { TabSplit("split-$it", it, totalAmount = 61600L / splitCount) }
+            return Result.success(ClosedTab(PosOrder(id = orderId, orderNumber = "TAB-001", totalAmount = 61600L), shares))
         }
     }
 
@@ -419,6 +423,60 @@ class PosViewModelTest {
         assertTrue(vm.uiState.value.cart.isEmpty())
         assertNull(vm.uiState.value.tableId)
         assertNull(vm.uiState.value.activeTabId)
+    }
+
+    @Test
+    fun boardTable_equalSplitPaysEachShareBeforeClearing() = runTest {
+        val tabs = FakeTableTabRepository()
+        val orderRepo = FakePosOrderRepository()
+        val vm = PosViewModel(
+            StubCatalogRepository { Result.success(CatalogSnapshot(listOf(coffeeCategory), listOf(latte))) },
+            flatQuote,
+            orderRepo,
+            FakePrinterSettingsRepository(),
+            signedInSession(backgroundScope),
+            tableTabRepository = tabs
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+        vm.selectTable(PosTable("t-7", "07", "", "Indoor", 4, "available", 0L))
+        vm.addProductToCart(latte)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        vm.setTabSplitCount(2)
+        vm.splitTab()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(2, tabs.closedSplitCount)
+        assertEquals("split-1", vm.uiState.value.pendingSplitId)
+        assertEquals(30800L, vm.uiState.value.payableAmount)
+        // The count is fixed once the server has made the shares.
+        vm.setTabSplitCount(3)
+        assertEquals(2, vm.uiState.value.tabSplitCount)
+
+        orderRepo.nextPaymentResult = orderRepo.nextPaymentResult.copy(
+            order = PosOrder(id = "tab-1", orderNumber = "TAB-001", paymentStatus = "partially_paid", totalAmount = 61600L)
+        )
+        vm.submitCashPayment(tenderedAmount = 30800L)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals("split-1", orderRepo.initiatedPaymentInput?.splitId)
+        assertTrue(vm.uiState.value.tabSplits.first().isPaid)
+        assertEquals("split-2", vm.uiState.value.pendingSplitId)
+        assertEquals(1, vm.uiState.value.cart.size)
+        // A paid share cannot be picked again.
+        vm.selectSplit("split-1")
+        assertEquals("split-2", vm.uiState.value.pendingSplitId)
+
+        orderRepo.nextPaymentResult = orderRepo.nextPaymentResult.copy(
+            order = PosOrder(id = "tab-1", orderNumber = "TAB-001", paymentStatus = "paid", totalAmount = 61600L)
+        )
+        vm.submitCashPayment(tenderedAmount = 30800L)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals("split-2", orderRepo.initiatedPaymentInput?.splitId)
+        assertTrue(vm.uiState.value.cart.isEmpty())
+        assertTrue(vm.uiState.value.tabSplits.isEmpty())
+        assertEquals(1, vm.uiState.value.tabSplitCount)
     }
 
     @Test

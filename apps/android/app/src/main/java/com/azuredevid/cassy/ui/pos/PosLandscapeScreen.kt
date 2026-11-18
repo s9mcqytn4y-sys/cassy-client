@@ -48,6 +48,7 @@ import kotlinx.coroutines.launch
 import com.azuredevid.cassy.ui.pos.components.PosServiceRequestPill
 import com.azuredevid.cassy.ui.pos.components.PosServiceRequestsModal
 import com.azuredevid.cassy.ui.pos.components.PosTabItemVoidDialog
+import com.azuredevid.cassy.ui.pos.components.PosTabSplitSection
 import org.koin.androidx.compose.koinViewModel
 import java.text.NumberFormat
 import java.util.Locale
@@ -182,6 +183,21 @@ fun PosLandscapeScreen(
                         posViewModel.sendToKitchen()
                     }
                 }
+                val splitSection: @Composable () -> Unit = {
+                    if (posState.tableId != null && posState.cart.isNotEmpty()) {
+                        PosTabSplitSection(
+                            splitCount = posState.tabSplitCount,
+                            splits = posState.tabSplits,
+                            selectedSplitId = posState.pendingSplitId,
+                            // A bill closed as one share can no longer be divided here.
+                            isBusy = posState.isCartLocked || (posState.pendingOrder != null && posState.tabSplits.size < 2),
+                            rupiahFormat = rupiahFormat,
+                            onSplitCountChange = posViewModel::setTabSplitCount,
+                            onSplit = posViewModel::splitTab,
+                            onSelectSplit = posViewModel::selectSplit
+                        )
+                    }
+                }
                 val handleOpenCashModal: () -> Unit = {
                     if (!shiftState.isShiftOpen) {
                         scope.launch {
@@ -284,7 +300,8 @@ fun PosLandscapeScreen(
                             isLoadingTables = posState.isLoadingTables,
                             selectedTableId = posState.tableId,
                             onOpenTableBoard = { posViewModel.loadTables() },
-                            onTableSelected = { posViewModel.selectTable(it) }
+                            onTableSelected = { posViewModel.selectTable(it) },
+                            splitSection = splitSection
                         )
                     }
                 } else {
@@ -330,6 +347,7 @@ fun PosLandscapeScreen(
                         selectedTableId = posState.tableId,
                         onOpenTableBoard = { posViewModel.loadTables() },
                         onTableSelected = { posViewModel.selectTable(it) },
+                        splitSection = splitSection,
                         onNavigateToSettings = onNavigateToSettings,
                         onNavigateToCatalog = onNavigateToCatalog,
                         onNavigateToPairing = onNavigateToPairing
@@ -340,7 +358,7 @@ fun PosLandscapeScreen(
             val pricedQuote = posState.quote
             if (posState.showCashModal && pricedQuote != null) {
                 PosCashModal(
-                    grandTotal = pricedQuote.totalAmount,
+                    grandTotal = posState.payableAmount ?: pricedQuote.totalAmount,
                     rupiahFormat = rupiahFormat,
                     isSubmitting = posState.isSubmittingOrder,
                     errorMessage = posState.settlementError?.asString(),

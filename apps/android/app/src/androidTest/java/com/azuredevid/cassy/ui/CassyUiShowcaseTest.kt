@@ -77,6 +77,8 @@ import com.azuredevid.cassy.domain.repository.ServiceRequest
 import com.azuredevid.cassy.ui.pos.components.PosServiceRequestPill
 import com.azuredevid.cassy.ui.pos.components.PosServiceRequestsModal
 import com.azuredevid.cassy.ui.pos.components.PosTabItemVoidDialog
+import com.azuredevid.cassy.ui.pos.components.PosTabSplitSection
+import com.azuredevid.cassy.domain.repository.TabSplit
 import com.azuredevid.cassy.ui.pos.TabItemVoidUiState
 import com.azuredevid.cassy.ui.pos.TabVoidStep
 import com.azuredevid.cassy.ui.pos.CartItem
@@ -823,6 +825,61 @@ class CassyUiShowcaseTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.tab_void_waiting)).assertExists()
         captureScreen("PosTabItemVoid/WaitingForOwner", preferFullDisplay = true)
+    }
+
+    @Test
+    fun tabSplit_rendersGuestCountThenServerShares() {
+        val rupiah = NumberFormat.getIntegerInstance(Locale("id", "ID"))
+        val coffee = sampleProducts.first()
+        var count by mutableIntStateOf(3)
+        var splits by androidx.compose.runtime.mutableStateOf(emptyList<TabSplit>())
+        composeRule.setContent {
+            CassyTheme(darkTheme = false) {
+                PosOrderSummaryPanel(
+                    panelWidth = 420.dp,
+                    tableName = "M-02",
+                    orderType = "DINE-IN",
+                    onToggleOrderType = {},
+                    cart = listOf(CartItem(coffee, 3, isSentToKitchen = true)),
+                    isCartLocked = false,
+                    onIncreaseQuantity = {},
+                    onDecreaseQuantity = {},
+                    quote = OrderQuote(subtotalAmount = 84_000L, taxAmount = 8_400L, totalAmount = 92_400L),
+                    rupiahFormat = rupiah,
+                    onOpenDrawerKick = {},
+                    onSendToKitchen = {},
+                    onOpenCashModal = {},
+                    onOpenQrisModal = {},
+                    failoverWarning = null,
+                    onReprintStations = {},
+                    selectedTableId = "t-2",
+                    splitSection = {
+                        PosTabSplitSection(
+                            splitCount = count,
+                            splits = splits,
+                            selectedSplitId = "split-2",
+                            isBusy = false,
+                            rupiahFormat = rupiah,
+                            onSplitCountChange = { count = it },
+                            onSplit = {},
+                            onSelectSplit = {}
+                        )
+                    }
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.tab_split_btn, 3)).assertExists()
+        captureScreen("PosTabSplit/GuestCount", preferFullDisplay = true)
+
+        splits = listOf(
+            TabSplit("split-1", 1, 30_800L, 30_800L, "paid"),
+            TabSplit("split-2", 2, 30_800L),
+            TabSplit("split-3", 3, 30_800L)
+        )
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.tab_split_progress, 1, 3)).assertExists()
+        captureScreen("PosTabSplit/SharesOnePaid", preferFullDisplay = true)
     }
 
     @Test

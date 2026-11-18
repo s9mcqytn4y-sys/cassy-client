@@ -7,6 +7,7 @@ import com.azuredevid.cassy.data.network.HttpErrorMapper
 import com.azuredevid.cassy.domain.model.CreatePosOrderItemInput
 import com.azuredevid.cassy.domain.model.PosOrder
 import com.azuredevid.cassy.domain.repository.ClosedTab
+import com.azuredevid.cassy.domain.repository.TabSplit
 import com.azuredevid.cassy.domain.repository.PosTable
 import com.azuredevid.cassy.domain.repository.TabItemVoidInput
 import com.azuredevid.cassy.domain.repository.TableTabRepository
@@ -70,7 +71,10 @@ private data class SubmitRoundRequestDto(
 )
 
 @Serializable
-private data class CloseTabRequestDto(val strategy: String = "full")
+private data class CloseTabRequestDto(
+    val strategy: String,
+    @SerialName("split_count") val splitCount: Int? = null
+)
 
 @Serializable
 private data class VoidTabItemRequestDto(
@@ -82,7 +86,13 @@ private data class VoidTabItemRequestDto(
 )
 
 @Serializable
-private data class PaymentSplitDto(val id: String)
+private data class PaymentSplitDto(
+    val id: String,
+    @SerialName("split_number") val number: Int = 1,
+    @SerialName("total_amount") val totalAmount: Long = 0L,
+    @SerialName("paid_amount") val paidAmount: Long = 0L,
+    val status: String = "unpaid"
+)
 
 @Serializable
 private data class CloseTabResponseDto(val order: PosOrderDto, val splits: List<PaymentSplitDto> = emptyList())
@@ -199,19 +209,24 @@ class KtorTableTabRepository(
         }
     }
 
-    override suspend fun closeTab(orderId: String): Result<ClosedTab> = withContext(ioDispatcher) {
+    override suspend fun closeTab(orderId: String, splitCount: Int): Result<ClosedTab> = withContext(ioDispatcher) {
         try {
             val response = httpClient.post("${baseUrl()}/api/v1/pos/tabs/$orderId/close") {
                 contentType(ContentType.Application.Json)
-                setBody(CloseTabRequestDto())
+                setBody(
+                    if (splitCount > 1) CloseTabRequestDto("equal", splitCount) else CloseTabRequestDto("full")
+                )
             }
             if (!response.status.isSuccess()) {
                 return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal menutup tagihan meja."))
             }
             val body = response.body<CloseTabResponseDto>()
-            val split = body.splits.firstOrNull()
-                ?: return@withContext Result.failure(IllegalStateException("Tagihan meja tidak punya split pembayaran."))
-            Result.success(ClosedTab(body.order.toDomain(), split.id))
+            if (body.splits.isEmpty()) {
+                return@withContext Result.failure(IllegalStateException("Tagihan meja tidak punya split pembayaran."))
+            }
+            val splits = body.splits.sortedBy { it.number }
+                .map { TabSplit(it.id, it.number, it.totalAmount, it.paidAmount, it.status) }
+            Result.success(ClosedTab(body.order.toDomain(), splits))
         } catch (t: Throwable) {
             Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal menutup tagihan meja."))
         }

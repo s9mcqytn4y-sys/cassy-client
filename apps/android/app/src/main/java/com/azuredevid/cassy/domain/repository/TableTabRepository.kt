@@ -16,8 +16,20 @@ data class PosTable(
     val isFree: Boolean get() = status == "available" && unpaidAmount == 0L
 }
 
-/** A closed tab ready to pay: the order plus the single payment split created by `strategy=full`. */
-data class ClosedTab(val order: PosOrder, val splitId: String)
+/** One share of a closed tab. Amounts come from the server; each payment must name one share. */
+data class TabSplit(
+    val id: String,
+    val number: Int,
+    val totalAmount: Long,
+    val paidAmount: Long = 0L,
+    val status: String = "unpaid"
+) {
+    val isPaid: Boolean get() = status == "paid"
+    val remainingAmount: Long get() = totalAmount - paidAmount
+}
+
+/** A closed tab ready to pay: the order plus one share (single payer) or 2 to 20 equal shares. */
+data class ClosedTab(val order: PosOrder, val splits: List<TabSplit>)
 
 /**
  * Takes [quantity] units off one sent line. [pin] is always the cashier's own; above the store's owner
@@ -52,5 +64,6 @@ interface TableTabRepository {
     /** Voids part or all of one line; returns the tab as it now stands. */
     suspend fun voidItem(orderId: String, itemId: String, input: TabItemVoidInput): Result<PosOrder>
 
-    suspend fun closeTab(orderId: String): Result<ClosedTab>
+    /** Freezes the bill. [splitCount] 1 makes one share; 2 to 20 asks the server for equal shares. */
+    suspend fun closeTab(orderId: String, splitCount: Int = 1): Result<ClosedTab>
 }

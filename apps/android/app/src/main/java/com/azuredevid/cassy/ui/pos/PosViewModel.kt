@@ -30,6 +30,7 @@ import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import com.azuredevid.cassy.domain.repository.PrinterConfig
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
 import com.azuredevid.cassy.domain.repository.PosTable
+import com.azuredevid.cassy.domain.repository.TabSplit
 import com.azuredevid.cassy.domain.repository.TableTabRepository
 import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import kotlinx.coroutines.Job
@@ -80,7 +81,10 @@ data class PosUiState(
     val activeTabId: String? = null,
     val pendingTabKey: String? = null,
     val pendingRoundKey: String? = null,
-    val pendingSplitId: String? = null
+    val pendingSplitId: String? = null,
+    // Equal split of a table tab: the count is picked before closing, the shares come back from the server.
+    val tabSplitCount: Int = 1,
+    val tabSplits: List<TabSplit> = emptyList()
 ) {
     val displayedProducts: List<CatalogProduct>
         get() {
@@ -101,6 +105,14 @@ data class PosUiState(
 
     val isCartLocked: Boolean
         get() = activeQrisPayment != null || isSubmittingOrder
+
+    /** The share being paid, or null when the bill is not divided. */
+    val selectedSplit: TabSplit?
+        get() = tabSplits.takeIf { it.size > 1 }?.firstOrNull { it.id == pendingSplitId }
+
+    /** What the next payment must cover: the selected share, else the quoted bill. */
+    val payableAmount: Long?
+        get() = selectedSplit?.remainingAmount ?: quote?.totalAmount
 }
 
 sealed interface PosUiEffect {
@@ -128,6 +140,7 @@ class PosViewModel(
 
     private companion object {
         const val KEY_SELECTED_CATEGORY = "pos_selected_category"
+        const val MAX_TAB_SPLITS = 20
         const val KEY_SEARCH_QUERY = "pos_search_query"
         const val KEY_ORDER_TYPE = "pos_order_type"
         const val KEY_TABLE_NAME = "pos_table_name"
@@ -450,6 +463,10 @@ class PosViewModel(
                 if (res.openDrawer && config.hasCashierPrinter) {
                     printerManager.openCashDrawer(config.cashierPrinterIp, config.cashierPrinterPort)
                 }
+                if (!settlesWholeBill(settledOrder)) {
+                    advanceToNextSplit()
+                    return@onSuccess
+                }
                 dispatchReceiptsAndKitchenTickets(
                     order = settledOrder,
                     cartSnapshot = snapshot.cart,
@@ -568,8 +585,13 @@ class PosViewModel(
         posOrderRepository.getOrder(order.id)
             .onSuccess { detail ->
                 _uiState.update { it.copy(isCheckingQrisStatus = false, pendingOrder = detail.order) }
+                val attemptId = _uiState.value.activeQrisPayment?.id
+                // With shares, an earlier settled share must not finish this one: match the open attempt.
                 val paid = detail.order.paymentStatus.equals("paid", ignoreCase = true) ||
-                    detail.payments.any { it.status.equals("settled", ignoreCase = true) || it.status.equals("paid", ignoreCase = true) }
+                    detail.payments.any {
+                        it.id == attemptId &&
+                            (it.status.equals("settled", ignoreCase = true) || it.status.equals("paid", ignoreCase = true))
+                    }
                 if (paid) {
                     finalizeQrisSettlement(detail.order)
                 }
@@ -580,6 +602,12 @@ class PosViewModel(
     }
 
     private suspend fun finalizeQrisSettlement(order: PosOrder) {
+        if (!settlesWholeBill(order)) {
+            qrisPollJob?.cancel()
+            qrisPollJob = null
+            advanceToNextSplit()
+            return
+        }
         val snapshot = _uiState.value
         val config = printerSettings.getConfig()
         dispatchReceiptsAndKitchenTickets(
@@ -723,6 +751,8 @@ class PosViewModel(
                 pendingTabKey = null,
                 pendingRoundKey = null,
                 pendingSplitId = null,
+                tabSplitCount = 1,
+                tabSplits = emptyList(),
                 // A paid tab frees its board table; a free-text label stays for the next walk-in.
                 tableId = null,
                 tableName = if (it.tableId != null) "" else it.tableName
@@ -737,17 +767,7 @@ class PosViewModel(
         }
         if (snapshot.tableId != null) {
             val repo = tableTabRepository ?: return Result.failure(IllegalStateException("table tabs unavailable"))
-            val tabId = submitTabRound(snapshot).getOrElse { return Result.failure(it) }
-            val closed = repo.closeTab(tabId).getOrElse { return Result.failure(it) }
-            // A closed tab cannot be voided, so its rows drop the line ids that enable the void button.
-            _uiState.update { state ->
-                state.copy(
-                    pendingOrder = closed.order,
-                    pendingSplitId = closed.splitId,
-                    cart = state.cart.map { it.copy(sentLines = emptyList()) }
-                )
-            }
-            return Result.success(closed.order)
+            return closeTab(repo, snapshot, splitCount = 1)
         }
         val key = snapshot.pendingOrderIdempotencyKey ?: UUID.randomUUID().toString()
         val orderTypeApi = if (snapshot.orderType == "DINE-IN") "dine_in" else "takeaway"
@@ -779,6 +799,79 @@ class PosViewModel(
             _uiState.update { it.copy(pendingOrder = created, pendingOrderIdempotencyKey = key) }
         }
         return result
+    }
+
+    /** Picks how many equal shares the table bill is divided into; fixed once the tab is closed. */
+    fun setTabSplitCount(count: Int) {
+        val state = _uiState.value
+        if (state.tableId == null || state.pendingOrder != null || state.isCartLocked) return
+        _uiState.update { it.copy(tabSplitCount = count.coerceIn(1, MAX_TAB_SPLITS)) }
+    }
+
+    /** Closes the table bill into equal shares so each guest can pay their own share. */
+    fun splitTab() {
+        val snapshot = _uiState.value
+        val repo = tableTabRepository ?: return
+        if (snapshot.tableId == null || snapshot.tabSplitCount < 2 || snapshot.pendingOrder != null ||
+            snapshot.cart.isEmpty() || snapshot.isCartLocked
+        ) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSubmittingOrder = true, settlementError = null) }
+            closeTab(repo, snapshot, snapshot.tabSplitCount).onFailure { err ->
+                _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_split_failed), CassyToastTone.ERROR))
+            }
+            _uiState.update { it.copy(isSubmittingOrder = false) }
+        }
+    }
+
+    /** Selects which unpaid share the next payment covers. */
+    fun selectSplit(splitId: String) {
+        val state = _uiState.value
+        if (state.isCartLocked || state.tabSplits.none { it.id == splitId && !it.isPaid }) return
+        _uiState.update { it.copy(pendingSplitId = splitId) }
+    }
+
+    private suspend fun closeTab(repo: TableTabRepository, snapshot: PosUiState, splitCount: Int): Result<PosOrder> {
+        val tabId = submitTabRound(snapshot).getOrElse { return Result.failure(it) }
+        val closed = repo.closeTab(tabId, splitCount).getOrElse { return Result.failure(it) }
+        // A closed tab cannot be voided, so its rows drop the line ids that enable the void button.
+        _uiState.update { state ->
+            state.copy(
+                pendingOrder = closed.order,
+                pendingSplitId = closed.splits.firstOrNull { !it.isPaid }?.id,
+                tabSplits = closed.splits,
+                cart = state.cart.map { it.copy(sentLines = emptyList()) }
+            )
+        }
+        return Result.success(closed.order)
+    }
+
+    private fun settlesWholeBill(order: PosOrder): Boolean {
+        val state = _uiState.value
+        return order.paymentStatus.equals("paid", ignoreCase = true) ||
+            state.tabSplits.none { !it.isPaid && it.id != state.pendingSplitId }
+    }
+
+    // shortcut: a share paid before the last prints no receipt; the full receipt prints when the bill is settled.
+    private suspend fun advanceToNextSplit() {
+        val state = _uiState.value
+        val paid = state.selectedSplit ?: return
+        val splits = state.tabSplits.map {
+            if (it.id == paid.id) it.copy(status = "paid", paidAmount = it.totalAmount) else it
+        }
+        _uiState.update {
+            it.copy(
+                tabSplits = splits,
+                pendingSplitId = splits.firstOrNull { split -> !split.isPaid }?.id,
+                showCashModal = false,
+                isSubmittingOrder = false,
+                activeQrisPayment = null,
+                isCheckingQrisStatus = false,
+                settlementError = null
+            )
+        }
+        soundPlayer?.play(CassyAudioCue.ORDER_PAID)
+        _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.pos_msg_split_paid, paid.number)))
     }
 
     private suspend fun dispatchReceiptsAndKitchenTickets(

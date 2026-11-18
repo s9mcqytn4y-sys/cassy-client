@@ -103,7 +103,8 @@ fun PosOrderSummaryPanel(
     isLoadingTables: Boolean = false,
     selectedTableId: String? = null,
     onOpenTableBoard: () -> Unit = {},
-    onTableSelected: (PosTable) -> Unit = {}
+    onTableSelected: (PosTable) -> Unit = {},
+    splitSection: @Composable () -> Unit = {}
 ) {
     var showTableDialog by remember { mutableStateOf(false) }
 
@@ -410,6 +411,8 @@ fun PosOrderSummaryPanel(
                         }
                     }
                 }
+
+                splitSection()
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),

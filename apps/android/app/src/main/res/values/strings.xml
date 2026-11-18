@@ -584,4 +584,17 @@
     <string name="tab_void_msg_request_failed">Permintaan ke owner gagal dikirim. Coba lagi.</string>
     <string name="tab_void_msg_rejected">Owner menolak pembatalan ini.</string>
     <string name="tab_void_msg_expired">Waktu persetujuan habis. Kirim permintaan baru atau pakai PIN owner.</string>
+    <string name="tab_split_label">Bagi rata</string>
+    <string name="tab_split_none">Tidak dibagi</string>
+    <plurals name="tab_split_guests">
+        <item quantity="other">%d orang</item>
+    </plurals>
+    <string name="tab_split_a11y_fewer">Kurangi jumlah orang</string>
+    <string name="tab_split_a11y_more">Tambah jumlah orang</string>
+    <string name="tab_split_btn">Bagi tagihan untuk %1$d orang</string>
+    <string name="tab_split_progress">Lunas %1$d dari %2$d bagian. Pilih bagian yang dibayar.</string>
+    <string name="tab_split_share">Bagian %1$d</string>
+    <string name="tab_split_paid">Lunas</string>
+    <string name="pos_msg_split_failed">Tagihan belum bisa dibagi. Coba lagi.</string>
+    <string name="pos_msg_split_paid">Bagian %1$d lunas. Lanjutkan ke bagian berikutnya.</string>
 </resources>

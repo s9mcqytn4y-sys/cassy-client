@@ -585,5 +585,19 @@
     <string name="tab_void_msg_request_failed">The request to the owner could not be sent. Try again.</string>
     <string name="tab_void_msg_rejected">The owner rejected this void.</string>
     <string name="tab_void_msg_expired">The approval window has passed. Send a new request or use the owner PIN.</string>
+    <string name="tab_split_label">Split evenly</string>
+    <string name="tab_split_none">Not split</string>
+    <plurals name="tab_split_guests">
+        <item quantity="one">%d guest</item>
+        <item quantity="other">%d guests</item>
+    </plurals>
+    <string name="tab_split_a11y_fewer">Fewer guests</string>
+    <string name="tab_split_a11y_more">More guests</string>
+    <string name="tab_split_btn">Split the bill for %1$d guests</string>
+    <string name="tab_split_progress">%1$d of %2$d shares paid. Pick the share to pay.</string>
+    <string name="tab_split_share">Share %1$d</string>
+    <string name="tab_split_paid">Paid</string>
+    <string name="pos_msg_split_failed">The bill could not be split. Try again.</string>
+    <string name="pos_msg_split_paid">Share %1$d paid. Continue with the next share.</string>
 </resources>
 
