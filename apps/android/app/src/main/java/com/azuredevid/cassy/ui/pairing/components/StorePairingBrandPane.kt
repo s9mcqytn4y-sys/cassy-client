@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -71,7 +73,9 @@ fun StorePairingBrandPane(
     onNavigateToServerConfig: () -> Unit,
     onRetryHealthProbe: () -> Unit,
     fillFullHeight: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // System bar insets this pane sits under; applied inside the green background so it runs edge to edge.
+    contentInsets: WindowInsets = WindowInsets(0)
 ) {
     val doodleBitmap = ImageBitmap.imageResource(id = R.drawable.bg_cassy_cafe_doodle)
 
@@ -80,6 +84,7 @@ fun StorePairingBrandPane(
             .clipToBounds()
             .background(BrandPanelPandan)
             .cassyCafePatternBackground(doodleBitmap)
+            .windowInsetsPadding(contentInsets)
             .padding(CassyDimens.Space2Xl),
         verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceLg)
     ) {

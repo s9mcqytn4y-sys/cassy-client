@@ -1,5 +1,6 @@
 package com.azuredevid.cassy.data.network
 
+import com.azuredevid.cassy.core.coroutines.runCatchingCancellable
 import com.azuredevid.cassy.core.security.SessionManager
 import com.azuredevid.cassy.data.repository.ServerSettingsRepository
 import io.ktor.client.HttpClient
@@ -73,7 +74,7 @@ class CassyRealtimeClient(
         val token = sessionManager.getAccessToken()
             ?: return Result.failure(IllegalStateException("Sesi staf tidak tersedia untuk tiket realtime."))
         val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
-        return runCatching {
+        return runCatchingCancellable {
             val response = httpClient.post("$baseUrl/api/v1/pos/ws-ticket") {
                 header(HttpHeaders.Authorization, "Bearer $token")
             }

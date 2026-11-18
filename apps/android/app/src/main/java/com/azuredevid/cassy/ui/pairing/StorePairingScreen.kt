@@ -12,6 +12,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -125,6 +130,8 @@ fun StorePairingScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = CassyPutihTulang,
+        // Each pane takes its own system bar insets so the brand colour reaches the screen edge.
+        contentWindowInsets = WindowInsets(0),
         snackbarHost = { CassySnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
         BoxWithConstraints(
@@ -132,7 +139,8 @@ fun StorePairingScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            if (maxWidth >= CassyDimens.SplitPaneBreakpoint) {
+            // Portrait tablets are wide enough for the breakpoint but too narrow for two panes; stack them.
+            if (maxWidth >= CassyDimens.SplitPaneBreakpoint && maxWidth > maxHeight) {
                 Row(modifier = Modifier.fillMaxSize()) {
                     StorePairingBrandPane(
                         connectivity = connectivity,
@@ -141,13 +149,15 @@ fun StorePairingScreen(
                         fillFullHeight = true,
                         modifier = Modifier
                             .weight(0.44f)
-                            .fillMaxHeight()
+                            .fillMaxHeight(),
+                        contentInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Start + WindowInsetsSides.Vertical)
                     )
                     Box(
                         modifier = Modifier
                             .weight(0.56f)
                             .fillMaxHeight()
                             .background(CassyPutihTulang)
+                            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.End + WindowInsetsSides.Vertical))
                             .verticalScroll(rememberScrollState())
                             .padding(horizontal = CassyDimens.Space2Xl, vertical = CassyDimens.SpaceXl),
                         contentAlignment = Alignment.Center
@@ -177,7 +187,8 @@ fun StorePairingScreen(
                         onNavigateToServerConfig = onNavigateToServerConfig,
                         onRetryHealthProbe = { viewModel.onEvent(StorePairingUiEvent.RetryServerHealthProbe) },
                         fillFullHeight = false,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        contentInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
                     )
                     StorePairingFormPane(
                         state = state,
@@ -191,6 +202,7 @@ fun StorePairingScreen(
                         onSubmit = { viewModel.onEvent(StorePairingUiEvent.SubmitLogin) },
                         modifier = Modifier
                             .fillMaxWidth()
+                            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
                             .padding(CassyDimens.SpaceLg)
                     )
                 }

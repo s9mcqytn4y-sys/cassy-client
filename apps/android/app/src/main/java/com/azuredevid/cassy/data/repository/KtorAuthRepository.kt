@@ -1,5 +1,6 @@
 package com.azuredevid.cassy.data.repository
 
+import com.azuredevid.cassy.core.coroutines.runCatchingCancellable
 import com.azuredevid.cassy.core.security.SessionManager
 import com.azuredevid.cassy.data.network.HttpErrorMapper
 import com.azuredevid.cassy.data.network.StaffIdentityDto
@@ -186,7 +187,7 @@ class KtorAuthRepository(
     override suspend fun logout(): Result<Unit> = withContext(ioDispatcher) {
         try {
             val baseUrl = serverSettings.getBaseUrl()
-            runCatching {
+            runCatchingCancellable {
                 httpClient.post("$baseUrl/api/v1/auth/staff/logout") {
                     header("X-CSRF-Protection", "1")
                 }

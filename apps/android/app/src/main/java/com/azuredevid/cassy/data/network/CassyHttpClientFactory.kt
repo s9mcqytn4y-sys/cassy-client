@@ -1,5 +1,6 @@
 package com.azuredevid.cassy.data.network
 
+import com.azuredevid.cassy.core.coroutines.runCatchingCancellable
 import com.azuredevid.cassy.BuildConfig
 import com.azuredevid.cassy.core.security.SessionCookiesStorage
 import com.azuredevid.cassy.core.security.SessionManager
@@ -131,7 +132,7 @@ object CassyHttpClientFactory {
                             }
 
                             val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
-                            val response = runCatching {
+                            val response = runCatchingCancellable {
                                 client.post("$baseUrl/api/v1/auth/staff/refresh") {
                                     header("X-CSRF-Protection", "1")
                                     markAsRefreshTokenRequest()
@@ -139,7 +140,7 @@ object CassyHttpClientFactory {
                             }.getOrNull()
 
                             if (response != null && response.status.isSuccess()) {
-                                val dto = runCatching { response.body<StaffSessionRefreshDto>() }.getOrNull()
+                                val dto = runCatchingCancellable { response.body<StaffSessionRefreshDto>() }.getOrNull()
                                 if (dto != null && dto.accessToken.isNotBlank()) {
                                     sessionManager.updateRefreshedTokens(
                                         accessToken = dto.accessToken,

@@ -10,6 +10,7 @@ import com.azuredevid.cassy.core.hardware.EscPosReceiptBuilder
 import com.azuredevid.cassy.core.hardware.KdsTicketRouter
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.core.security.SessionManager
+import com.azuredevid.cassy.core.coroutines.runCatchingCancellable
 import com.azuredevid.cassy.data.local.OfflineSyncCoordinator
 import com.azuredevid.cassy.data.model.CatalogCategory
 import com.azuredevid.cassy.data.model.CatalogProduct
@@ -139,7 +140,7 @@ class PosViewModel(
         observeRealtimeEvents()
         loadInitialData()
         offlineSyncCoordinator?.let { sync ->
-            viewModelScope.launch { runCatching { sync.syncPendingOrders() } }
+            viewModelScope.launch { runCatchingCancellable { sync.syncPendingOrders() } }
         }
     }
 

@@ -7,11 +7,15 @@ import com.azuredevid.cassy.domain.model.PosOrder
 import com.azuredevid.cassy.domain.model.PosOrderDetail
 import com.azuredevid.cassy.domain.model.PosPaymentAttempt
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class OfflineSyncCoordinatorTest {
@@ -51,6 +55,7 @@ class OfflineSyncCoordinatorTest {
 
         override suspend fun createOrder(input: CreatePosOrderInput): Result<PosOrder> {
             createdKeys.add(input.idempotencyKey)
+            delay(10)
             return Result.success(PosOrder(id = "ord-1", orderNumber = "A-001", totalAmount = 50_000L))
         }
 
@@ -95,5 +100,36 @@ class OfflineSyncCoordinatorTest {
         assertEquals(OfflinePendingOrderEntity.STATUS_SYNCED, dao.get(entity.clientOrderId)?.syncStatus)
         assertEquals(listOf(entity.idempotencyKey), repo.createdKeys)
         assertEquals(listOf("${entity.idempotencyKey}_cash"), repo.paymentKeys)
+    }
+
+    @Test
+    fun `concurrent syncs send each pending order once`() = runTest {
+        val dao = InMemoryOfflineOrderDao()
+        val repo = FakePosOrderRepository()
+        val coordinator = OfflineSyncCoordinator(dao, repo, StandardTestDispatcher(testScheduler))
+        coordinator.enqueueCashOrder("central-cafe", "take_away", null, "Budi", listOf(OfflineOrderItemPayload("p1", 1)), 50_000L)
+
+        val first = launch { coordinator.syncPendingOrders() }
+        val second = launch { coordinator.syncPendingOrders() }
+        first.join()
+        second.join()
+
+        assertEquals(1, repo.createdKeys.size)
+        assertEquals(1, repo.paymentKeys.size)
+    }
+
+    @Test
+    fun `enqueue stops at the order cap and at the age cap`() = runTest {
+        val item = listOf(OfflineOrderItemPayload("p1", 1))
+        val byCount = OfflineSyncCoordinator(InMemoryOfflineOrderDao(), FakePosOrderRepository(), StandardTestDispatcher(testScheduler), maxOfflineOrders = 2)
+        byCount.enqueueCashOrder("s", "take_away", null, "", item, 10_000L)
+        byCount.enqueueCashOrder("s", "take_away", null, "", item, 10_000L)
+        assertTrue(runCatching { byCount.enqueueCashOrder("s", "take_away", null, "", item, 10_000L) }.exceptionOrNull() is OfflineLimitReachedException)
+
+        var now = 0L
+        val byAge = OfflineSyncCoordinator(InMemoryOfflineOrderDao(), FakePosOrderRepository(), StandardTestDispatcher(testScheduler), nowMs = { now })
+        byAge.enqueueCashOrder("s", "take_away", null, "", item, 10_000L)
+        now = 12 * 3_600_000L + 1
+        assertTrue(runCatching { byAge.enqueueCashOrder("s", "take_away", null, "", item, 10_000L) }.exceptionOrNull() is OfflineLimitReachedException)
     }
 }
