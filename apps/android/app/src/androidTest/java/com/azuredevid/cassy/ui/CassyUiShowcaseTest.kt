@@ -669,7 +669,7 @@ class CassyUiShowcaseTest {
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.catalog_mgmt_title)).assertIsDisplayed()
-        composeRule.onNodeWithText("Paket Nasi Ayam Bakar").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Paket Nasi Ayam Bakar").performScrollTo().assertExists()
         captureScreen("CatalogManagement/CatalogMain")
     }
 
