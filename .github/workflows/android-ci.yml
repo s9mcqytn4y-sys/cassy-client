@@ -43,7 +43,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Run Unit Tests & Debug Bundle
-        run: ./gradlew testDevDebugUnitTest bundleDevDebug --max-workers=2 --no-daemon --stacktrace
+        run: |
+          chmod +x gradlew
+          ./gradlew testDevDebugUnitTest bundleDevDebug --max-workers=2 --no-daemon --stacktrace
 
       - name: Run Lint & R8 Prod Release Bundle
         run: ./gradlew lintDevDebug bundleProdRelease --max-workers=1 --no-daemon --stacktrace
