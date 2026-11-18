@@ -81,6 +81,16 @@ fun PosTabItemVoidDialog(
             }
         }
     ) {
+        // First in the body so a phone in landscape shows it without scrolling.
+        if (waiting) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
+            ) {
+                CircularProgressIndicator(modifier = Modifier.size(CassyDimens.IconSizeSm), strokeWidth = 2.dp)
+                Text(text = stringResource(R.string.tab_void_waiting), style = MaterialTheme.typography.bodyMedium)
+            }
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -146,15 +156,6 @@ fun PosTabItemVoidDialog(
                 enabled = state.canAskOwner,
                 modifier = Modifier.fillMaxWidth()
             )
-        }
-        if (waiting) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
-            ) {
-                CircularProgressIndicator(modifier = Modifier.size(CassyDimens.IconSizeSm), strokeWidth = 2.dp)
-                Text(text = stringResource(R.string.tab_void_waiting), style = MaterialTheme.typography.bodyMedium)
-            }
         }
         state.error?.let {
             Spacer(Modifier.size(CassyDimens.SpaceXs))
