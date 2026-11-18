@@ -532,5 +532,17 @@
     <string name="settings_msg_printer_saved">LAN printer settings saved.</string>
     <string name="server_msg_network_error">Network error</string>
     <string name="server_msg_connection_refused">Connection refused</string>
+    <string name="notif_channel_orders_name">Orders &amp; Payments</string>
+    <string name="notif_channel_orders_desc">Notifications for incoming table orders and paid QRIS bills.</string>
+    <string name="notif_channel_waiter_name">Call Waiter Alerts</string>
+    <string name="notif_channel_waiter_desc">Alerts when a guest table requests waiter assistance.</string>
+    <string name="notif_channel_hardware_name">Printer &amp; Offline Sync</string>
+    <string name="notif_channel_hardware_desc">Alerts for offline LAN thermal printers and pending sync queues.</string>
+    <string name="pos_mobile_view_cart">View Cart</string>
+    <string name="pos_mobile_cart_items_format">%1$d items • %2$s</string>
+    <string name="pos_mobile_close_cart">Close Order Summary</string>
+    <string name="pos_mobile_quick_cash">Cash</string>
+    <string name="pos_mobile_quick_qris">QRIS</string>
+    <string name="pos_mobile_quick_kitchen">Kitchen</string>
 </resources>
 

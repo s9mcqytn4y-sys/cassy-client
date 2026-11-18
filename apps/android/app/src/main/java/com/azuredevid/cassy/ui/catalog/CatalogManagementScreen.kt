@@ -166,110 +166,169 @@ fun CatalogManagementScreen(
             )
         }
     ) { innerPadding ->
-        Row(
+        androidx.compose.foundation.layout.BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            CategorySidebarPanel(
-                categories = state.categories,
-                selectedCategoryId = state.selectedCategoryId,
-                canManageCatalog = state.canManageCatalog,
-                onSelectCategory = viewModel::selectCategory,
-                onAddCategory = {
-                    editingCategory = null
-                    showCategoryDialog = true
-                },
-                onEditCategory = { cat ->
-                    editingCategory = cat
-                    showCategoryDialog = true
-                },
-                onDeleteCategory = viewModel::deleteCategory
-            )
-
-            VerticalDivider(color = MaterialTheme.colorScheme.outline)
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .padding(CassyDimens.SpaceLg),
-                verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd)
-            ) {
-                if (!state.canManageCatalog) {
-                    CassyStatusBadge(
-                        text = stringResource(R.string.catalog_readonly_hint),
-                        tone = CassyToastTone.INFO
-                    )
-                }
-
-                CassyTextField(
-                    value = state.searchQuery,
-                    onValueChange = viewModel::updateSearchQuery,
-                    label = stringResource(R.string.catalog_search_hint),
-                    leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) }
-                )
-
-                if (state.isSubmitting || state.isUploadingImage) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                }
-
-                state.errorMessage?.let { err ->
-                    CassyErrorBanner(
-                        message = err.asString(),
-                        onRetry = viewModel::refreshCatalog
-                    )
-                }
-
-                when {
-                    state.isLoading -> {
-                        Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd)) {
-                            repeat(4) {
-                                CassyShimmerBox(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(84.dp)
+            val isSplitPane = maxWidth >= CassyDimens.SplitPaneBreakpoint
+            val productListPane: @Composable (Modifier) -> Unit = { paneModifier ->
+                Column(
+                    modifier = paneModifier,
+                    verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd)
+                ) {
+                    if (!isSplitPane) {
+                        androidx.compose.foundation.lazy.LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            item(key = "all") {
+                                androidx.compose.material3.FilterChip(
+                                    selected = state.selectedCategoryId == "all",
+                                    onClick = { viewModel.selectCategory("all") },
+                                    label = { Text(stringResource(R.string.category_all)) },
+                                    modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
                                 )
+                            }
+                            items(state.categories, key = { it.id }) { cat ->
+                                androidx.compose.material3.FilterChip(
+                                    selected = state.selectedCategoryId == cat.id,
+                                    onClick = { viewModel.selectCategory(cat.id) },
+                                    label = { Text(cat.name) },
+                                    modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
+                                )
+                            }
+                            if (state.canManageCatalog) {
+                                item(key = "add_category") {
+                                    androidx.compose.material3.AssistChip(
+                                        onClick = {
+                                            editingCategory = null
+                                            showCategoryDialog = true
+                                        },
+                                        label = { Text(stringResource(R.string.catalog_add_category)) },
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = Icons.Rounded.Add,
+                                                contentDescription = null
+                                            )
+                                        },
+                                        modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
+                                    )
+                                }
                             }
                         }
                     }
-                    state.displayedProducts.isEmpty() -> {
-                        CassyEmptyState(
-                            icon = Icons.Rounded.Inventory2,
-                            title = stringResource(R.string.catalog_empty),
-                            subtitle = stringResource(R.string.catalog_readonly_hint),
-                            modifier = Modifier.fillMaxSize()
+
+                    if (!state.canManageCatalog) {
+                        CassyStatusBadge(
+                            text = stringResource(R.string.catalog_readonly_hint),
+                            tone = CassyToastTone.INFO
                         )
                     }
-                    else -> {
-                        LazyColumn(
-                            verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd),
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            items(state.displayedProducts, key = { it.id }) { product ->
-                                CatalogProductManagementRow(
-                                    product = product,
-                                    rupiahFormat = rupiahFormat,
-                                    canManage = state.canManageCatalog,
-                                    isUploading = state.isUploadingImage,
-                                    onToggleAvailability = { viewModel.toggleProductAvailability(product) },
-                                    onEdit = {
-                                        editingProduct = product
-                                        showProductDialog = true
-                                    },
-                                    onUploadPhoto = {
-                                        pendingPhotoProductId = product.id
-                                        imagePicker.launch(
-                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                        )
-                                    },
-                                    onManageVariants = { variantsTargetProductId = product.id },
-                                    onArchive = { viewModel.archiveProduct(product.id) }
-                                )
+
+                    CassyTextField(
+                        value = state.searchQuery,
+                        onValueChange = viewModel::updateSearchQuery,
+                        label = stringResource(R.string.catalog_search_hint),
+                        leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) }
+                    )
+
+                    if (state.isSubmitting || state.isUploadingImage) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+
+                    state.errorMessage?.let { err ->
+                        CassyErrorBanner(
+                            message = err.asString(),
+                            onRetry = viewModel::refreshCatalog
+                        )
+                    }
+
+                    when {
+                        state.isLoading -> {
+                            Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd)) {
+                                repeat(4) {
+                                    CassyShimmerBox(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(84.dp)
+                                    )
+                                }
+                            }
+                        }
+                        state.displayedProducts.isEmpty() -> {
+                            CassyEmptyState(
+                                icon = Icons.Rounded.Inventory2,
+                                title = stringResource(R.string.catalog_empty),
+                                subtitle = stringResource(R.string.catalog_readonly_hint),
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                        else -> {
+                            LazyColumn(
+                                verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd),
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                items(state.displayedProducts, key = { it.id }) { product ->
+                                    CatalogProductManagementRow(
+                                        product = product,
+                                        rupiahFormat = rupiahFormat,
+                                        canManage = state.canManageCatalog,
+                                        isUploading = state.isUploadingImage,
+                                        onToggleAvailability = { viewModel.toggleProductAvailability(product) },
+                                        onEdit = {
+                                            editingProduct = product
+                                            showProductDialog = true
+                                        },
+                                        onUploadPhoto = {
+                                            pendingPhotoProductId = product.id
+                                            imagePicker.launch(
+                                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                            )
+                                        },
+                                        onManageVariants = { variantsTargetProductId = product.id },
+                                        onArchive = { viewModel.archiveProduct(product.id) }
+                                    )
+                                }
                             }
                         }
                     }
                 }
+            }
+
+            if (isSplitPane) {
+                Row(modifier = Modifier.fillMaxSize()) {
+                    CategorySidebarPanel(
+                        categories = state.categories,
+                        selectedCategoryId = state.selectedCategoryId,
+                        canManageCatalog = state.canManageCatalog,
+                        onSelectCategory = viewModel::selectCategory,
+                        onAddCategory = {
+                            editingCategory = null
+                            showCategoryDialog = true
+                        },
+                        onEditCategory = { cat ->
+                            editingCategory = cat
+                            showCategoryDialog = true
+                        },
+                        onDeleteCategory = viewModel::deleteCategory
+                    )
+
+                    VerticalDivider(color = MaterialTheme.colorScheme.outline)
+
+                    productListPane(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .padding(CassyDimens.SpaceLg)
+                    )
+                }
+            } else {
+                productListPane(
+                    Modifier
+                        .fillMaxSize()
+                        .padding(CassyDimens.SpaceMd)
+                )
             }
         }
     }

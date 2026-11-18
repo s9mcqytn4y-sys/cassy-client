@@ -3,6 +3,7 @@ package com.azuredevid.cassy.data.local
 import com.azuredevid.cassy.domain.model.CreatePosOrderInput
 import com.azuredevid.cassy.domain.model.CreatePosOrderItemInput
 import com.azuredevid.cassy.domain.model.InitiatePosPaymentInput
+import com.azuredevid.cassy.domain.repository.DeviceOfflineOrderSyncItem
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -12,6 +13,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.time.Instant
 import java.util.UUID
 
 @Serializable
@@ -26,7 +28,12 @@ data class OfflineOrderPayload(
     val orderType: String,
     val tableNumber: String? = null,
     val customerName: String = "",
-    val items: List<OfflineOrderItemPayload>
+    val items: List<OfflineOrderItemPayload>,
+    val cashierId: String? = null,
+    val shiftId: String? = null,
+    val catalogVersion: String? = null,
+    val offlineQueueNumber: String? = null,
+    val offlineCreatedAtIso: String? = null
 )
 
 /**
@@ -44,16 +51,25 @@ class OfflineSyncCoordinator(
     private val offlineOrderDao: OfflineOrderDao,
     private val posOrderRepository: PosOrderRepository,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    // Defaults mirror the server OF7 defaults (12 h, 200 orders).
-    // shortcut: per-store overrides from store_settings are not read yet; plumb them in when POS offline checkout lands.
-    private val maxOfflineOrders: Int = 200,
-    private val maxOfflineHours: Long = 12,
+    maxOfflineOrders: Int = 200,
+    maxOfflineHours: Long = 12,
     private val nowMs: () -> Long = System::currentTimeMillis
 ) {
     private val json = Json { ignoreUnknownKeys = true }
 
+    @Volatile
+    private var currentMaxOfflineOrders: Int = maxOfflineOrders
+
+    @Volatile
+    private var currentMaxOfflineHours: Long = maxOfflineHours
+
     // One sync at a time per process: a second caller waits, then finds nothing left to send.
     private val syncMutex = Mutex()
+
+    fun updateOfflinePolicy(maxOrders: Int, maxHours: Long) {
+        if (maxOrders > 0) currentMaxOfflineOrders = maxOrders
+        if (maxHours > 0) currentMaxOfflineHours = maxHours
+    }
 
     suspend fun enqueueCashOrder(
         storeSlug: String,
@@ -61,21 +77,31 @@ class OfflineSyncCoordinator(
         tableNumber: String?,
         customerName: String,
         items: List<OfflineOrderItemPayload>,
-        cashReceivedIdr: Long
+        cashReceivedIdr: Long,
+        cashierId: String? = null,
+        shiftId: String? = null,
+        catalogVersion: String? = null,
+        offlineQueueNumber: String? = null
     ): OfflinePendingOrderEntity = withContext(ioDispatcher) {
         val pending = offlineOrderDao.getPendingOrders()
         val oldest = pending.firstOrNull()?.createdAtMs
-        if (pending.size >= maxOfflineOrders ||
-            (oldest != null && nowMs() - oldest > maxOfflineHours * 3_600_000L)
+        if (pending.size >= currentMaxOfflineOrders ||
+            (oldest != null && nowMs() - oldest > currentMaxOfflineHours * 3_600_000L)
         ) {
             throw OfflineLimitReachedException()
         }
+        val createdMs = nowMs()
         val clientId = UUID.randomUUID().toString()
         val payload = OfflineOrderPayload(
             orderType = orderType,
             tableNumber = tableNumber,
             customerName = customerName,
-            items = items
+            items = items,
+            cashierId = cashierId,
+            shiftId = shiftId,
+            catalogVersion = catalogVersion,
+            offlineQueueNumber = offlineQueueNumber,
+            offlineCreatedAtIso = Instant.ofEpochMilli(createdMs).toString()
         )
         val entity = OfflinePendingOrderEntity(
             clientOrderId = clientId,
@@ -83,7 +109,7 @@ class OfflineSyncCoordinator(
             idempotencyKey = "offline_$clientId",
             payloadJson = json.encodeToString(payload),
             cashReceivedIdr = cashReceivedIdr,
-            createdAtMs = nowMs(),
+            createdAtMs = createdMs,
             syncStatus = OfflinePendingOrderEntity.STATUS_PENDING
         )
         offlineOrderDao.upsert(entity)
@@ -92,7 +118,11 @@ class OfflineSyncCoordinator(
 
     suspend fun syncPendingOrders(): Int = syncMutex.withLock { withContext(ioDispatcher) {
         val pending = offlineOrderDao.getPendingOrders()
+        if (pending.isEmpty()) return@withContext 0
+
         var syncedCount = 0
+        val decodedEntries = mutableListOf<Pair<OfflinePendingOrderEntity, OfflineOrderPayload>>()
+
         for (entry in pending) {
             val payload = runCatching {
                 json.decodeFromString<OfflineOrderPayload>(entry.payloadJson)
@@ -103,8 +133,64 @@ class OfflineSyncCoordinator(
                     OfflinePendingOrderEntity.STATUS_FAILED,
                     "Corrupt offline payload"
                 )
-                continue
+            } else {
+                decodedEntries.add(entry to payload)
             }
+        }
+
+        // First attempt batch sync against POST /api/v1/device/offline-orders/sync for entries with full shift metadata.
+        val batchCandidates = decodedEntries.filter { (_, p) ->
+            !p.cashierId.isNullOrBlank() && !p.shiftId.isNullOrBlank() && !p.catalogVersion.isNullOrBlank()
+        }
+        val handledIds = mutableSetOf<String>()
+
+        if (batchCandidates.isNotEmpty()) {
+            val batchItems = batchCandidates.mapIndexed { idx, (entry, p) ->
+                DeviceOfflineOrderSyncItem(
+                    clientOrderId = entry.clientOrderId,
+                    offlineQueueNumber = p.offlineQueueNumber?.takeIf { it.isNotBlank() } ?: "OFF-${idx + 1}",
+                    offlineCreatedAtIso = p.offlineCreatedAtIso
+                        ?: Instant.ofEpochMilli(entry.createdAtMs).toString(),
+                    cashierId = p.cashierId.orEmpty(),
+                    shiftId = p.shiftId.orEmpty(),
+                    catalogVersion = p.catalogVersion.orEmpty(),
+                    orderType = p.orderType,
+                    customerName = p.customerName,
+                    items = p.items.map {
+                        CreatePosOrderItemInput(
+                            productId = it.productId,
+                            quantity = it.quantity,
+                            notes = it.notes
+                        )
+                    },
+                    cashTenderedAmount = entry.cashReceivedIdr
+                )
+            }
+            val batchResult = posOrderRepository.syncDeviceOfflineOrders(batchItems)
+            batchResult.getOrNull()?.forEach { outcome ->
+                handledIds.add(outcome.clientOrderId)
+                when (outcome.status) {
+                    "accepted", "resolved_accepted" -> {
+                        offlineOrderDao.updateStatus(
+                            outcome.clientOrderId,
+                            OfflinePendingOrderEntity.STATUS_SYNCED
+                        )
+                        syncedCount++
+                    }
+                    "rejected", "resolved_rejected" -> {
+                        offlineOrderDao.updateStatus(
+                            outcome.clientOrderId,
+                            OfflinePendingOrderEntity.STATUS_FAILED,
+                            outcome.reason.ifBlank { "Rejected by server offline review" }
+                        )
+                    }
+                }
+            }
+        }
+
+        for ((entry, payload) in decodedEntries) {
+            if (entry.clientOrderId in handledIds) continue
+
             val createResult = posOrderRepository.createOrder(
                 CreatePosOrderInput(
                     idempotencyKey = entry.idempotencyKey,

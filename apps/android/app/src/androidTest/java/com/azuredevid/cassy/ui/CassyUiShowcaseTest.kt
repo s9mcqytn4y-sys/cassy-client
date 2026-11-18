@@ -636,8 +636,19 @@ class CassyUiShowcaseTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Paket Nasi Ayam Bakar").performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
-        captureScreen("PosLandscape/PosMain")
+        val hasTabletPayCash = composeRule.onAllNodesWithText(context.getString(R.string.btn_pay_cash))
+            .fetchSemanticsNodes().isNotEmpty()
+        if (hasTabletPayCash) {
+            composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
+            captureScreen("PosLandscape/PosMain")
+        } else {
+            composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart)).assertIsDisplayed()
+            captureScreen("PosLandscape/PosMain")
+            composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart)).performClick()
+            composeRule.waitForIdle()
+            composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
+            captureScreen("PosLandscape/Modals/PosMobileCartSheet", preferFullDisplay = true)
+        }
     }
 
     @Test
@@ -673,7 +684,7 @@ class CassyUiShowcaseTest {
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_midtrans)).assertIsDisplayed()
         captureScreen("StoreSettings/Tabs/MidtransTab")
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_cms)).performClick()
-        composeRule.onNodeWithText(context.getString(R.string.cms_preview_heading)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.cms_section_title)).assertIsDisplayed()
         captureScreen("StoreSettings/Tabs/CmsTab")
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_service)).performClick()
         composeRule.onNodeWithText(context.getString(R.string.service_section_title)).assertIsDisplayed()

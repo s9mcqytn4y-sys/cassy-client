@@ -25,11 +25,13 @@ import com.azuredevid.cassy.R
 import com.azuredevid.cassy.data.model.CatalogProduct
 import com.azuredevid.cassy.data.model.OrderQuoteItem
 import com.azuredevid.cassy.data.model.OrderQuoteRequest
+import com.azuredevid.cassy.ui.designsystem.CassyDimens
 import com.azuredevid.cassy.ui.designsystem.CassySnackbarHost
 import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import com.azuredevid.cassy.ui.designsystem.showCassySnackbar
 import com.azuredevid.cassy.ui.pos.components.PosCashModal
 import com.azuredevid.cassy.ui.pos.components.PosCatalogGrid
+import com.azuredevid.cassy.ui.pos.components.PosMobilePortraitLayout
 import com.azuredevid.cassy.ui.pos.components.PosNavRail
 import com.azuredevid.cassy.ui.pos.components.PosOrderSummaryPanel
 import com.azuredevid.cassy.ui.pos.components.PosQrisModal
@@ -122,118 +124,167 @@ fun PosLandscapeScreen(
         ) {
             BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                 val totalWidth = maxWidth
-                val navWidth = totalWidth * 0.12f
-                val catalogWidth = totalWidth * 0.53f
-                val orderWidth = totalWidth * 0.35f
+                val handleOpenDrawerKick: () -> Unit = {
+                    if (posState.isPrinterConfigured) {
+                        posViewModel.kickDrawerManual()
+                    } else {
+                        onOpenDrawerKick()
+                    }
+                }
+                val handleSendToKitchen: () -> Unit = {
+                    if (!shiftState.isShiftOpen) {
+                        scope.launch {
+                            snackbarHostState.showCassySnackbar(
+                                message = context.getString(R.string.shift_required_for_kitchen),
+                                tone = CassyToastTone.WARNING
+                            )
+                        }
+                        shiftViewModel.openShiftModal()
+                    } else {
+                        posViewModel.sendToKitchen()
+                    }
+                }
+                val handleOpenCashModal: () -> Unit = {
+                    if (!shiftState.isShiftOpen) {
+                        scope.launch {
+                            snackbarHostState.showCassySnackbar(
+                                message = context.getString(R.string.shift_required_for_payment),
+                                tone = CassyToastTone.WARNING
+                            )
+                        }
+                        shiftViewModel.openShiftModal()
+                    } else {
+                        posViewModel.openCashModal()
+                    }
+                }
+                val handleOpenQrisModal: () -> Unit = {
+                    if (!shiftState.isShiftOpen) {
+                        scope.launch {
+                            snackbarHostState.showCassySnackbar(
+                                message = context.getString(R.string.shift_required_for_payment),
+                                tone = CassyToastTone.WARNING
+                            )
+                        }
+                        shiftViewModel.openShiftModal()
+                    } else {
+                        posViewModel.startQrisPayment(shiftState.currentShift?.drawerId)
+                    }
+                }
 
-                Row(modifier = Modifier.fillMaxSize()) {
-                    PosNavRail(
-                        railWidth = navWidth,
+                if (totalWidth >= CassyDimens.SplitPaneBreakpoint) {
+                    val navWidth = totalWidth * 0.12f
+                    val catalogWidth = totalWidth * 0.53f
+                    val orderWidth = totalWidth * 0.35f
+
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        PosNavRail(
+                            railWidth = navWidth,
+                            categories = categories,
+                            selectedCategoryId = posState.selectedCategoryId,
+                            onCategorySelected = { posViewModel.selectCategory(it) },
+                            allProducts = posState.allProducts,
+                            isPrinterOnline = posState.isPrinterConfigured,
+                            onNavigateToSettings = onNavigateToSettings,
+                            onNavigateToCatalog = onNavigateToCatalog,
+                            onNavigateToPairing = onNavigateToPairing
+                        )
+
+                        VerticalDivider(color = MaterialTheme.colorScheme.outline)
+
+                        Column(
+                            modifier = Modifier
+                                .width(catalogWidth)
+                                .fillMaxHeight()
+                        ) {
+                            ShiftStatusBanner(
+                                isShiftOpen = shiftState.isShiftOpen,
+                                currentShift = shiftState.currentShift,
+                                onOpenShiftClick = { shiftViewModel.openShiftModal() },
+                                onXReportClick = { shiftViewModel.openXReportModal() },
+                                onCashMovementClick = { shiftViewModel.openCashMovementModal() },
+                                onCloseShiftClick = { shiftViewModel.openCloseShiftModal() }
+                            )
+
+                            PosCatalogGrid(
+                                gridWidth = catalogWidth,
+                                displayedProducts = posState.displayedProducts,
+                                searchQuery = posState.searchQuery,
+                                onSearchQueryChange = { posViewModel.updateSearchQuery(it) },
+                                isLoadingCatalog = posState.isLoadingCatalog,
+                                catalogError = posState.catalogError?.asString(),
+                                onRetryCatalog = { posViewModel.loadInitialData() },
+                                onProductSelected = { product -> posViewModel.addProductToCart(product) },
+                                rupiahFormat = rupiahFormat,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        VerticalDivider(color = MaterialTheme.colorScheme.outline)
+
+                        PosOrderSummaryPanel(
+                            panelWidth = orderWidth,
+                            tableName = posState.tableName,
+                            orderType = posState.orderType,
+                            onTableNameChanged = { posViewModel.updateTableName(it) },
+                            onToggleOrderType = { posViewModel.toggleOrderType() },
+                            cart = posState.cart,
+                            isCartLocked = posState.isCartLocked,
+                            isShiftOpen = shiftState.isShiftOpen,
+                            isSubmittingOrder = posState.isSubmittingOrder,
+                            onIncreaseQuantity = { item -> posViewModel.increaseItemQuantity(item.product.id) },
+                            onDecreaseQuantity = { item -> posViewModel.decreaseItemQuantity(item.product.id) },
+                            quote = posState.quote,
+                            quoteError = posState.quoteError?.asString(),
+                            rupiahFormat = rupiahFormat,
+                            onOpenDrawerKick = handleOpenDrawerKick,
+                            onSendToKitchen = handleSendToKitchen,
+                            onOpenCashModal = handleOpenCashModal,
+                            onOpenQrisModal = handleOpenQrisModal,
+                            failoverWarning = posState.failoverAlert?.asString(),
+                            onReprintStations = { posViewModel.reprintStations() }
+                        )
+                    }
+                } else {
+                    PosMobilePortraitLayout(
+                        totalWidth = totalWidth,
                         categories = categories,
                         selectedCategoryId = posState.selectedCategoryId,
                         onCategorySelected = { posViewModel.selectCategory(it) },
-                        allProducts = posState.allProducts,
+                        displayedProducts = posState.displayedProducts,
+                        searchQuery = posState.searchQuery,
+                        onSearchQueryChange = { posViewModel.updateSearchQuery(it) },
+                        isLoadingCatalog = posState.isLoadingCatalog,
+                        catalogError = posState.catalogError?.asString(),
+                        onRetryCatalog = { posViewModel.loadInitialData() },
+                        onProductSelected = { product -> posViewModel.addProductToCart(product) },
                         isPrinterOnline = posState.isPrinterConfigured,
-                        onNavigateToSettings = onNavigateToSettings,
-                        onNavigateToCatalog = onNavigateToCatalog,
-                        onNavigateToPairing = onNavigateToPairing
-                    )
-
-                    VerticalDivider(color = MaterialTheme.colorScheme.outline)
-
-                    Column(
-                        modifier = Modifier
-                            .width(catalogWidth)
-                            .fillMaxHeight()
-                    ) {
-                        ShiftStatusBanner(
-                            isShiftOpen = shiftState.isShiftOpen,
-                            currentShift = shiftState.currentShift,
-                            onOpenShiftClick = { shiftViewModel.openShiftModal() },
-                            onXReportClick = { shiftViewModel.openXReportModal() },
-                            onCashMovementClick = { shiftViewModel.openCashMovementModal() },
-                            onCloseShiftClick = { shiftViewModel.openCloseShiftModal() }
-                        )
-
-                        PosCatalogGrid(
-                            gridWidth = catalogWidth,
-                            displayedProducts = posState.displayedProducts,
-                            searchQuery = posState.searchQuery,
-                            onSearchQueryChange = { posViewModel.updateSearchQuery(it) },
-                            isLoadingCatalog = posState.isLoadingCatalog,
-                            catalogError = posState.catalogError?.asString(),
-                            onRetryCatalog = { posViewModel.loadInitialData() },
-                            onProductSelected = { product -> posViewModel.addProductToCart(product) },
-                            rupiahFormat = rupiahFormat,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    VerticalDivider(color = MaterialTheme.colorScheme.outline)
-
-                    PosOrderSummaryPanel(
-                        panelWidth = orderWidth,
+                        isShiftOpen = shiftState.isShiftOpen,
+                        currentShift = shiftState.currentShift,
+                        onOpenShiftClick = { shiftViewModel.openShiftModal() },
+                        onXReportClick = { shiftViewModel.openXReportModal() },
+                        onCashMovementClick = { shiftViewModel.openCashMovementModal() },
+                        onCloseShiftClick = { shiftViewModel.openCloseShiftModal() },
                         tableName = posState.tableName,
                         orderType = posState.orderType,
                         onTableNameChanged = { posViewModel.updateTableName(it) },
                         onToggleOrderType = { posViewModel.toggleOrderType() },
                         cart = posState.cart,
                         isCartLocked = posState.isCartLocked,
-                        isShiftOpen = shiftState.isShiftOpen,
                         isSubmittingOrder = posState.isSubmittingOrder,
                         onIncreaseQuantity = { item -> posViewModel.increaseItemQuantity(item.product.id) },
                         onDecreaseQuantity = { item -> posViewModel.decreaseItemQuantity(item.product.id) },
                         quote = posState.quote,
                         quoteError = posState.quoteError?.asString(),
                         rupiahFormat = rupiahFormat,
-                        onOpenDrawerKick = {
-                            if (posState.isPrinterConfigured) {
-                                posViewModel.kickDrawerManual()
-                            } else {
-                                onOpenDrawerKick()
-                            }
-                        },
-                        onSendToKitchen = {
-                            if (!shiftState.isShiftOpen) {
-                                scope.launch {
-                                    snackbarHostState.showCassySnackbar(
-                                        message = context.getString(R.string.shift_required_for_kitchen),
-                                        tone = CassyToastTone.WARNING
-                                    )
-                                }
-                                shiftViewModel.openShiftModal()
-                            } else {
-                                posViewModel.sendToKitchen()
-                            }
-                        },
-                        onOpenCashModal = {
-                            if (!shiftState.isShiftOpen) {
-                                scope.launch {
-                                    snackbarHostState.showCassySnackbar(
-                                        message = context.getString(R.string.shift_required_for_payment),
-                                        tone = CassyToastTone.WARNING
-                                    )
-                                }
-                                shiftViewModel.openShiftModal()
-                            } else {
-                                posViewModel.openCashModal()
-                            }
-                        },
-                        onOpenQrisModal = {
-                            if (!shiftState.isShiftOpen) {
-                                scope.launch {
-                                    snackbarHostState.showCassySnackbar(
-                                        message = context.getString(R.string.shift_required_for_payment),
-                                        tone = CassyToastTone.WARNING
-                                    )
-                                }
-                                shiftViewModel.openShiftModal()
-                            } else {
-                                posViewModel.startQrisPayment(shiftState.currentShift?.drawerId)
-                            }
-                        },
+                        onOpenDrawerKick = handleOpenDrawerKick,
+                        onSendToKitchen = handleSendToKitchen,
+                        onOpenCashModal = handleOpenCashModal,
+                        onOpenQrisModal = handleOpenQrisModal,
                         failoverWarning = posState.failoverAlert?.asString(),
-                        onReprintStations = { posViewModel.reprintStations() }
+                        onReprintStations = { posViewModel.reprintStations() },
+                        onNavigateToSettings = onNavigateToSettings,
+                        onNavigateToCatalog = onNavigateToCatalog,
+                        onNavigateToPairing = onNavigateToPairing
                     )
                 }
             }

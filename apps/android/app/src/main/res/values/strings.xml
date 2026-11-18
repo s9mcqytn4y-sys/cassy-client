@@ -532,4 +532,16 @@
     <string name="settings_msg_printer_saved">Pengaturan printer LAN tersimpan.</string>
     <string name="server_msg_network_error">Network error</string>
     <string name="server_msg_connection_refused">Connection refused</string>
+    <string name="notif_channel_orders_name">Pesanan &amp; Pembayaran</string>
+    <string name="notif_channel_orders_desc">Notifikasi pesanan meja baru dan pembayaran QRIS lunas.</string>
+    <string name="notif_channel_waiter_name">Panggilan Pelayan</string>
+    <string name="notif_channel_waiter_desc">Peringatan panggilan pelayan dari meja tamu.</string>
+    <string name="notif_channel_hardware_name">Printer &amp; Sinkronisasi</string>
+    <string name="notif_channel_hardware_desc">Peringatan printer thermal LAN offline dan antrean sinkronisasi.</string>
+    <string name="pos_mobile_view_cart">Lihat Keranjang</string>
+    <string name="pos_mobile_cart_items_format">%1$d item • %2$s</string>
+    <string name="pos_mobile_close_cart">Tutup Rincian Pesanan</string>
+    <string name="pos_mobile_quick_cash">Tunai</string>
+    <string name="pos_mobile_quick_qris">QRIS</string>
+    <string name="pos_mobile_quick_kitchen">Dapur</string>
 </resources>

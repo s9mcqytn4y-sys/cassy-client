@@ -140,38 +140,61 @@ fun StoreSettingsScreen(
                 stringResource(R.string.settings_tab_printer)
             )
 
-            PrimaryTabRow(
-                selectedTabIndex = state.selectedTabIndex,
-                containerColor = colors.surface,
-                contentColor = colors.onSurface,
-                indicator = {
-                    TabRowDefaults.PrimaryIndicator(
-                        modifier = Modifier.tabIndicatorOffset(state.selectedTabIndex),
-                        color = colors.primary
-                    )
-                }
+            androidx.compose.foundation.layout.BoxWithConstraints(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = state.selectedTabIndex == index,
-                        onClick = { viewModel.onEvent(StoreSettingsUiEvent.SelectTab(index)) },
-                        text = {
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = if (state.selectedTabIndex == index) {
-                                    FontWeight.Bold
-                                } else {
-                                    FontWeight.Normal
-                                },
-                                color = if (state.selectedTabIndex == index) {
-                                    colors.onSurface
-                                } else {
-                                    colors.onSurfaceVariant
-                                }
+                val isWide = maxWidth >= CassyDimens.SplitPaneBreakpoint
+                val tabContent: @Composable () -> Unit = {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = state.selectedTabIndex == index,
+                            onClick = { viewModel.onEvent(StoreSettingsUiEvent.SelectTab(index)) },
+                            text = {
+                                Text(
+                                    text = title,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = if (state.selectedTabIndex == index) {
+                                        FontWeight.Bold
+                                    } else {
+                                        FontWeight.Normal
+                                    },
+                                    color = if (state.selectedTabIndex == index) {
+                                        colors.onSurface
+                                    } else {
+                                        colors.onSurfaceVariant
+                                    }
+                                )
+                            },
+                            modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
+                        )
+                    }
+                }
+                if (isWide) {
+                    PrimaryTabRow(
+                        selectedTabIndex = state.selectedTabIndex,
+                        containerColor = colors.surface,
+                        contentColor = colors.onSurface,
+                        indicator = {
+                            TabRowDefaults.PrimaryIndicator(
+                                modifier = Modifier.tabIndicatorOffset(state.selectedTabIndex),
+                                color = colors.primary
                             )
                         },
-                        modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
+                        tabs = tabContent
+                    )
+                } else {
+                    androidx.compose.material3.PrimaryScrollableTabRow(
+                        selectedTabIndex = state.selectedTabIndex,
+                        containerColor = colors.surface,
+                        contentColor = colors.onSurface,
+                        edgePadding = CassyDimens.SpaceMd,
+                        indicator = {
+                            TabRowDefaults.PrimaryIndicator(
+                                modifier = Modifier.tabIndicatorOffset(state.selectedTabIndex),
+                                color = colors.primary
+                            )
+                        },
+                        tabs = tabContent
                     )
                 }
             }
