@@ -29,6 +29,8 @@ import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import com.azuredevid.cassy.domain.repository.PrinterConfig
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.domain.repository.PosTable
+import com.azuredevid.cassy.domain.repository.TableTabRepository
 import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -70,7 +72,15 @@ data class PosUiState(
     val pendingOrder: PosOrder? = null,
     val pendingOrderIdempotencyKey: String? = null,
     val activeQrisPayment: PosPaymentAttempt? = null,
-    val isCheckingQrisStatus: Boolean = false
+    val isCheckingQrisStatus: Boolean = false,
+    // Open bill (tab) on a table picked from the board; a null tableId keeps the free-text table flow.
+    val tables: List<PosTable> = emptyList(),
+    val isLoadingTables: Boolean = false,
+    val tableId: String? = null,
+    val activeTabId: String? = null,
+    val pendingTabKey: String? = null,
+    val pendingRoundKey: String? = null,
+    val pendingSplitId: String? = null
 ) {
     val displayedProducts: List<CatalogProduct>
         get() {
@@ -112,6 +122,7 @@ class PosViewModel(
     private val realtimeClient: CassyRealtimeClient? = null,
     private val soundPlayer: CassySoundPlayer? = null,
     private val offlineSyncCoordinator: OfflineSyncCoordinator? = null,
+    private val tableTabRepository: TableTabRepository? = null,
     private val savedStateHandle: SavedStateHandle = SavedStateHandle()
 ) : ViewModel() {
 
@@ -242,12 +253,13 @@ class PosViewModel(
     }
 
     fun updateTableName(tableName: String) {
-        if (_uiState.value.isCartLocked) return
+        if (_uiState.value.isCartLocked || _uiState.value.activeTabId != null) return
         val trimmed = tableName.trim()
         savedStateHandle[KEY_TABLE_NAME] = trimmed
         _uiState.update {
             it.copy(
                 tableName = trimmed,
+                tableId = null,
                 pendingOrder = null,
                 pendingOrderIdempotencyKey = null
             )
@@ -255,7 +267,7 @@ class PosViewModel(
     }
 
     fun toggleOrderType() {
-        if (_uiState.value.isCartLocked) return
+        if (_uiState.value.isCartLocked || _uiState.value.activeTabId != null) return
         _uiState.update {
             val next = if (it.orderType == "DINE-IN") "TAKEAWAY" else "DINE-IN"
             val nextTable = if (next == "TAKEAWAY") "" else it.tableName
@@ -264,6 +276,7 @@ class PosViewModel(
             it.copy(
                 orderType = next,
                 tableName = nextTable,
+                tableId = if (next == "TAKEAWAY") null else it.tableId,
                 pendingOrder = null,
                 pendingOrderIdempotencyKey = null
             )
@@ -272,9 +285,10 @@ class PosViewModel(
     }
 
     fun addProductToCart(product: CatalogProduct) {
-        if (_uiState.value.isCartLocked || !product.isAvailable) return
+        if (_uiState.value.isCartLocked || _uiState.value.pendingSplitId != null || !product.isAvailable) return
         _uiState.update { state ->
-            val existingIndex = state.cart.indexOfFirst { it.product.id == product.id }
+            // Sent lines are already on the kitchen ticket and the server bill; more goes on a new line.
+            val existingIndex = state.cart.indexOfFirst { it.product.id == product.id && !it.isSentToKitchen }
             val updatedCart = if (existingIndex >= 0) {
                 state.cart.mapIndexed { idx, item ->
                     if (idx == existingIndex) item.copy(quantity = item.quantity + 1) else item
@@ -286,6 +300,7 @@ class PosViewModel(
                 cart = updatedCart,
                 pendingOrder = null,
                 pendingOrderIdempotencyKey = null,
+                pendingRoundKey = null,
                 settlementError = null
             )
         }
@@ -293,25 +308,16 @@ class PosViewModel(
     }
 
     fun increaseItemQuantity(productId: String) {
-        if (_uiState.value.isCartLocked) return
-        _uiState.update { state ->
-            state.copy(
-                cart = state.cart.map { item ->
-                    if (item.product.id == productId) item.copy(quantity = item.quantity + 1) else item
-                },
-                pendingOrder = null,
-                pendingOrderIdempotencyKey = null,
-                settlementError = null
-            )
-        }
-        refreshQuote()
+        val product = _uiState.value.cart.firstOrNull { it.product.id == productId }?.product ?: return
+        addProductToCart(product)
     }
 
     fun decreaseItemQuantity(productId: String) {
-        if (_uiState.value.isCartLocked) return
+        if (_uiState.value.isCartLocked || _uiState.value.pendingSplitId != null) return
         _uiState.update { state ->
+            // Taking back something already sent is a void that needs approval (later slice); only unsent lines shrink.
             val updatedCart = state.cart.mapNotNull { item ->
-                if (item.product.id != productId) {
+                if (item.product.id != productId || item.isSentToKitchen) {
                     item
                 } else if (item.quantity > 1) {
                     item.copy(quantity = item.quantity - 1)
@@ -323,10 +329,74 @@ class PosViewModel(
                 cart = updatedCart,
                 pendingOrder = null,
                 pendingOrderIdempotencyKey = null,
+                pendingRoundKey = null,
                 settlementError = null
             )
         }
         refreshQuote()
+    }
+
+    /** Loads the table board for the picker; on failure the free-text table field still works. */
+    fun loadTables() {
+        val repo = tableTabRepository ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingTables = true) }
+            val result = repo.listTables()
+            _uiState.update { it.copy(isLoadingTables = false, tables = result.getOrDefault(it.tables)) }
+            result.onFailure { err -> _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_tables_failed))) }
+        }
+    }
+
+    /**
+     * Binds the order to a board table. A table that already has guests resumes its open tab, and the
+     * items already on the server bill come back into the cart as sent lines.
+     */
+    fun selectTable(table: PosTable) {
+        val snapshot = _uiState.value
+        if (snapshot.isCartLocked || snapshot.activeTabId != null || snapshot.cart.any { it.isSentToKitchen }) return
+        savedStateHandle[KEY_TABLE_NAME] = table.tableNumber
+        _uiState.update {
+            it.copy(tableId = table.id, tableName = table.tableNumber, pendingOrder = null, pendingOrderIdempotencyKey = null)
+        }
+        if (table.isFree) return
+        val repo = tableTabRepository ?: return
+        viewModelScope.launch {
+            repo.openTab(UUID.randomUUID().toString(), table.id, table.tableNumber).onSuccess { tab ->
+                _uiState.update { state ->
+                    val products = state.allProducts.associateBy { it.id }
+                    // shortcut: lines whose product left the catalog are not shown, though the server total still counts them; add a placeholder line if that happens in practice.
+                    val sent = tab.items.groupBy { it.productId }.mapNotNull { (productId, lines) ->
+                        products[productId]?.let { CartItem(it, lines.sumOf { l -> l.quantity }, isSentToKitchen = true) }
+                    }
+                    state.copy(activeTabId = tab.id, cart = sent + state.cart.filterNot { it.isSentToKitchen })
+                }
+                refreshQuote()
+            }.onFailure { err ->
+                _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_tab_open_failed)))
+            }
+        }
+    }
+
+    /** Opens the tab when needed and sends the unsent cart lines as one round; returns the tab id. */
+    private suspend fun submitTabRound(snapshot: PosUiState): Result<String> {
+        val repo = tableTabRepository ?: return Result.failure(IllegalStateException("table tabs unavailable"))
+        val tableId = snapshot.tableId ?: return Result.failure(IllegalStateException("no table selected"))
+        val tabId = snapshot.activeTabId ?: run {
+            val key = snapshot.pendingTabKey ?: UUID.randomUUID().toString()
+            _uiState.update { it.copy(pendingTabKey = key) }
+            val tab = repo.openTab(key, tableId, snapshot.tableName).getOrElse { return Result.failure(it) }
+            _uiState.update { it.copy(activeTabId = tab.id, pendingTabKey = null) }
+            tab.id
+        }
+        val unsent = snapshot.cart.filterNot { it.isSentToKitchen }
+        if (unsent.isEmpty()) return Result.success(tabId)
+        // The key survives a failed send so a retry cannot add the same round twice; any cart edit resets it.
+        val roundKey = snapshot.pendingRoundKey ?: UUID.randomUUID().toString()
+        _uiState.update { it.copy(pendingRoundKey = roundKey) }
+        repo.submitRound(tabId, roundKey, unsent.map { CreatePosOrderItemInput(it.product.id, it.quantity, it.notes) })
+            .getOrElse { return Result.failure(it) }
+        _uiState.update { state -> state.copy(pendingRoundKey = null, cart = state.cart.map { it.copy(isSentToKitchen = true) }) }
+        return Result.success(tabId)
     }
 
     fun openCashModal() {
@@ -364,7 +434,8 @@ class PosViewModel(
                     idempotencyKey = UUID.randomUUID().toString(),
                     method = "cash",
                     cashTenderedAmount = tenderedAmount,
-                    drawerId = drawerId
+                    drawerId = drawerId,
+                    splitId = _uiState.value.pendingSplitId
                 )
             )
             paymentResult.onSuccess { res ->
@@ -426,7 +497,8 @@ class PosViewModel(
                     orderId = order.id,
                     idempotencyKey = UUID.randomUUID().toString(),
                     method = "qris",
-                    drawerId = drawerId
+                    drawerId = drawerId,
+                    splitId = _uiState.value.pendingSplitId
                 )
             ).onSuccess { res ->
                 val updatedOrder = res.order ?: order
@@ -543,6 +615,12 @@ class PosViewModel(
         val snapshot = _uiState.value
         if (snapshot.cart.isEmpty()) return
         viewModelScope.launch {
+            if (snapshot.tableId != null) {
+                submitTabRound(snapshot).onFailure { err ->
+                    _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_round_failed)))
+                    return@launch
+                }
+            }
             val config = printerSettings.getConfig()
             val stations = buildStationConfigs(config)
             if (stations.isEmpty()) {
@@ -634,7 +712,14 @@ class PosViewModel(
                 pendingOrderIdempotencyKey = null,
                 activeQrisPayment = null,
                 isCheckingQrisStatus = false,
-                failoverAlert = null
+                failoverAlert = null,
+                activeTabId = null,
+                pendingTabKey = null,
+                pendingRoundKey = null,
+                pendingSplitId = null,
+                // A paid tab frees its board table; a free-text label stays for the next walk-in.
+                tableId = null,
+                tableName = if (it.tableId != null) "" else it.tableName
             )
         }
     }
@@ -643,6 +728,13 @@ class PosViewModel(
         val existing = snapshot.pendingOrder
         if (existing != null) {
             return Result.success(existing)
+        }
+        if (snapshot.tableId != null) {
+            val repo = tableTabRepository ?: return Result.failure(IllegalStateException("table tabs unavailable"))
+            val tabId = submitTabRound(snapshot).getOrElse { return Result.failure(it) }
+            val closed = repo.closeTab(tabId).getOrElse { return Result.failure(it) }
+            _uiState.update { it.copy(pendingOrder = closed.order, pendingSplitId = closed.splitId) }
+            return Result.success(closed.order)
         }
         val key = snapshot.pendingOrderIdempotencyKey ?: UUID.randomUUID().toString()
         val orderTypeApi = if (snapshot.orderType == "DINE-IN") "dine_in" else "takeaway"

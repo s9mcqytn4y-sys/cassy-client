@@ -241,7 +241,12 @@ fun PosLandscapeScreen(
                             onOpenCashModal = handleOpenCashModal,
                             onOpenQrisModal = handleOpenQrisModal,
                             failoverWarning = posState.failoverAlert?.asString(),
-                            onReprintStations = { posViewModel.reprintStations() }
+                            onReprintStations = { posViewModel.reprintStations() },
+                            tables = posState.tables,
+                            isLoadingTables = posState.isLoadingTables,
+                            selectedTableId = posState.tableId,
+                            onOpenTableBoard = { posViewModel.loadTables() },
+                            onTableSelected = { posViewModel.selectTable(it) }
                         )
                     }
                 } else {
@@ -282,6 +287,11 @@ fun PosLandscapeScreen(
                         onOpenQrisModal = handleOpenQrisModal,
                         failoverWarning = posState.failoverAlert?.asString(),
                         onReprintStations = { posViewModel.reprintStations() },
+                        tables = posState.tables,
+                        isLoadingTables = posState.isLoadingTables,
+                        selectedTableId = posState.tableId,
+                        onOpenTableBoard = { posViewModel.loadTables() },
+                        onTableSelected = { posViewModel.selectTable(it) },
                         onNavigateToSettings = onNavigateToSettings,
                         onNavigateToCatalog = onNavigateToCatalog,
                         onNavigateToPairing = onNavigateToPairing

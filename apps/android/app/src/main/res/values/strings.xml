@@ -544,4 +544,14 @@
     <string name="pos_mobile_quick_cash">Tunai</string>
     <string name="pos_mobile_quick_qris">QRIS</string>
     <string name="pos_mobile_quick_kitchen">Dapur</string>
+    <string name="pos_msg_tables_failed">Gagal memuat daftar meja.</string>
+    <string name="pos_msg_tab_open_failed">Gagal membuka tagihan meja.</string>
+    <string name="pos_msg_round_failed">Gagal mengirim pesanan ke dapur. Coba lagi.</string>
+    <string name="order_table_board_title">Pilih meja</string>
+    <string name="order_table_board_loading">Memuat meja...</string>
+    <string name="order_table_status_available">Kosong</string>
+    <string name="order_table_status_occupied">Terisi</string>
+    <string name="order_table_status_settled">Lunas</string>
+    <string name="order_table_unpaid">Belum bayar %1$s</string>
+    <string name="order_table_free_text">Atau ketik nama meja</string>
 </resources>

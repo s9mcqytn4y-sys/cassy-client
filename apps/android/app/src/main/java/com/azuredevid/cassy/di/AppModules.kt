@@ -21,6 +21,7 @@ import com.azuredevid.cassy.data.repository.KtorAuthRepository
 import com.azuredevid.cassy.data.repository.KtorCatalogRepository
 import com.azuredevid.cassy.data.repository.KtorOrderQuoteRepository
 import com.azuredevid.cassy.data.repository.KtorPosOrderRepository
+import com.azuredevid.cassy.data.repository.KtorTableTabRepository
 import com.azuredevid.cassy.data.repository.KtorShiftRepository
 import com.azuredevid.cassy.data.repository.KtorStoreGovernanceRepository
 import com.azuredevid.cassy.data.repository.ServerSettingsRepository
@@ -29,6 +30,7 @@ import com.azuredevid.cassy.domain.repository.CatalogRepository
 import com.azuredevid.cassy.domain.repository.LocalServerDiscoveryRepository
 import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
+import com.azuredevid.cassy.domain.repository.TableTabRepository
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
 import com.azuredevid.cassy.domain.repository.ServerHealthMonitor
 import com.azuredevid.cassy.domain.repository.ShiftRepository
@@ -128,6 +130,13 @@ val repositoryModule = module {
         )
     }
 
+    single<TableTabRepository> {
+        KtorTableTabRepository(
+            httpClient = get(),
+            serverSettings = get()
+        )
+    }
+
     single {
         OfflineSyncCoordinator(
             offlineOrderDao = get(),
@@ -190,6 +199,7 @@ val viewModelModule = module {
             realtimeClient = get(),
             soundPlayer = get(),
             offlineSyncCoordinator = get(),
+            tableTabRepository = get(),
             savedStateHandle = get()
         )
     }

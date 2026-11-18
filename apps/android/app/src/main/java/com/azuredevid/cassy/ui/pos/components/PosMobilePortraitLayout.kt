@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.azuredevid.cassy.R
+import com.azuredevid.cassy.domain.repository.PosTable
 import com.azuredevid.cassy.data.model.CatalogProduct
 import com.azuredevid.cassy.data.model.OrderQuote
 import com.azuredevid.cassy.domain.model.Shift
@@ -98,6 +99,11 @@ fun PosMobilePortraitLayout(
     onOpenQrisModal: () -> Unit,
     failoverWarning: String?,
     onReprintStations: () -> Unit,
+    tables: List<PosTable> = emptyList(),
+    isLoadingTables: Boolean = false,
+    selectedTableId: String? = null,
+    onOpenTableBoard: () -> Unit = {},
+    onTableSelected: (PosTable) -> Unit = {},
     onNavigateToSettings: () -> Unit,
     onNavigateToCatalog: () -> Unit,
     onNavigateToPairing: () -> Unit,
@@ -356,7 +362,12 @@ fun PosMobilePortraitLayout(
                         onOpenQrisModal()
                     },
                     failoverWarning = failoverWarning,
-                    onReprintStations = onReprintStations
+                    onReprintStations = onReprintStations,
+                    tables = tables,
+                    isLoadingTables = isLoadingTables,
+                    selectedTableId = selectedTableId,
+                    onOpenTableBoard = onOpenTableBoard,
+                    onTableSelected = onTableSelected
                 )
             }
         }

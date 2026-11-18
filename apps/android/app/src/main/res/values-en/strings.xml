@@ -544,5 +544,15 @@
     <string name="pos_mobile_quick_cash">Cash</string>
     <string name="pos_mobile_quick_qris">QRIS</string>
     <string name="pos_mobile_quick_kitchen">Kitchen</string>
+    <string name="pos_msg_tables_failed">Could not load the tables.</string>
+    <string name="pos_msg_tab_open_failed">Could not open the table bill.</string>
+    <string name="pos_msg_round_failed">Could not send the order to the kitchen. Try again.</string>
+    <string name="order_table_board_title">Choose a table</string>
+    <string name="order_table_board_loading">Loading tables...</string>
+    <string name="order_table_status_available">Free</string>
+    <string name="order_table_status_occupied">Occupied</string>
+    <string name="order_table_status_settled">Paid</string>
+    <string name="order_table_unpaid">Unpaid %1$s</string>
+    <string name="order_table_free_text">Or type a table name</string>
 </resources>
 

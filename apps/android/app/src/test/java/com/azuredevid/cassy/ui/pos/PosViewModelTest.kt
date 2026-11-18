@@ -18,6 +18,11 @@ import com.azuredevid.cassy.domain.model.PosOrderDetail
 import com.azuredevid.cassy.domain.model.PosPaymentAttempt
 import com.azuredevid.cassy.domain.model.StaffIdentity
 import com.azuredevid.cassy.domain.model.StoredSession
+import com.azuredevid.cassy.domain.model.CreatePosOrderItemInput
+import com.azuredevid.cassy.domain.model.PosOrderItem
+import com.azuredevid.cassy.domain.repository.ClosedTab
+import com.azuredevid.cassy.domain.repository.PosTable
+import com.azuredevid.cassy.domain.repository.TableTabRepository
 import com.azuredevid.cassy.domain.repository.CatalogRepository
 import com.azuredevid.cassy.domain.repository.NoStaffSessionException
 import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
@@ -315,5 +320,118 @@ class PosViewModelTest {
         testDispatcher.scheduler.runCurrent()
         assertNull(vm.uiState.value.activeQrisPayment)
         assertTrue(vm.uiState.value.cart.isEmpty())
+    }
+
+    private class FakeTableTabRepository(private val resumeItems: List<PosOrderItem> = emptyList()) : TableTabRepository {
+        val openedKeys = mutableListOf<String>()
+        val rounds = mutableListOf<List<CreatePosOrderItemInput>>()
+        var closedTabId: String? = null
+
+        override suspend fun listTables(): Result<List<PosTable>> = Result.success(emptyList())
+
+        override suspend fun openTab(idempotencyKey: String, tableId: String, tableNumber: String): Result<PosOrder> {
+            openedKeys += idempotencyKey
+            return Result.success(PosOrder(id = "tab-1", orderNumber = "TAB-001", tableNumber = tableNumber, items = resumeItems))
+        }
+
+        override suspend fun submitRound(orderId: String, idempotencyKey: String, items: List<CreatePosOrderItemInput>): Result<Unit> {
+            rounds += items
+            return Result.success(Unit)
+        }
+
+        override suspend fun closeTab(orderId: String): Result<ClosedTab> {
+            closedTabId = orderId
+            return Result.success(ClosedTab(PosOrder(id = orderId, orderNumber = "TAB-001", totalAmount = 61600L), "split-1"))
+        }
+    }
+
+    private suspend fun signedInSession(scope: kotlinx.coroutines.CoroutineScope): DataStoreSessionManager {
+        val sessionManager = DataStoreSessionManager(InMemorySessionDataStore(), scope)
+        sessionManager.saveLoginSession(
+            accessToken = "jwt-1",
+            accessTokenExpiresAt = "2026-11-13T21:00:00Z",
+            sessionExpiresAt = "2026-11-14T21:00:00Z",
+            staff = StaffIdentity("u1", "Kasir Budi", "budi@kopi.id", "cashier", "s1", "kopi-senja", "Kopi Senja")
+        )
+        return sessionManager
+    }
+
+    private val flatQuote = object : OrderQuoteRepository {
+        override suspend fun quote(request: OrderQuoteRequest): Result<OrderQuote> =
+            Result.success(OrderQuote(subtotalAmount = 28000L, taxAmount = 2800L, totalAmount = 30800L))
+    }
+
+    @Test
+    fun boardTable_sendsRoundsToTabAndPaysTheClosedSplit() = runTest {
+        val tabs = FakeTableTabRepository()
+        val orderRepo = FakePosOrderRepository()
+        val vm = PosViewModel(
+            StubCatalogRepository { Result.success(CatalogSnapshot(listOf(coffeeCategory), listOf(latte))) },
+            flatQuote,
+            orderRepo,
+            FakePrinterSettingsRepository(),
+            signedInSession(backgroundScope),
+            tableTabRepository = tabs
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        vm.selectTable(PosTable("t-7", "07", "", "Indoor", 4, "available", 0L))
+        vm.addProductToCart(latte)
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertTrue(tabs.openedKeys.isEmpty())
+
+        vm.sendToKitchen()
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(1, tabs.openedKeys.size)
+        assertEquals(listOf(CreatePosOrderItemInput("p-1", 1)), tabs.rounds.single())
+        assertTrue(vm.uiState.value.cart.single().isSentToKitchen)
+
+        // A second coffee after the first round goes on its own unsent line, not onto the sent one.
+        vm.addProductToCart(latte)
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(2, vm.uiState.value.cart.size)
+
+        vm.submitCashPayment(tenderedAmount = 70000L, drawerId = "drawer-1")
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(1, tabs.openedKeys.size)
+        assertEquals(2, tabs.rounds.size)
+        assertEquals("tab-1", tabs.closedTabId)
+        assertNull(orderRepo.createdOrderInput)
+        assertEquals("tab-1", orderRepo.initiatedPaymentInput?.orderId)
+        assertEquals("split-1", orderRepo.initiatedPaymentInput?.splitId)
+        assertTrue(vm.uiState.value.cart.isEmpty())
+        assertNull(vm.uiState.value.tableId)
+        assertNull(vm.uiState.value.activeTabId)
+    }
+
+    @Test
+    fun occupiedTable_resumesItsOpenTabAsSentLines() = runTest {
+        val tabs = FakeTableTabRepository(
+            resumeItems = listOf(
+                PosOrderItem(id = "i-1", productId = "p-1", snapshotName = "Kopi Susu", quantity = 1),
+                PosOrderItem(id = "i-2", productId = "p-1", snapshotName = "Kopi Susu", quantity = 1)
+            )
+        )
+        val vm = PosViewModel(
+            StubCatalogRepository { Result.success(CatalogSnapshot(listOf(coffeeCategory), listOf(latte))) },
+            flatQuote,
+            FakePosOrderRepository(),
+            FakePrinterSettingsRepository(),
+            signedInSession(backgroundScope),
+            tableTabRepository = tabs
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        vm.selectTable(PosTable("t-3", "03", "", "Indoor", 2, "occupied", 61600L))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals("tab-1", vm.uiState.value.activeTabId)
+        val line = vm.uiState.value.cart.single()
+        assertEquals(2, line.quantity)
+        assertTrue(line.isSentToKitchen)
+        // Already-sent lines cannot be reduced without a void.
+        vm.decreaseItemQuantity("p-1")
+        assertEquals(2, vm.uiState.value.cart.single().quantity)
     }
 }
