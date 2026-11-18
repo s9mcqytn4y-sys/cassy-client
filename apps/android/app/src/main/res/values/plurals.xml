@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="catalog_variant_count">
+        <item quantity="one">%d varian</item>
+        <item quantity="other">%d varian</item>
+    </plurals>
+</resources>

@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.azuredevid.cassy.R
+import com.azuredevid.cassy.core.util.ThousandsSeparatorTransformation
 import com.azuredevid.cassy.domain.model.CashDrawer
 import com.azuredevid.cassy.ui.designsystem.CassyCard
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
@@ -194,9 +195,10 @@ fun OpenShiftModal(
 
         CassyTextField(
             value = openingFloatInput,
-            onValueChange = onOpeningFloatChanged,
+            onValueChange = { onOpeningFloatChanged(it.filter(Char::isDigit).take(12)) },
             label = stringResource(R.string.shift_open_custom_amount),
             placeholder = "0",
+            visualTransformation = ThousandsSeparatorTransformation,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
 

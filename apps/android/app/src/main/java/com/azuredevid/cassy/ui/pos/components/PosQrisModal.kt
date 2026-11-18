@@ -16,7 +16,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -51,7 +60,21 @@ fun PosQrisModal(
     val qrBitmap = remember(payment.qrString) {
         QrBitmapGenerator.createQrBitmap(payment.qrString, width = 440, height = 440)
     }
-    val formattedAmount = stringResource(R.string.cash_chip_rp, rupiahFormat.format(payment.amount))
+    val intFormat = remember { NumberFormat.getIntegerInstance(Locale("id", "ID")) }
+    val formattedAmount = stringResource(R.string.cash_chip_rp, intFormat.format(payment.amount))
+    val expiresEpochMs = remember(payment.expiresAt) {
+        payment.expiresAt?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrNull() }
+    }
+    var nowMs by remember(payment.expiresAt) { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(expiresEpochMs) {
+        if (expiresEpochMs == null) return@LaunchedEffect
+        while (nowMs < expiresEpochMs) {
+            delay(1_000L)
+            nowMs = System.currentTimeMillis()
+        }
+    }
+    val remainingSec = expiresEpochMs?.let { ((it - nowMs) / 1000L).coerceAtLeast(0L) }
+    val isExpired = remainingSec != null && remainingSec == 0L
 
     CassyModalDialog(
         title = stringResource(R.string.modal_qris_title),
@@ -120,7 +143,26 @@ fun PosQrisModal(
                 textAlign = TextAlign.Center
             )
 
-            if (!payment.expiresAt.isNullOrBlank()) {
+            if (expiresEpochMs != null && remainingSec != null) {
+                val timeStr = remember(expiresEpochMs) {
+                    DateTimeFormatter.ofPattern("HH:mm")
+                        .withZone(ZoneId.systemDefault())
+                        .format(Instant.ofEpochMilli(expiresEpochMs))
+                }
+                val mmSs = "%02d:%02d".format(remainingSec / 60L, remainingSec % 60L)
+                CassyStatusBadge(
+                    text = if (isExpired) {
+                        stringResource(R.string.qris_expired_badge)
+                    } else {
+                        stringResource(R.string.qris_countdown_format, timeStr, mmSs)
+                    },
+                    tone = when {
+                        isExpired -> CassyToastTone.ERROR
+                        remainingSec <= 60L -> CassyToastTone.WARNING
+                        else -> CassyToastTone.INFO
+                    }
+                )
+            } else if (!payment.expiresAt.isNullOrBlank()) {
                 Text(
                     text = stringResource(R.string.qris_expiry_format, payment.expiresAt),
                     style = MaterialTheme.typography.labelSmall,

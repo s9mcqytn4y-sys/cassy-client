@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -116,12 +117,17 @@ fun CatalogProductManagementRow(
                         tone = if (product.isAvailable) CassyToastTone.SUCCESS else CassyToastTone.WARNING
                     )
                 }
+                val variantLabel = pluralStringResource(
+                    R.plurals.catalog_variant_count,
+                    product.variants.size,
+                    product.variants.size
+                )
                 Text(
                     text = stringResource(
                         R.string.catalog_meta_format,
                         rupiahFormat.format(product.basePriceIdr),
                         product.prepStation.uppercase(),
-                        product.variants.size
+                        variantLabel
                     ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant

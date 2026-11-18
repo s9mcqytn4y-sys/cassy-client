@@ -384,7 +384,7 @@
     <string name="catalog_type_prepared">Diolah</string>
     <string name="catalog_type_ready">Siap Saji</string>
     <string name="catalog_field_category">Kategori</string>
-    <string name="catalog_meta_format">Rp %1$s | %2$s | %3$d varian</string>
+    <string name="catalog_meta_format">Rp %1$s | %2$s | %3$s</string>
     <string name="catalog_variant_default">%1$s (Default)</string>
     <string name="catalog_variant_name_label">Nama Varian (mis. Besar / Hangat)</string>
     <string name="catalog_variant_price_label">Harga Varian (Rp)</string>
@@ -415,6 +415,15 @@
     <string name="service_table_warning_value">%1$d menit</string>
     <string name="service_btn_saving">Menyimpan Kebijakan…</string>
     <string name="service_btn_save">Simpan Kebijakan Operasional</string>
+    <string name="service_remote_pay_title">Saluran Pembayaran Tamu (PWA)</string>
+    <string name="service_remote_pay_desc">Atur metode pembayaran yang tampil di halaman QR tamu. Hanya aktif jika Midtrans gerai sudah tervalidasi.</string>
+    <string name="service_remote_pay_unverified">Midtrans gerai belum terverifikasi. Lakukan validasi kunci di tab Midtrans BYOK sebelum mengaktifkan saluran digital.</string>
+    <string name="service_pay_qris">QRIS</string>
+    <string name="service_pay_gopay">GoPay</string>
+    <string name="service_pay_shopeepay">ShopeePay</string>
+    <string name="service_pay_bank">Transfer Bank (VA)</string>
+    <string name="qris_countdown_format">Bayar sebelum %1$s (%2$s)</string>
+    <string name="qris_expired_badge">QRIS Kedaluwarsa</string>
 
     <!-- Printer LAN Tab -->
     <string name="printer_tab_title">Konfigurasi Printer Thermal LAN (Port 9100)</string>

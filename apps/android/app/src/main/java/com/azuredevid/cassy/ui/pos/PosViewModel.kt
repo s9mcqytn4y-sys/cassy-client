@@ -4,10 +4,13 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.azuredevid.cassy.core.audio.CassyAudioCue
+import com.azuredevid.cassy.core.audio.CassySoundPlayer
 import com.azuredevid.cassy.core.hardware.EscPosReceiptBuilder
 import com.azuredevid.cassy.core.hardware.KdsTicketRouter
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.core.security.SessionManager
+import com.azuredevid.cassy.data.local.OfflineSyncCoordinator
 import com.azuredevid.cassy.data.model.CatalogCategory
 import com.azuredevid.cassy.data.model.CatalogProduct
 import com.azuredevid.cassy.data.model.OrderQuote
@@ -105,6 +108,8 @@ class PosViewModel(
     private val sessionManager: SessionManager,
     private val printerManager: PrinterPort9100Manager = PrinterPort9100Manager(),
     private val realtimeClient: CassyRealtimeClient? = null,
+    private val soundPlayer: CassySoundPlayer? = null,
+    private val offlineSyncCoordinator: OfflineSyncCoordinator? = null,
     private val savedStateHandle: SavedStateHandle = SavedStateHandle()
 ) : ViewModel() {
 
@@ -135,6 +140,9 @@ class PosViewModel(
         observePrinterConfig()
         observeRealtimeEvents()
         loadInitialData()
+        offlineSyncCoordinator?.let { sync ->
+            viewModelScope.launch { runCatching { sync.syncPendingOrders() } }
+        }
     }
 
     private fun observePrinterConfig() {
@@ -154,6 +162,13 @@ class PosViewModel(
         val client = realtimeClient ?: return
         viewModelScope.launch {
             client.events.collect { event ->
+                if (event.type.contains("service_request", ignoreCase = true) ||
+                    event.type.contains("call_waiter", ignoreCase = true)
+                ) {
+                    soundPlayer?.play(CassyAudioCue.CALL_WAITER)
+                } else if (event.type.contains("order.created", ignoreCase = true)) {
+                    soundPlayer?.play(CassyAudioCue.NEW_QR_ORDER)
+                }
                 val activeOrder = _uiState.value.pendingOrder ?: return@collect
                 if (_uiState.value.activeQrisPayment == null) return@collect
                 val matchesOrder = event.payloadJson.contains(activeOrder.id, ignoreCase = true) ||
@@ -433,9 +448,11 @@ class PosViewModel(
                 )
                 clearCartAfterPayment()
                 val orderNo = settledOrder.orderNumber.ifBlank { order.id.takeLast(8).uppercase() }
+                soundPlayer?.play(CassyAudioCue.ORDER_PAID)
                 _effects.emit(PosUiEffect.CashPaymentCompleted(orderNo))
                 _effects.emit(PosUiEffect.ShowToast("Transaksi #$orderNo selesai."))
             }.onFailure { err ->
+                soundPlayer?.play(CassyAudioCue.SOFT_ERROR)
                 _uiState.update {
                     it.copy(
                         isSubmittingOrder = false,
@@ -562,6 +579,7 @@ class PosViewModel(
         )
         clearCartAfterPayment()
         val orderNo = order.orderNumber.ifBlank { order.id.takeLast(8).uppercase() }
+        soundPlayer?.play(CassyAudioCue.ORDER_PAID)
         _effects.emit(PosUiEffect.QrisPaymentCompleted(orderNo))
         _effects.emit(PosUiEffect.ShowToast("Pembayaran QRIS #$orderNo lunas."))
     }

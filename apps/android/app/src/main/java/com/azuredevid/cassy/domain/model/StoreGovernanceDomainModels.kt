@@ -52,7 +52,8 @@ data class StoreSettings(
     val tableTimeLimitMinutes: Int,
     val tableTimerWarningMinutes: Int,
     val staticQrisFallbackMode: String,
-    val cashierHandlesBar: Boolean
+    val cashierHandlesBar: Boolean,
+    val enabledPaymentMethods: List<String> = emptyList()
 )
 
 data class PaymentCredentialInput(
@@ -86,6 +87,7 @@ data class StoreSettingsPatch(
     val tableTimeLimitMinutes: Int? = null,
     val tableTimerWarningMinutes: Int? = null,
     val staticQrisFallbackMode: String? = null,
-    val cashierHandlesBar: Boolean? = null
+    val cashierHandlesBar: Boolean? = null,
+    val enabledPaymentMethods: List<String>? = null
 )
 
