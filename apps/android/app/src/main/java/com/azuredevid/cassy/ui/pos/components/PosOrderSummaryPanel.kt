@@ -294,6 +294,13 @@ fun PosOrderSummaryPanel(
                                             fontWeight = FontWeight.SemiBold,
                                             color = MaterialTheme.colorScheme.primary
                                         )
+                                        if (item.isSentToKitchen) {
+                                            Text(
+                                                text = stringResource(R.string.cart_line_sent),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
                                     }
 
                                     Row(
@@ -302,7 +309,8 @@ fun PosOrderSummaryPanel(
                                     ) {
                                         OutlinedButton(
                                             onClick = { onDecreaseQuantity(item) },
-                                            enabled = !isCartLocked,
+                                            // A sent line is on the kitchen ticket and the bill; taking it back is a void.
+                                            enabled = !isCartLocked && !item.isSentToKitchen,
                                             shape = RoundedCornerShape(CassyDimens.RadiusButton),
                                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                                             contentPadding = PaddingValues(0.dp),

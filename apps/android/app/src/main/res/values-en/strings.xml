@@ -554,5 +554,6 @@
     <string name="order_table_status_settled">Paid</string>
     <string name="order_table_unpaid">Unpaid %1$s</string>
     <string name="order_table_free_text">Or type a table name</string>
+    <string name="cart_line_sent">Sent to the kitchen</string>
 </resources>
 

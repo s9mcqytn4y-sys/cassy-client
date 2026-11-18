@@ -554,4 +554,5 @@
     <string name="order_table_status_settled">Lunas</string>
     <string name="order_table_unpaid">Belum bayar %1$s</string>
     <string name="order_table_free_text">Atau ketik nama meja</string>
+    <string name="cart_line_sent">Sudah dikirim ke dapur</string>
 </resources>
