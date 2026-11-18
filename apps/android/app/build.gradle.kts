@@ -124,7 +124,7 @@ dependencies {
     implementation("com.google.mlkit:barcode-scanning:17.3.0")
 
     // QR Code Generator (ZXing) for Dynamic Midtrans QRIS Bitmaps
-    implementation("com.google.zxing:core:3.5.3")
+    implementation("com.google.zxing:core:3.5.4")
 
     // Room Local Cache & Offline Cash Queue
     val roomVersion = "2.6.1"
