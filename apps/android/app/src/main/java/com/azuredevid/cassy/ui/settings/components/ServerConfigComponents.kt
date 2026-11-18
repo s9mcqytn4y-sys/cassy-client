@@ -265,7 +265,7 @@ fun ConnectionDiagnosticsBox(
         }
         isFailed -> stringResource(
             R.string.server_config_test_fail,
-            state.probeErrorMessage ?: "Connection refused"
+            state.probeErrorMessage?.asString() ?: stringResource(R.string.server_msg_connection_refused)
         )
         else -> stringResource(R.string.server_config_diag_status_ready)
     }

@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -56,6 +57,7 @@ fun StoreSettingsScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     val colors = MaterialTheme.colorScheme
 
     // Single source of snackbar truth from one-shot effects to avoid double-firing.
@@ -64,7 +66,7 @@ fun StoreSettingsScreen(
             when (effect) {
                 is StoreSettingsUiEffect.ShowSnackbar -> {
                     snackbarHostState.showCassySnackbar(
-                        message = effect.message,
+                        message = effect.message.asString(context),
                         tone = if (effect.isError) CassyToastTone.ERROR else CassyToastTone.SUCCESS
                     )
                     viewModel.onEvent(StoreSettingsUiEvent.DismissMessage)

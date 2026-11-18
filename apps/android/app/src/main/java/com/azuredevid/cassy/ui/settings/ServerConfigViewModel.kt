@@ -1,5 +1,8 @@
 package com.azuredevid.cassy.ui.settings
 
+import com.azuredevid.cassy.ui.designsystem.toUiText
+import com.azuredevid.cassy.ui.designsystem.UiText
+import com.azuredevid.cassy.R
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -40,7 +43,7 @@ data class ServerConfigUiState(
     val probeHttpCode: Int? = null,
     val probeLatencyMs: Long? = null,
     val probeIsTls: Boolean = false,
-    val probeErrorMessage: String? = null,
+    val probeErrorMessage: UiText? = null,
     val lastVerifiedEndpoint: String? = null,
     val showCleartextWarning: Boolean = false,
     val isDiscoveringMdns: Boolean = false,
@@ -51,7 +54,7 @@ data class ServerConfigUiState(
 )
 
 sealed interface ServerConfigUiEffect {
-    data class ShowProbeResult(val success: Boolean, val detail: String) : ServerConfigUiEffect
+    data class ShowProbeResult(val success: Boolean, val detail: UiText) : ServerConfigUiEffect
 }
 
 class ServerConfigViewModel(
@@ -243,18 +246,18 @@ class ServerConfigViewModel(
                             probeLatencyMs = elapsedMs,
                             probeIsTls = isTls,
                             lastVerifiedEndpoint = if (ok) raw else it.lastVerifiedEndpoint,
-                            probeErrorMessage = if (ok) null else "HTTP ${response.status.value}"
+                            probeErrorMessage = if (ok) null else UiText.Raw("HTTP ${response.status.value}")
                         )
                     }
                     _effects.emit(
                         ServerConfigUiEffect.ShowProbeResult(
                             success = ok,
-                            detail = "HTTP ${response.status.value} ($elapsedMs ms)"
+                            detail = UiText.Raw("HTTP ${response.status.value} ($elapsedMs ms)")
                         )
                     )
                 },
                 onFailure = { err ->
-                    val detail = err.message ?: "Network error"
+                    val detail = err.toUiText(R.string.server_msg_network_error)
                     _uiState.update {
                         it.copy(
                             isTesting = false,

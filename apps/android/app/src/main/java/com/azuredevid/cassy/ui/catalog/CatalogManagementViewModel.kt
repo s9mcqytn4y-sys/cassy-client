@@ -1,5 +1,8 @@
 package com.azuredevid.cassy.ui.catalog
 
+import com.azuredevid.cassy.ui.designsystem.toUiText
+import com.azuredevid.cassy.ui.designsystem.UiText
+import com.azuredevid.cassy.R
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -34,7 +37,7 @@ data class CatalogManagementUiState(
     val isLoading: Boolean = true,
     val isSubmitting: Boolean = false,
     val isUploadingImage: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: UiText? = null
 ) {
     val displayedProducts: List<CatalogProduct>
         get() {
@@ -53,7 +56,7 @@ data class CatalogManagementUiState(
 
 sealed interface CatalogManagementUiEffect {
     data class ShowMessage(
-        val message: String,
+        val message: UiText,
         val tone: CassyToastTone = CassyToastTone.INFO
     ) : CatalogManagementUiEffect
     data object ProductSaved : CatalogManagementUiEffect
@@ -90,7 +93,7 @@ class CatalogManagementViewModel(
                     it.copy(
                         isLoading = false,
                         canManageCatalog = false,
-                        errorMessage = "Sesi staf tidak aktif."
+                        errorMessage = UiText.res(R.string.msg_staff_session_inactive)
                     )
                 }
                 return@launch
@@ -114,7 +117,7 @@ class CatalogManagementViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = err.message ?: "Gagal memuat katalog."
+                            errorMessage = err.toUiText(R.string.msg_catalog_load_failed)
                         )
                     }
                 }
@@ -153,7 +156,7 @@ class CatalogManagementViewModel(
                 }
                 _effects.emit(
                     CatalogManagementUiEffect.ShowMessage(
-                        err.message ?: "Gagal mengubah status tersedia."
+                        err.toUiText(R.string.catalog_msg_availability_failed)
                     )
                 )
             }
@@ -170,7 +173,7 @@ class CatalogManagementViewModel(
         val trimmed = name.trim()
         if (trimmed.isBlank()) {
             viewModelScope.launch {
-                _effects.emit(CatalogManagementUiEffect.ShowMessage("Nama kategori wajib diisi."))
+                _effects.emit(CatalogManagementUiEffect.ShowMessage(UiText.res(R.string.catalog_msg_category_name_required)))
             }
             return
         }
@@ -184,12 +187,12 @@ class CatalogManagementViewModel(
             res.fold(
                 onSuccess = {
                     _uiState.update { it.copy(isSubmitting = false) }
-                    _effects.emit(CatalogManagementUiEffect.ShowMessage("Kategori tersimpan."))
+                    _effects.emit(CatalogManagementUiEffect.ShowMessage(UiText.res(R.string.catalog_msg_category_saved)))
                     refreshCatalog()
                 },
                 onFailure = { err ->
                     _uiState.update { it.copy(isSubmitting = false) }
-                    _effects.emit(CatalogManagementUiEffect.ShowMessage(err.message ?: "Gagal menyimpan kategori."))
+                    _effects.emit(CatalogManagementUiEffect.ShowMessage(err.toUiText(R.string.catalog_msg_category_save_failed)))
                 }
             )
         }
@@ -207,12 +210,12 @@ class CatalogManagementViewModel(
                             selectedCategoryId = if (it.selectedCategoryId == categoryId) "all" else it.selectedCategoryId
                         )
                     }
-                    _effects.emit(CatalogManagementUiEffect.ShowMessage("Kategori dihapus."))
+                    _effects.emit(CatalogManagementUiEffect.ShowMessage(UiText.res(R.string.catalog_msg_category_deleted)))
                     refreshCatalog()
                 },
                 onFailure = { err ->
                     _uiState.update { it.copy(isSubmitting = false) }
-                    _effects.emit(CatalogManagementUiEffect.ShowMessage(err.message ?: "Gagal menghapus kategori."))
+                    _effects.emit(CatalogManagementUiEffect.ShowMessage(err.toUiText(R.string.catalog_msg_category_delete_failed)))
                 }
             )
         }
@@ -222,13 +225,13 @@ class CatalogManagementViewModel(
         if (!_uiState.value.canManageCatalog || _uiState.value.isSubmitting) return
         if (input.name.isBlank()) {
             viewModelScope.launch {
-                _effects.emit(CatalogManagementUiEffect.ShowMessage("Nama produk wajib diisi."))
+                _effects.emit(CatalogManagementUiEffect.ShowMessage(UiText.res(R.string.catalog_msg_product_name_required)))
             }
             return
         }
         if (editingId.isNullOrBlank() && (input.basePriceIdr == null || input.basePriceIdr < 0L)) {
             viewModelScope.launch {
-                _effects.emit(CatalogManagementUiEffect.ShowMessage("Harga awal produk wajib diisi."))
+                _effects.emit(CatalogManagementUiEffect.ShowMessage(UiText.res(R.string.catalog_msg_product_price_required)))
             }
             return
         }
@@ -243,12 +246,12 @@ class CatalogManagementViewModel(
                 onSuccess = {
                     _uiState.update { it.copy(isSubmitting = false) }
                     _effects.emit(CatalogManagementUiEffect.ProductSaved)
-                    _effects.emit(CatalogManagementUiEffect.ShowMessage("Produk tersimpan."))
+                    _effects.emit(CatalogManagementUiEffect.ShowMessage(UiText.res(R.string.catalog_msg_product_saved)))
                     refreshCatalog()
                 },
                 onFailure = { err ->
                     _uiState.update { it.copy(isSubmitting = false) }
-                    _effects.emit(CatalogManagementUiEffect.ShowMessage(err.message ?: "Gagal menyimpan produk."))
+                    _effects.emit(CatalogManagementUiEffect.ShowMessage(err.toUiText(R.string.catalog_msg_product_save_failed)))
                 }
             )
         }
@@ -261,12 +264,12 @@ class CatalogManagementViewModel(
             catalogRepository.archiveProduct(productId).fold(
                 onSuccess = {
                     _uiState.update { it.copy(isSubmitting = false) }
-                    _effects.emit(CatalogManagementUiEffect.ShowMessage("Produk diarsipkan."))
+                    _effects.emit(CatalogManagementUiEffect.ShowMessage(UiText.res(R.string.catalog_msg_product_archived)))
                     refreshCatalog()
                 },
                 onFailure = { err ->
                     _uiState.update { it.copy(isSubmitting = false) }
-                    _effects.emit(CatalogManagementUiEffect.ShowMessage(err.message ?: "Gagal mengarsipkan produk."))
+                    _effects.emit(CatalogManagementUiEffect.ShowMessage(err.toUiText(R.string.catalog_msg_product_archive_failed)))
                 }
             )
         }
@@ -276,7 +279,7 @@ class CatalogManagementViewModel(
         if (!_uiState.value.canManageCatalog || _uiState.value.isSubmitting) return
         if (input.name.isBlank() || input.price < 0L) {
             viewModelScope.launch {
-                _effects.emit(CatalogManagementUiEffect.ShowMessage("Nama dan harga varian harus valid."))
+                _effects.emit(CatalogManagementUiEffect.ShowMessage(UiText.res(R.string.catalog_msg_variant_invalid)))
             }
             return
         }
@@ -291,12 +294,12 @@ class CatalogManagementViewModel(
                 onSuccess = {
                     _uiState.update { it.copy(isSubmitting = false) }
                     _effects.emit(CatalogManagementUiEffect.VariantSaved)
-                    _effects.emit(CatalogManagementUiEffect.ShowMessage("Varian tersimpan."))
+                    _effects.emit(CatalogManagementUiEffect.ShowMessage(UiText.res(R.string.catalog_msg_variant_saved)))
                     refreshCatalog()
                 },
                 onFailure = { err ->
                     _uiState.update { it.copy(isSubmitting = false) }
-                    _effects.emit(CatalogManagementUiEffect.ShowMessage(err.message ?: "Gagal menyimpan varian."))
+                    _effects.emit(CatalogManagementUiEffect.ShowMessage(err.toUiText(R.string.catalog_msg_variant_save_failed)))
                 }
             )
         }
@@ -309,12 +312,12 @@ class CatalogManagementViewModel(
             catalogRepository.archiveVariant(variantId).fold(
                 onSuccess = {
                     _uiState.update { it.copy(isSubmitting = false) }
-                    _effects.emit(CatalogManagementUiEffect.ShowMessage("Varian diarsipkan."))
+                    _effects.emit(CatalogManagementUiEffect.ShowMessage(UiText.res(R.string.catalog_msg_variant_archived)))
                     refreshCatalog()
                 },
                 onFailure = { err ->
                     _uiState.update { it.copy(isSubmitting = false) }
-                    _effects.emit(CatalogManagementUiEffect.ShowMessage(err.message ?: "Gagal mengarsipkan varian."))
+                    _effects.emit(CatalogManagementUiEffect.ShowMessage(err.toUiText(R.string.catalog_msg_variant_archive_failed)))
                 }
             )
         }
@@ -327,12 +330,12 @@ class CatalogManagementViewModel(
             val rawBytes = withContext(ioDispatcher) { runCatching(readBytes).getOrNull() }
             if (rawBytes == null || rawBytes.isEmpty()) {
                 _uiState.update { it.copy(isUploadingImage = false) }
-                _effects.emit(CatalogManagementUiEffect.ShowMessage("Gagal membaca file gambar."))
+                _effects.emit(CatalogManagementUiEffect.ShowMessage(UiText.res(R.string.catalog_msg_image_read_failed)))
                 return@launch
             }
             if (rawBytes.size > MAX_RAW_IMAGE_BYTES) {
                 _uiState.update { it.copy(isUploadingImage = false) }
-                _effects.emit(CatalogManagementUiEffect.ShowMessage("Ukuran gambar terlalu besar (maksimal 10 MB)."))
+                _effects.emit(CatalogManagementUiEffect.ShowMessage(UiText.res(R.string.catalog_msg_image_too_large)))
                 return@launch
             }
             uploadCompressedBytes(productId, rawBytes)
@@ -361,11 +364,11 @@ class CatalogManagementViewModel(
                         }
                     )
                 }
-                _effects.emit(CatalogManagementUiEffect.ShowMessage("Foto produk berhasil diunggah."))
+                _effects.emit(CatalogManagementUiEffect.ShowMessage(UiText.res(R.string.catalog_msg_photo_uploaded)))
             },
             onFailure = { err ->
                 _uiState.update { it.copy(isUploadingImage = false) }
-                _effects.emit(CatalogManagementUiEffect.ShowMessage(err.message ?: "Gagal mengunggah foto."))
+                _effects.emit(CatalogManagementUiEffect.ShowMessage(err.toUiText(R.string.catalog_msg_photo_upload_failed)))
             }
         )
     }

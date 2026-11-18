@@ -103,9 +103,9 @@ fun ServerConfigScreen(
                         CassyFeedbackCue.warningOrError(view)
                     }
                     val msg = if (effect.success) {
-                        String.format(probeOkTemplate, effect.detail)
+                        String.format(probeOkTemplate, effect.detail.asString(view.context))
                     } else {
-                        String.format(probeFailTemplate, effect.detail)
+                        String.format(probeFailTemplate, effect.detail.asString(view.context))
                     }
                     snackbarHostState.showCassySnackbar(
                         message = msg,

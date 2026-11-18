@@ -1,5 +1,8 @@
 package com.azuredevid.cassy.ui.pos
 
+import com.azuredevid.cassy.ui.designsystem.toUiText
+import com.azuredevid.cassy.ui.designsystem.UiText
+import com.azuredevid.cassy.R
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -45,7 +48,7 @@ data class PosUiState(
     val categories: List<CatalogCategory> = emptyList(),
     val allProducts: List<CatalogProduct> = emptyList(),
     val isLoadingCatalog: Boolean = true,
-    val catalogError: String? = null,
+    val catalogError: UiText? = null,
     val selectedCategoryId: String = "all",
     val searchQuery: String = "",
     val cart: List<CartItem> = emptyList(),
@@ -55,14 +58,14 @@ data class PosUiState(
     val dineInRound: Int = 1,
     val quote: OrderQuote? = null,
     val isQuoting: Boolean = false,
-    val quoteError: String? = null,
+    val quoteError: UiText? = null,
     val storeName: String = "",
     val cashierName: String = "",
     val printerConfig: PrinterConfig = PrinterConfig(),
     val isPrinterConfigured: Boolean = false,
-    val failoverAlert: String? = null,
+    val failoverAlert: UiText? = null,
     val isSubmittingOrder: Boolean = false,
-    val settlementError: String? = null,
+    val settlementError: UiText? = null,
     val showCashModal: Boolean = false,
     val pendingOrder: PosOrder? = null,
     val pendingOrderIdempotencyKey: String? = null,
@@ -92,7 +95,7 @@ data class PosUiState(
 
 sealed interface PosUiEffect {
     data class ShowToast(
-        val message: String,
+        val message: UiText,
         val tone: CassyToastTone = CassyToastTone.INFO
     ) : PosUiEffect
     data class CashPaymentCompleted(val orderNumber: String) : PosUiEffect
@@ -193,7 +196,7 @@ class PosViewModel(
             _uiState.update {
                 it.copy(
                     isLoadingCatalog = false,
-                    catalogError = "Sesi toko tidak ditemukan. Silakan masuk kembali."
+                    catalogError = UiText.res(R.string.pos_msg_store_session_missing)
                 )
             }
             return
@@ -221,7 +224,7 @@ class PosViewModel(
                             categories = emptyList(),
                             allProducts = emptyList(),
                             isLoadingCatalog = false,
-                            catalogError = err.message ?: "Gagal memuat katalog."
+                            catalogError = err.toUiText(R.string.msg_catalog_load_failed)
                         )
                     }
                 }
@@ -348,10 +351,10 @@ class PosViewModel(
                 _uiState.update {
                     it.copy(
                         isSubmittingOrder = false,
-                        settlementError = err.message ?: "Gagal mengirim pesanan ke server."
+                        settlementError = err.toUiText(R.string.pos_msg_order_send_failed)
                     )
                 }
-                _effects.emit(PosUiEffect.ShowToast(err.message ?: "Gagal mengirim pesanan ke server."))
+                _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_order_send_failed)))
                 return@launch
             }
 
@@ -385,16 +388,16 @@ class PosViewModel(
                 val orderNo = settledOrder.orderNumber.ifBlank { order.id.takeLast(8).uppercase() }
                 soundPlayer?.play(CassyAudioCue.ORDER_PAID)
                 _effects.emit(PosUiEffect.CashPaymentCompleted(orderNo))
-                _effects.emit(PosUiEffect.ShowToast("Transaksi #$orderNo selesai."))
+                _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.pos_msg_cash_done, orderNo)))
             }.onFailure { err ->
                 soundPlayer?.play(CassyAudioCue.SOFT_ERROR)
                 _uiState.update {
                     it.copy(
                         isSubmittingOrder = false,
-                        settlementError = err.message ?: "Gagal memproses pembayaran tunai."
+                        settlementError = err.toUiText(R.string.pos_msg_cash_failed)
                     )
                 }
-                _effects.emit(PosUiEffect.ShowToast(err.message ?: "Gagal memproses pembayaran tunai."))
+                _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_cash_failed)))
             }
         }
     }
@@ -411,10 +414,10 @@ class PosViewModel(
                 _uiState.update {
                     it.copy(
                         isSubmittingOrder = false,
-                        settlementError = err.message ?: "Gagal membuat pesanan QRIS."
+                        settlementError = err.toUiText(R.string.pos_msg_qris_order_failed)
                     )
                 }
-                _effects.emit(PosUiEffect.ShowToast(err.message ?: "Gagal membuat pesanan QRIS."))
+                _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_qris_order_failed)))
                 return@launch
             }
 
@@ -445,10 +448,10 @@ class PosViewModel(
                 _uiState.update {
                     it.copy(
                         isSubmittingOrder = false,
-                        settlementError = err.message ?: "Gagal membuat tagihan QRIS."
+                        settlementError = err.toUiText(R.string.pos_msg_qris_bill_failed)
                     )
                 }
-                _effects.emit(PosUiEffect.ShowToast(err.message ?: "Gagal membuat tagihan QRIS."))
+                _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_qris_bill_failed)))
             }
         }
     }
@@ -516,22 +519,22 @@ class PosViewModel(
         val orderNo = order.orderNumber.ifBlank { order.id.takeLast(8).uppercase() }
         soundPlayer?.play(CassyAudioCue.ORDER_PAID)
         _effects.emit(PosUiEffect.QrisPaymentCompleted(orderNo))
-        _effects.emit(PosUiEffect.ShowToast("Pembayaran QRIS #$orderNo lunas."))
+        _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.pos_msg_qris_paid, orderNo)))
     }
 
     fun kickDrawerManual() {
         viewModelScope.launch {
             val config = printerSettings.getConfig()
             if (!config.hasCashierPrinter) {
-                _effects.emit(PosUiEffect.ShowToast("Printer kasir belum dikonfigurasi. Atur IP printer di Pengaturan."))
+                _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.msg_cashier_printer_missing)))
                 return@launch
             }
             printerManager.openCashDrawer(config.cashierPrinterIp, config.cashierPrinterPort)
                 .onSuccess {
-                    _effects.emit(PosUiEffect.ShowToast("Laci kasir terbuka (RJ11)."))
+                    _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.pos_msg_drawer_opened)))
                 }
                 .onFailure {
-                    _effects.emit(PosUiEffect.ShowToast("Printer LAN (${config.cashierPrinterIp}) tidak terjangkau."))
+                    _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.pos_msg_lan_printer_unreachable, config.cashierPrinterIp)))
                 }
         }
     }
@@ -543,7 +546,7 @@ class PosViewModel(
             val config = printerSettings.getConfig()
             val stations = buildStationConfigs(config)
             if (stations.isEmpty()) {
-                _effects.emit(PosUiEffect.ShowToast("Printer dapur belum dikonfigurasi. Atur IP printer di Pengaturan."))
+                _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.pos_msg_kitchen_printer_missing)))
                 return@launch
             }
             val router = KdsTicketRouter(printerManager)
@@ -560,14 +563,14 @@ class PosViewModel(
             _uiState.update {
                 it.copy(
                     failoverAlert = if (result.hasAnyFailover) {
-                        "Sebagian printer stasiun offline. Tiket dialihkan ke printer cadangan."
+                        UiText.res(R.string.pos_msg_station_failover)
                     } else null
                 )
             }
             if (result.errors.isEmpty()) {
-                _effects.emit(PosUiEffect.ShowToast("Tiket dapur ronde #${snapshot.dineInRound} terkirim."))
+                _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.pos_msg_kitchen_round_sent, snapshot.dineInRound)))
             } else {
-                _effects.emit(PosUiEffect.ShowToast(result.errors.first()))
+                _effects.emit(PosUiEffect.ShowToast(UiText.Raw(result.errors.first())))
             }
         }
     }
@@ -579,7 +582,7 @@ class PosViewModel(
             val config = printerSettings.getConfig()
             val stations = buildStationConfigs(config)
             if (stations.isEmpty()) {
-                _effects.emit(PosUiEffect.ShowToast("Printer dapur belum dikonfigurasi."))
+                _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.pos_msg_kitchen_printer_missing_short)))
                 return@launch
             }
             val router = KdsTicketRouter(printerManager)
@@ -597,9 +600,9 @@ class PosViewModel(
                 roundNumber = snapshot.dineInRound
             )
             if (result.errors.isEmpty()) {
-                _effects.emit(PosUiEffect.ShowToast("Cetak ulang tiket stasiun selesai."))
+                _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.pos_msg_reprint_done)))
             } else {
-                _effects.emit(PosUiEffect.ShowToast(result.errors.first()))
+                _effects.emit(PosUiEffect.ShowToast(UiText.Raw(result.errors.first())))
             }
         }
     }
@@ -747,7 +750,7 @@ class PosViewModel(
         )
         if (result.hasAnyFailover) {
             _uiState.update {
-                it.copy(failoverAlert = "Sebagian printer stasiun offline. Tiket dialihkan ke printer cadangan.")
+                it.copy(failoverAlert = UiText.res(R.string.pos_msg_station_failover))
             }
         }
     }
@@ -806,7 +809,7 @@ class PosViewModel(
                         it.copy(
                             quote = null,
                             isQuoting = false,
-                            quoteError = err.message ?: "Gagal menghitung total dari server."
+                            quoteError = err.toUiText(R.string.pos_msg_quote_failed)
                         )
                     }
                 }

@@ -198,7 +198,7 @@ fun MidtransCredentialsTab(
                 else -> CassyToastTone.ERROR
             }
             CassyErrorBanner(
-                message = state.verificationMessage,
+                message = state.verificationMessage.asString(),
                 tone = tone
             )
         }

@@ -147,7 +147,7 @@ fun PrinterSettingsTab(
                 null -> CassyToastTone.INFO
             }
             CassyErrorBanner(
-                message = state.printerTestMessage,
+                message = state.printerTestMessage.asString(),
                 tone = tone
             )
         }

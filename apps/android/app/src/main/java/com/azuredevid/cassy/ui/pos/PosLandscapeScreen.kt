@@ -79,7 +79,7 @@ fun PosLandscapeScreen(
             when (effect) {
                 is ShiftUiEffect.ShowToast -> {
                     snackbarHostState.showCassySnackbar(
-                        message = effect.message,
+                        message = effect.message.asString(context),
                         tone = effect.tone
                     )
                 }
@@ -95,7 +95,7 @@ fun PosLandscapeScreen(
             when (effect) {
                 is PosUiEffect.ShowToast -> {
                     snackbarHostState.showCassySnackbar(
-                        message = effect.message,
+                        message = effect.message.asString(context),
                         tone = effect.tone
                     )
                 }
@@ -161,7 +161,7 @@ fun PosLandscapeScreen(
                             searchQuery = posState.searchQuery,
                             onSearchQueryChange = { posViewModel.updateSearchQuery(it) },
                             isLoadingCatalog = posState.isLoadingCatalog,
-                            catalogError = posState.catalogError,
+                            catalogError = posState.catalogError?.asString(),
                             onRetryCatalog = { posViewModel.loadInitialData() },
                             onProductSelected = { product -> posViewModel.addProductToCart(product) },
                             rupiahFormat = rupiahFormat,
@@ -184,7 +184,7 @@ fun PosLandscapeScreen(
                         onIncreaseQuantity = { item -> posViewModel.increaseItemQuantity(item.product.id) },
                         onDecreaseQuantity = { item -> posViewModel.decreaseItemQuantity(item.product.id) },
                         quote = posState.quote,
-                        quoteError = posState.quoteError,
+                        quoteError = posState.quoteError?.asString(),
                         rupiahFormat = rupiahFormat,
                         onOpenDrawerKick = {
                             if (posState.isPrinterConfigured) {
@@ -232,7 +232,7 @@ fun PosLandscapeScreen(
                                 posViewModel.startQrisPayment(shiftState.currentShift?.drawerId)
                             }
                         },
-                        failoverWarning = posState.failoverAlert,
+                        failoverWarning = posState.failoverAlert?.asString(),
                         onReprintStations = { posViewModel.reprintStations() }
                     )
                 }
@@ -244,7 +244,7 @@ fun PosLandscapeScreen(
                     grandTotal = pricedQuote.totalAmount,
                     rupiahFormat = rupiahFormat,
                     isSubmitting = posState.isSubmittingOrder,
-                    errorMessage = posState.settlementError,
+                    errorMessage = posState.settlementError?.asString(),
                     onDismiss = { posViewModel.closeCashModal() },
                     onConfirmCashPayment = { tenderedLong, _ ->
                         posViewModel.submitCashPayment(
@@ -275,7 +275,7 @@ fun PosLandscapeScreen(
                     openingFloatInput = shiftState.openingFloatInput,
                     notes = shiftState.openShiftNotes,
                     isOpening = shiftState.isOpeningShift,
-                    errorMessage = shiftState.errorMessage,
+                    errorMessage = shiftState.errorMessage?.asString(),
                     onOpeningFloatChanged = { shiftViewModel.onOpeningFloatChanged(it) },
                     onNotesChanged = { shiftViewModel.onOpenShiftNotesChanged(it) },
                     onSubmit = { shiftViewModel.submitOpenShift() },
@@ -289,7 +289,7 @@ fun PosLandscapeScreen(
                     amountInput = shiftState.movementAmountInput,
                     reason = shiftState.movementReason,
                     isRecording = shiftState.isRecordingMovement,
-                    errorMessage = shiftState.errorMessage,
+                    errorMessage = shiftState.errorMessage?.asString(),
                     onMovementTypeChanged = { shiftViewModel.onMovementTypeChanged(it) },
                     onAmountChanged = { shiftViewModel.onMovementAmountChanged(it) },
                     onReasonChanged = { shiftViewModel.onMovementReasonChanged(it) },
@@ -319,7 +319,7 @@ fun PosLandscapeScreen(
                     isSupervisorAuthRequired = shiftState.isSupervisorAuthRequired,
                     printReceiptOnClose = shiftState.printReceiptOnClose,
                     isClosing = shiftState.isClosingShift,
-                    errorMessage = shiftState.errorMessage,
+                    errorMessage = shiftState.errorMessage?.asString(),
                     onCountedCashChanged = { shiftViewModel.onCountedCashChanged(it) },
                     onVarianceReasonChanged = { shiftViewModel.onVarianceReasonChanged(it) },
                     onNotesChanged = { shiftViewModel.onCloseShiftNotesChanged(it) },

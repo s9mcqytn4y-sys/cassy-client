@@ -101,7 +101,7 @@ fun CatalogManagementScreen(
             when (effect) {
                 is CatalogManagementUiEffect.ShowMessage -> {
                     snackbarHostState.showCassySnackbar(
-                        message = effect.message,
+                        message = effect.message.asString(context),
                         tone = effect.tone
                     )
                 }
@@ -216,7 +216,7 @@ fun CatalogManagementScreen(
 
                 state.errorMessage?.let { err ->
                     CassyErrorBanner(
-                        message = err,
+                        message = err.asString(),
                         onRetry = viewModel::refreshCatalog
                     )
                 }

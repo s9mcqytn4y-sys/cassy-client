@@ -1,5 +1,8 @@
 package com.azuredevid.cassy.ui.shift
 
+import com.azuredevid.cassy.ui.designsystem.toUiText
+import com.azuredevid.cassy.ui.designsystem.UiText
+import com.azuredevid.cassy.R
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -35,8 +38,8 @@ data class ShiftUiState(
     val selectedDrawerId: String? = null,
     val currentShift: Shift? = null,
     val isShiftOpen: Boolean = false,
-    val errorMessage: String? = null,
-    val successMessage: String? = null,
+    val errorMessage: UiText? = null,
+    val successMessage: UiText? = null,
 
     // Modal controls
     val showOpenShiftModal: Boolean = false,
@@ -74,7 +77,7 @@ data class ShiftUiState(
 
 sealed interface ShiftUiEffect {
     data class ShowToast(
-        val message: String,
+        val message: UiText,
         val tone: CassyToastTone = CassyToastTone.INFO
     ) : ShiftUiEffect
     data object PromptOpenShift : ShiftUiEffect
@@ -146,7 +149,7 @@ class ShiftViewModel(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = error.message ?: "Gagal memeriksa status shift"
+                        errorMessage = error.toUiText(R.string.shift_msg_check_failed)
                     )
                 }
             }
@@ -196,7 +199,7 @@ class ShiftViewModel(
     fun submitOpenShift() {
         val amount = _uiState.value.openingFloatInput.toLongOrNull() ?: 0L
         if (amount < 0L) {
-            _uiState.update { it.copy(errorMessage = "Saldo awal tidak boleh negatif") }
+            _uiState.update { it.copy(errorMessage = UiText.res(R.string.shift_msg_float_negative)) }
             return
         }
 
@@ -217,19 +220,19 @@ class ShiftViewModel(
                         currentShift = result.shift,
                         isShiftOpen = result.shift.status == ShiftStatus.OPEN,
                         selectedDrawerId = result.shift.drawerId,
-                        successMessage = "Shift berhasil dibuka dengan modal awal Rp $amount"
+                        successMessage = UiText.res(R.string.shift_msg_opened_with_float, amount)
                     )
                 }
                 if (result.openDrawer) {
                     kickDrawerIfConfigured()
                 }
                 _effects.emit(ShiftUiEffect.ShiftOpenedSuccessfully(result.shift))
-                _effects.emit(ShiftUiEffect.ShowToast("Shift kasir berhasil dibuka"))
+                _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_opened_toast)))
             }.onFailure { error ->
                 _uiState.update {
                     it.copy(
                         isOpeningShift = false,
-                        errorMessage = error.message ?: "Gagal membuka shift"
+                        errorMessage = error.toUiText(R.string.shift_msg_open_failed)
                     )
                 }
             }
@@ -239,7 +242,7 @@ class ShiftViewModel(
     fun openCashMovementModal() {
         if (!_uiState.value.isShiftOpen) {
             viewModelScope.launch {
-                _effects.emit(ShiftUiEffect.ShowToast("Buka shift kasir terlebih dahulu"))
+                _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_open_first)))
                 _effects.emit(ShiftUiEffect.PromptOpenShift)
             }
             return
@@ -277,11 +280,11 @@ class ShiftViewModel(
         val reason = _uiState.value.movementReason.trim()
 
         if (amount <= 0L) {
-            _uiState.update { it.copy(errorMessage = "Nominal kas harus lebih dari Rp 0") }
+            _uiState.update { it.copy(errorMessage = UiText.res(R.string.shift_msg_amount_positive)) }
             return
         }
         if (reason.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "Alasan mutasi kas wajib diisi") }
+            _uiState.update { it.copy(errorMessage = UiText.res(R.string.shift_msg_reason_required)) }
             return
         }
 
@@ -302,19 +305,19 @@ class ShiftViewModel(
                     it.copy(
                         isRecordingMovement = false,
                         showCashMovementModal = false,
-                        successMessage = "Mutasi kas berhasil dicatat"
+                        successMessage = UiText.res(R.string.shift_msg_movement_recorded)
                     )
                 }
                 if (result.openDrawer) {
                     kickDrawerIfConfigured()
                 }
-                _effects.emit(ShiftUiEffect.ShowToast("Mutasi kas berhasil disimpan"))
+                _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_movement_saved)))
                 loadCurrentShift()
             }.onFailure { error ->
                 _uiState.update {
                     it.copy(
                         isRecordingMovement = false,
-                        errorMessage = error.message ?: "Gagal mencatat mutasi kas"
+                        errorMessage = error.toUiText(R.string.shift_msg_movement_failed)
                     )
                 }
             }
@@ -325,7 +328,7 @@ class ShiftViewModel(
         val shift = _uiState.value.currentShift
         if (!_uiState.value.isShiftOpen || shift == null) {
             viewModelScope.launch {
-                _effects.emit(ShiftUiEffect.ShowToast("Tidak ada shift aktif untuk X-Report"))
+                _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_no_shift_xreport)))
             }
             return
         }
@@ -345,10 +348,10 @@ class ShiftViewModel(
                         it.copy(
                             isLoadingXReport = false,
                             showXReportModal = false,
-                            errorMessage = error.message ?: "Gagal memuat X-Report"
+                            errorMessage = error.toUiText(R.string.shift_msg_xreport_failed)
                         )
                     }
-                    _effects.emit(ShiftUiEffect.ShowToast(error.message ?: "Gagal memuat X-Report"))
+                    _effects.emit(ShiftUiEffect.ShowToast(error.toUiText(R.string.shift_msg_xreport_failed)))
                 }
         }
     }
@@ -362,7 +365,7 @@ class ShiftViewModel(
         viewModelScope.launch {
             val config = printerSettings.getConfig()
             if (!config.hasCashierPrinter) {
-                _effects.emit(ShiftUiEffect.ShowToast("Printer kasir belum dikonfigurasi. Atur IP printer di Pengaturan."))
+                _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.msg_cashier_printer_missing)))
                 return@launch
             }
             _uiState.update { it.copy(isPrintingReport = true) }
@@ -370,11 +373,11 @@ class ShiftViewModel(
             printerManager.printRawBytes(config.cashierPrinterIp, payload, config.cashierPrinterPort)
                 .onSuccess {
                     _uiState.update { it.copy(isPrintingReport = false) }
-                    _effects.emit(ShiftUiEffect.ShowToast("X-Report berhasil dicetak"))
+                    _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_xreport_printed)))
                 }
                 .onFailure {
                     _uiState.update { it.copy(isPrintingReport = false) }
-                    _effects.emit(ShiftUiEffect.ShowToast("Gagal mencetak X-Report: printer kasir tidak terjangkau"))
+                    _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_xreport_print_failed)))
                 }
         }
     }
@@ -382,7 +385,7 @@ class ShiftViewModel(
     fun openCloseShiftModal() {
         if (!_uiState.value.isShiftOpen) {
             viewModelScope.launch {
-                _effects.emit(ShiftUiEffect.ShowToast("Tidak ada shift aktif untuk ditutup"))
+                _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_no_shift_close)))
             }
             return
         }
@@ -442,13 +445,13 @@ class ShiftViewModel(
     fun submitCloseShift() {
         val counted = _uiState.value.countedCashInput.toLongOrNull()
         if (counted == null) {
-            _uiState.update { it.copy(errorMessage = "Masukkan jumlah fisik uang kas riil") }
+            _uiState.update { it.copy(errorMessage = UiText.res(R.string.shift_msg_counted_required)) }
             return
         }
 
         val shift = _uiState.value.currentShift
         if (shift == null) {
-            _uiState.update { it.copy(errorMessage = "Shift tidak ditemukan") }
+            _uiState.update { it.copy(errorMessage = UiText.res(R.string.shift_msg_not_found)) }
             return
         }
 
@@ -458,11 +461,11 @@ class ShiftViewModel(
 
         if (isSupervisorRequired) {
             if (varianceReason.isBlank()) {
-                _uiState.update { it.copy(errorMessage = "Selisih kas melebihi toleransi. Alasan wajib diisi") }
+                _uiState.update { it.copy(errorMessage = UiText.res(R.string.shift_msg_variance_reason)) }
                 return
             }
             if (supervisorPin.length != 6) {
-                _uiState.update { it.copy(errorMessage = "PIN Owner 6 digit wajib diisi untuk verifikasi server") }
+                _uiState.update { it.copy(errorMessage = UiText.res(R.string.shift_msg_owner_pin_required)) }
                 return
             }
         }
@@ -484,14 +487,14 @@ class ShiftViewModel(
                         currentShift = null,
                         isShiftOpen = false,
                         lastZReport = result.report,
-                        successMessage = "Shift berhasil ditutup"
+                        successMessage = UiText.res(R.string.shift_msg_closed)
                     )
                 }
                 if (result.openDrawer) {
                     kickDrawerIfConfigured()
                 }
                 _effects.emit(ShiftUiEffect.ShiftClosedSuccessfully(result.report))
-                _effects.emit(ShiftUiEffect.ShowToast("Shift berhasil ditutup"))
+                _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_closed)))
 
                 if (_uiState.value.printReceiptOnClose) {
                     printZReport(result.report)
@@ -503,7 +506,7 @@ class ShiftViewModel(
                     it.copy(
                         isClosingShift = false,
                         isSupervisorAuthRequired = it.isSupervisorAuthRequired || isVarianceGate,
-                        errorMessage = error.message ?: "Gagal menutup shift"
+                        errorMessage = error.toUiText(R.string.shift_msg_close_failed)
                     )
                 }
             }
@@ -514,7 +517,7 @@ class ShiftViewModel(
         viewModelScope.launch {
             val config = printerSettings.getConfig()
             if (!config.hasCashierPrinter) {
-                _effects.emit(ShiftUiEffect.ShowToast("Printer kasir belum dikonfigurasi. Atur IP printer di Pengaturan."))
+                _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.msg_cashier_printer_missing)))
                 return@launch
             }
             _uiState.update { it.copy(isPrintingReport = true) }
@@ -522,11 +525,11 @@ class ShiftViewModel(
             printerManager.printRawBytes(config.cashierPrinterIp, payload, config.cashierPrinterPort)
                 .onSuccess {
                     _uiState.update { it.copy(isPrintingReport = false) }
-                    _effects.emit(ShiftUiEffect.ShowToast("Struk Z-Report berhasil dicetak"))
+                    _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_zreport_printed)))
                 }
                 .onFailure {
                     _uiState.update { it.copy(isPrintingReport = false) }
-                    _effects.emit(ShiftUiEffect.ShowToast("Gagal mencetak Z-Report: printer kasir tidak terjangkau"))
+                    _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_zreport_print_failed)))
                 }
         }
     }
@@ -534,12 +537,12 @@ class ShiftViewModel(
     private suspend fun kickDrawerIfConfigured() {
         val config = printerSettings.getConfig()
         if (!config.hasCashierPrinter) {
-            _effects.emit(ShiftUiEffect.ShowToast("Laci tidak terpicu: IP printer kasir belum dikonfigurasi"))
+            _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_drawer_no_ip)))
             return
         }
         printerManager.openCashDrawer(config.cashierPrinterIp, config.cashierPrinterPort)
             .onFailure {
-                _effects.emit(ShiftUiEffect.ShowToast("Gagal membuka laci kasir LAN (${config.cashierPrinterIp})"))
+                _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_drawer_failed, config.cashierPrinterIp)))
             }
     }
 

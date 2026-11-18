@@ -1,5 +1,8 @@
 package com.azuredevid.cassy.ui.settings
 
+import com.azuredevid.cassy.ui.designsystem.toUiText
+import com.azuredevid.cassy.ui.designsystem.UiText
+import com.azuredevid.cassy.R
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -42,7 +45,7 @@ data class StoreSettingsUiState(
     val lastVerifiedAt: String? = null,
     val isVerifyingMidtrans: Boolean = false,
     val verificationStatus: String? = null,
-    val verificationMessage: String? = null,
+    val verificationMessage: UiText? = null,
     val isSavingMidtrans: Boolean = false,
 
     // Brand CMS Form
@@ -77,11 +80,11 @@ data class StoreSettingsUiState(
     val paperWidthMm: Int = 80,
     val isTestingPrinter: Boolean = false,
     val printerTestOk: Boolean? = null,
-    val printerTestMessage: String? = null,
+    val printerTestMessage: UiText? = null,
     val isSavingPrinter: Boolean = false,
 
-    val errorMessage: String? = null,
-    val successMessage: String? = null
+    val errorMessage: UiText? = null,
+    val successMessage: UiText? = null
 ) {
     val isSandbox: Boolean
         get() = serverKey.startsWith("SB-") || clientKey.startsWith("SB-") || serverKeyMasked.startsWith("SB-")
@@ -122,7 +125,7 @@ data class StoreSettingsUiState(
 }
 
 sealed interface StoreSettingsUiEffect {
-    data class ShowSnackbar(val message: String, val isError: Boolean = false) : StoreSettingsUiEffect
+    data class ShowSnackbar(val message: UiText, val isError: Boolean = false) : StoreSettingsUiEffect
 }
 
 sealed interface StoreSettingsUiEvent {
@@ -304,7 +307,7 @@ class StoreSettingsViewModel(
             is StoreSettingsUiEvent.ToggleRemotePaymentMethod -> {
                 _uiState.update { current ->
                     if (!current.validationStatus.equals("valid", ignoreCase = true) && event.enabled) {
-                        return@update current.copy(errorMessage = "Midtrans BYOK harus terverifikasi sebelum mengaktifkan metode digital.")
+                        return@update current.copy(errorMessage = UiText.res(R.string.settings_msg_byok_required))
                     }
                     val updated = if (event.enabled) {
                         (current.enabledPaymentMethods + event.method).distinct()
@@ -339,14 +342,14 @@ class StoreSettingsViewModel(
         viewModelScope.launch {
             val state = _uiState.value
             if (!state.hasManageAccess) {
-                val denied = "Akses ditolak: izin kelola gerai diperlukan."
+                val denied = UiText.res(R.string.settings_msg_access_denied)
                 _uiState.update { it.copy(errorMessage = denied) }
                 _effects.emit(StoreSettingsUiEffect.ShowSnackbar(denied, isError = true))
                 return@launch
             }
 
             if (!state.isMerchantIdValid || !state.isClientKeyValid || !state.isServerKeyValid) {
-                val msg = "Lengkapi Merchant ID, Client Key, dan Server Key penuh yang valid."
+                val msg = UiText.res(R.string.settings_msg_midtrans_incomplete)
                 _uiState.update {
                     it.copy(
                         verificationStatus = if (verifyLive) "error" else it.verificationStatus,
@@ -363,7 +366,7 @@ class StoreSettingsViewModel(
                     isSavingMidtrans = !verifyLive,
                     isVerifyingMidtrans = verifyLive,
                     verificationStatus = if (verifyLive) "testing" else it.verificationStatus,
-                    verificationMessage = if (verifyLive) "Menghubungi Midtrans melalui server..." else it.verificationMessage,
+                    verificationMessage = if (verifyLive) UiText.res(R.string.settings_msg_midtrans_contacting) else it.verificationMessage,
                     errorMessage = null
                 )
             }
@@ -382,9 +385,9 @@ class StoreSettingsViewModel(
             repository.savePaymentCredentials(input)
                 .onSuccess { creds ->
                     val successText = if (verifyLive) {
-                        "Kredensial Midtrans terverifikasi live (${creds.validationStatus.ifBlank { "valid" }})."
+                        UiText.res(R.string.settings_msg_midtrans_verified, creds.validationStatus.ifBlank { "valid" })
                     } else {
-                        "Kredensial Midtrans tersimpan aman di server."
+                        UiText.res(R.string.settings_msg_midtrans_saved)
                     }
                     _uiState.update {
                         it.copy(
@@ -402,7 +405,7 @@ class StoreSettingsViewModel(
                     _effects.emit(StoreSettingsUiEffect.ShowSnackbar(successText))
                 }
                 .onFailure { error ->
-                    val msg = error.message ?: "Gagal menyimpan kredensial Midtrans."
+                    val msg = error.toUiText(R.string.settings_msg_midtrans_save_failed)
                     _uiState.update {
                         it.copy(
                             isSavingMidtrans = false,
@@ -421,13 +424,13 @@ class StoreSettingsViewModel(
         viewModelScope.launch {
             val state = _uiState.value
             if (!state.hasManageAccess) {
-                val denied = "Akses ditolak: izin kelola gerai diperlukan."
+                val denied = UiText.res(R.string.settings_msg_access_denied)
                 _uiState.update { it.copy(errorMessage = denied) }
                 _effects.emit(StoreSettingsUiEffect.ShowSnackbar(denied, isError = true))
                 return@launch
             }
             if (!state.isHeroBannerUrlValid || !state.isPrimaryHexValid || !state.isAccentHexValid) {
-                val msg = "Periksa URL banner HTTPS dan format warna HEX (#RRGGBB)."
+                val msg = UiText.res(R.string.settings_msg_cms_invalid)
                 _uiState.update { it.copy(errorMessage = msg) }
                 _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg, isError = true))
                 return@launch
@@ -448,12 +451,12 @@ class StoreSettingsViewModel(
 
             repository.saveStoreCMS(input)
                 .onSuccess {
-                    val msg = "Pengaturan tampilan tamu tersimpan."
+                    val msg = UiText.res(R.string.settings_msg_cms_saved)
                     _uiState.update { it.copy(isSavingCms = false, successMessage = msg) }
                     _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg))
                 }
                 .onFailure { error ->
-                    val msg = error.message ?: "Gagal menyimpan pengaturan tampilan."
+                    val msg = error.toUiText(R.string.settings_msg_cms_save_failed)
                     _uiState.update { it.copy(isSavingCms = false, errorMessage = msg) }
                     _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg, isError = true))
                 }
@@ -464,7 +467,7 @@ class StoreSettingsViewModel(
         viewModelScope.launch {
             val state = _uiState.value
             if (!state.hasManageAccess) {
-                val denied = "Akses ditolak: izin kelola gerai diperlukan."
+                val denied = UiText.res(R.string.settings_msg_access_denied)
                 _uiState.update { it.copy(errorMessage = denied) }
                 _effects.emit(StoreSettingsUiEffect.ShowSnackbar(denied, isError = true))
                 return@launch
@@ -485,7 +488,7 @@ class StoreSettingsViewModel(
 
             repository.updateStoreSettings(patch)
                 .onSuccess { settings ->
-                    val msg = "Kebijakan layanan gerai diperbarui."
+                    val msg = UiText.res(R.string.settings_msg_policy_saved)
                     _uiState.update {
                         it.copy(
                             isSavingSettings = false,
@@ -499,7 +502,7 @@ class StoreSettingsViewModel(
                     _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg))
                 }
                 .onFailure { error ->
-                    val msg = error.message ?: "Gagal memperbarui kebijakan layanan."
+                    val msg = error.toUiText(R.string.settings_msg_policy_save_failed)
                     _uiState.update { it.copy(isSavingSettings = false, errorMessage = msg) }
                     _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg, isError = true))
                 }
@@ -515,7 +518,7 @@ class StoreSettingsViewModel(
                 _uiState.update {
                     it.copy(
                         printerTestOk = false,
-                        printerTestMessage = "Masukkan IP printer kasir terlebih dahulu."
+                        printerTestMessage = UiText.res(R.string.settings_msg_printer_ip_required)
                     )
                 }
                 return@launch
@@ -525,7 +528,7 @@ class StoreSettingsViewModel(
                 it.copy(
                     isTestingPrinter = true,
                     printerTestOk = null,
-                    printerTestMessage = "Memeriksa $ip:$port..."
+                    printerTestMessage = UiText.res(R.string.settings_msg_printer_checking, ip, port)
                 )
             }
 
@@ -535,7 +538,7 @@ class StoreSettingsViewModel(
                 it.copy(
                     isTestingPrinter = false,
                     printerTestOk = isReady,
-                    printerTestMessage = result.details
+                    printerTestMessage = UiText.Raw(result.details)
                 )
             }
         }
@@ -558,7 +561,7 @@ class StoreSettingsViewModel(
             )
             printerSettings.saveConfig(config)
 
-            val msg = "Pengaturan printer LAN tersimpan."
+            val msg = UiText.res(R.string.settings_msg_printer_saved)
             _uiState.update {
                 it.copy(
                     isSavingPrinter = false,
