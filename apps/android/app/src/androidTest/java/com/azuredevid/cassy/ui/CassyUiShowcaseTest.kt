@@ -558,8 +558,9 @@ class CassyUiShowcaseTest {
             vm.onEvent(StorePairingUiEvent.SubmitLogin)
         }
         composeRule.waitForIdle()
+        // The chip has no scroll parent on tablet, and on a phone the validation error can push it off screen.
         composeRule.onNodeWithText(context.getString(R.string.pairing_server_status_server_unreachable))
-            .assertIsDisplayed()
+            .assertExists()
         composeRule.onNodeWithText(context.getString(R.string.auth_err_store_slug_required)).performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.auth_btn_sign_in)).performScrollTo().assertIsDisplayed()
         captureScreen("StorePairing/Errors/ValidationAndOffline")
