@@ -129,6 +129,7 @@ class KdsTicketRouter(
         items: List<StationItem>,
         stations: List<StationPrinterConfig>,
         cashierPrinterIp: String = "",
+        cashierPrinterPort: Int = 9100,
         cashierReceiptBytes: ByteArray? = null,
         deliveryMode: OrderDeliveryMode = OrderDeliveryMode.DINE_IN,
         roundNumber: Int = 1
@@ -250,7 +251,7 @@ class KdsTicketRouter(
         // 3. Print Cashier Receipt if present
         var cashierSuccess = false
         if (cashierReceiptBytes != null && cashierPrinterIp.isNotBlank()) {
-            printerManager.printRawBytes(cashierPrinterIp, cashierReceiptBytes)
+            printerManager.printRawBytes(cashierPrinterIp, cashierReceiptBytes, cashierPrinterPort)
                 .onSuccess { cashierSuccess = true }
                 .onFailure { errors.add("Gagal cetak struk kasir ($cashierPrinterIp): ${it.message}") }
         }

@@ -1090,9 +1090,11 @@ class PosViewModel(
         val result = router.routeOrderDynamic(
             orderNumber = order.orderNumber.ifBlank { order.id.takeLast(8).uppercase() },
             tableOrQueue = tableLabel,
-            items = cartSnapshot.toStationItems(),
+            // Rows already sent (tab rounds, an earlier "send to kitchen") were printed then; paying prints only the rest.
+            items = cartSnapshot.filterNot { it.isSentToKitchen }.toStationItems(),
             stations = stations,
             cashierPrinterIp = config.cashierPrinterIp,
+            cashierPrinterPort = config.cashierPrinterPort,
             cashierReceiptBytes = receiptBytes,
             deliveryMode = deliveryMode,
             roundNumber = roundNumber
