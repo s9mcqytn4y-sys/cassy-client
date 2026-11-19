@@ -21,6 +21,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.CallSplit
+import androidx.compose.material.icons.automirrored.rounded.ReceiptLong
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Payments
 import androidx.compose.material.icons.rounded.PointOfSale
@@ -96,6 +98,8 @@ fun PosOrderSummaryPanel(
     onSendToKitchen: () -> Unit,
     onOpenCashModal: () -> Unit,
     onOpenQrisModal: () -> Unit,
+    onOpenSplitBill: () -> Unit = {},
+    onOpenOpenBills: () -> Unit = {},
     failoverWarning: String?,
     onReprintStations: () -> Unit,
     modifier: Modifier = Modifier,
@@ -457,6 +461,28 @@ fun PosOrderSummaryPanel(
                         height = CassyDimens.ButtonHeightTall,
                         containerColor = MaterialTheme.colorScheme.tertiary,
                         contentColor = MaterialTheme.colorScheme.onTertiary,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
+                ) {
+                    // A table bill is divided in splitSection when it closes; this split serves pay-first orders.
+                    if (selectedTableId == null) {
+                        CassyTonalButton(
+                            text = stringResource(R.string.split_btn_split_bill),
+                            onClick = onOpenSplitBill,
+                            enabled = isShiftOpen && quote != null && cart.isNotEmpty() && !isCartLocked && !isSubmittingOrder,
+                            icon = Icons.AutoMirrored.Rounded.CallSplit,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    CassySecondaryButton(
+                        text = stringResource(R.string.split_btn_open_bills),
+                        onClick = onOpenOpenBills,
+                        icon = Icons.AutoMirrored.Rounded.ReceiptLong,
                         modifier = Modifier.weight(1f)
                     )
                 }

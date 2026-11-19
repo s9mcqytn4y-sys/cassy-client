@@ -17,4 +17,10 @@ sealed interface CassyRoute {
 
     @Serializable
     data object CatalogManagement : CassyRoute
+
+    @Serializable
+    data object KdsBoard : CassyRoute
+
+    @Serializable
+    data object TableManagement : CassyRoute
 }

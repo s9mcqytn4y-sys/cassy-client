@@ -105,6 +105,8 @@ fun PosMobilePortraitLayout(
     onOpenTableBoard: () -> Unit = {},
     onTableSelected: (PosTable) -> Unit = {},
     splitSection: @Composable () -> Unit = {},
+    onOpenSplitBill: () -> Unit = {},
+    onOpenOpenBills: () -> Unit = {},
     onNavigateToSettings: () -> Unit,
     onNavigateToCatalog: () -> Unit,
     onNavigateToPairing: () -> Unit,
@@ -369,7 +371,15 @@ fun PosMobilePortraitLayout(
                     selectedTableId = selectedTableId,
                     onOpenTableBoard = onOpenTableBoard,
                     onTableSelected = onTableSelected,
-                    splitSection = splitSection
+                    splitSection = splitSection,
+                    onOpenSplitBill = {
+                        showCartSheet = false
+                        onOpenSplitBill()
+                    },
+                    onOpenOpenBills = {
+                        showCartSheet = false
+                        onOpenOpenBills()
+                    }
                 )
             }
         }

@@ -73,6 +73,8 @@ data class PosUiState(
     val isSubmittingOrder: Boolean = false,
     val settlementError: UiText? = null,
     val showCashModal: Boolean = false,
+    /** Pay-first order open in the split settlement dialog (PR 9), or null. */
+    val splitOrderId: String? = null,
     val pendingOrder: PosOrder? = null,
     val pendingOrderIdempotencyKey: String? = null,
     val activeQrisPayment: PosPaymentAttempt? = null,
@@ -449,6 +451,71 @@ class PosViewModel(
         return Result.success(tabId)
     }
 
+    /**
+     * Creates (or reuses) the pay-first order for the cart and opens the split dialog for it. The order is
+     * priced and stored by the server exactly like a normal sale; the dialog then divides and collects it.
+     */
+    fun startSplitBill() {
+        val snapshot = _uiState.value
+        val quote = snapshot.quote ?: return
+        // A table tab is divided when it closes (PosTabSplitSection); this dialog serves pay-first orders.
+        if (snapshot.cart.isEmpty() || snapshot.isSubmittingOrder || snapshot.tableId != null) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSubmittingOrder = true, settlementError = null) }
+            ensureOrderCreated(snapshot, quote).fold(
+                onSuccess = { order -> _uiState.update { it.copy(isSubmittingOrder = false, splitOrderId = order.id) } },
+                onFailure = { err ->
+                    val message = err.toUiText(R.string.pos_msg_split_order_failed)
+                    _uiState.update { it.copy(isSubmittingOrder = false, settlementError = message) }
+                    _effects.emit(PosUiEffect.ShowToast(message, CassyToastTone.ERROR))
+                }
+            )
+        }
+    }
+
+    /** Closes the split dialog; the order stays pending and the cart keeps it for a later resume. */
+    fun closeSplitBill() {
+        _uiState.update { it.copy(splitOrderId = null) }
+    }
+
+    /**
+     * Called when the server reports the divided order fully paid: prints the receipt and the kitchen
+     * tickets (the backend has just created the KDS tickets) and clears the cart. Bills resumed from the
+     * open-bills list are not tied to the cart, so the cart is left alone for them.
+     */
+    fun onSplitBillSettled(order: PosOrder) {
+        val snapshot = _uiState.value
+        val belongsToCart = snapshot.pendingOrder?.id == order.id
+        viewModelScope.launch {
+            if (belongsToCart) {
+                dispatchReceiptsAndKitchenTickets(
+                    order = order,
+                    cartSnapshot = snapshot.cart,
+                    tableLabel = resolveTableLabel(snapshot),
+                    paymentLabel = "BAGI TAGIHAN",
+                    cashTenderedIdr = null,
+                    changeIdr = null,
+                    roundingIdr = 0L,
+                    config = printerSettings.getConfig(),
+                    roundNumber = snapshot.dineInRound
+                )
+                clearCartAfterPayment()
+            }
+            _uiState.update { it.copy(splitOrderId = null) }
+            val orderNo = order.orderNumber.ifBlank { order.id.takeLast(8).uppercase() }
+            _effects.emit(PosUiEffect.CashPaymentCompleted(orderNo))
+            _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.pos_msg_split_bill_paid, orderNo), CassyToastTone.SUCCESS))
+        }
+    }
+
+    /** Kicks the cash drawer after a cash share, when a cashier printer is configured. */
+    fun kickDrawerForSplitCash() {
+        viewModelScope.launch {
+            val config = printerSettings.getConfig()
+            if (config.hasCashierPrinter) printerManager.openCashDrawer(config.cashierPrinterIp, config.cashierPrinterPort)
+        }
+    }
+
     fun openCashModal() {
         if (_uiState.value.cart.isEmpty() || _uiState.value.quote == null) return
         _uiState.update { it.copy(showCashModal = true, settlementError = null) }
@@ -786,7 +853,8 @@ class PosViewModel(
                 tabSplits = emptyList(),
                 // A paid tab frees its board table; a free-text label stays for the next walk-in.
                 tableId = null,
-                tableName = if (it.tableId != null) "" else it.tableName
+                tableName = if (it.tableId != null) "" else it.tableName,
+                splitOrderId = null
             )
         }
     }

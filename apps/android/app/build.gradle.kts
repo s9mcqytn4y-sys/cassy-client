@@ -37,7 +37,7 @@ android {
         }
         create("prod") {
             dimension = "environment"
-            buildConfigField("String", "BASE_API_URL", "\"https://api.cassy.id\"")
+            buildConfigField("String", "BASE_API_URL", "\"https://api.abbdullaziz.online\"")
             buildConfigField("Boolean", "IS_DEMO_ENVIRONMENT", "false")
         }
     }

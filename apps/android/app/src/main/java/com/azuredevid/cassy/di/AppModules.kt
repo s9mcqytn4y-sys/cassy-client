@@ -20,16 +20,22 @@ import com.azuredevid.cassy.data.repository.KtorStorePrinterRepository
 import com.azuredevid.cassy.data.repository.DataStoreServerSettingsRepository
 import com.azuredevid.cassy.data.repository.KtorAuthRepository
 import com.azuredevid.cassy.data.repository.KtorCatalogRepository
+import com.azuredevid.cassy.data.repository.KtorKdsRepository
 import com.azuredevid.cassy.data.repository.KtorOrderQuoteRepository
 import com.azuredevid.cassy.data.repository.KtorPosOrderRepository
 import com.azuredevid.cassy.data.repository.KtorApprovalRepository
 import com.azuredevid.cassy.data.repository.KtorServiceRequestRepository
 import com.azuredevid.cassy.data.repository.KtorTableTabRepository
 import com.azuredevid.cassy.data.repository.KtorShiftRepository
+import com.azuredevid.cassy.data.repository.KtorSplitBillRepository
 import com.azuredevid.cassy.data.repository.KtorStoreGovernanceRepository
+import com.azuredevid.cassy.data.repository.KtorTableManagementRepository
 import com.azuredevid.cassy.data.repository.ServerSettingsRepository
+import com.azuredevid.cassy.domain.repository.SplitBillRepository
 import com.azuredevid.cassy.domain.repository.AuthRepository
 import com.azuredevid.cassy.domain.repository.CatalogRepository
+import com.azuredevid.cassy.domain.repository.KdsRepository
+import com.azuredevid.cassy.domain.repository.RealtimeEventSource
 import com.azuredevid.cassy.domain.repository.LocalServerDiscoveryRepository
 import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
@@ -41,7 +47,10 @@ import com.azuredevid.cassy.domain.repository.StorePrinterRepository
 import com.azuredevid.cassy.domain.repository.ServerHealthMonitor
 import com.azuredevid.cassy.domain.repository.ShiftRepository
 import com.azuredevid.cassy.domain.repository.StoreGovernanceRepository
+import com.azuredevid.cassy.domain.repository.TableManagementRepository
 import com.azuredevid.cassy.ui.catalog.CatalogManagementViewModel
+import com.azuredevid.cassy.ui.kds.KdsViewModel
+import com.azuredevid.cassy.ui.pos.split.SplitSettlementViewModel
 import com.azuredevid.cassy.ui.pairing.StorePairingViewModel
 import com.azuredevid.cassy.ui.pos.PosViewModel
 import com.azuredevid.cassy.ui.pos.ServiceRequestViewModel
@@ -50,6 +59,7 @@ import com.azuredevid.cassy.ui.settings.ServerConfigViewModel
 import com.azuredevid.cassy.ui.settings.PrinterSettingsViewModel
 import com.azuredevid.cassy.ui.settings.StoreSettingsViewModel
 import com.azuredevid.cassy.ui.shift.ShiftViewModel
+import com.azuredevid.cassy.ui.tables.TableManagementViewModel
 import io.ktor.client.HttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
@@ -89,6 +99,7 @@ val appModule = module {
             sessionManager = get()
         )
     }
+    single<RealtimeEventSource> { get<CassyRealtimeClient>() }
 
     single<ServerHealthMonitor> {
         AndroidServerHealthMonitor(
@@ -180,6 +191,27 @@ val repositoryModule = module {
             serverSettings = get()
         )
     }
+
+    single<KdsRepository> {
+        KtorKdsRepository(
+            httpClient = get(),
+            serverSettings = get()
+        )
+    }
+
+    single<SplitBillRepository> {
+        KtorSplitBillRepository(
+            httpClient = get(),
+            serverSettings = get()
+        )
+    }
+
+    single<TableManagementRepository> {
+        KtorTableManagementRepository(
+            httpClient = get(),
+            serverSettings = get()
+        )
+    }
 }
 
 val viewModelModule = module {
@@ -256,6 +288,30 @@ val viewModelModule = module {
             catalogRepository = get(),
             sessionManager = get(),
             savedStateHandle = get()
+        )
+    }
+    viewModel {
+        TableManagementViewModel(
+            repository = get(),
+            sessionManager = get(),
+            printerSettings = get(),
+            printerManager = get(),
+            savedStateHandle = get()
+        )
+    }
+    viewModel {
+        KdsViewModel(
+            repository = get(),
+            sessionManager = get(),
+            realtime = get(),
+            storeSettings = get(),
+            savedStateHandle = get()
+        )
+    }
+    viewModel {
+        SplitSettlementViewModel(
+            splitBills = get(),
+            posOrders = get()
         )
     }
 }
