@@ -149,7 +149,8 @@ val repositoryModule = module {
     single<PosOrderRepository> {
         KtorPosOrderRepository(
             httpClient = get(),
-            serverSettings = get()
+            serverSettings = get(),
+            deviceCredential = { get<SessionManager>().getDeviceCredential() }
         )
     }
 
