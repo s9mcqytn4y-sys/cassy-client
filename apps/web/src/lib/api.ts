@@ -18,11 +18,13 @@ export function isMaintenance(err: unknown): boolean {
 export interface RequestOptions {
   method?: "GET" | "POST";
   body?: unknown;
+  /** Extra headers, e.g. `Authorization: Display <token>` for the queue screen. */
+  headers?: Record<string, string>;
 }
 
 export async function apiFetch<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const method = opts.method ?? "GET";
-  const headers: Record<string, string> = { Accept: "application/json" };
+  const headers: Record<string, string> = { Accept: "application/json", ...opts.headers };
   if (opts.body !== undefined) headers["Content-Type"] = "application/json";
   if (method !== "GET") headers["X-CSRF-Protection"] = "1";
 

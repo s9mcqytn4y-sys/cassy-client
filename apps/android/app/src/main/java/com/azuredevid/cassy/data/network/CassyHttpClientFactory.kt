@@ -165,9 +165,7 @@ object CassyHttpClientFactory {
                         val path = request.url.build().encodedPath
                         apiHost != null &&
                             targetHost.equals(apiHost, ignoreCase = true) &&
-                            !path.startsWith("/api/v1/public/") &&
-                            !path.endsWith("/auth/staff/login") &&
-                            !path.endsWith("/auth/staff/refresh")
+                            carriesStaffBearer(path)
                     }
                 }
             }

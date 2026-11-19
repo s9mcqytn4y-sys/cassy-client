@@ -18,6 +18,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
@@ -94,6 +95,10 @@ import com.azuredevid.cassy.domain.repository.StorePrinter
 import com.azuredevid.cassy.domain.repository.StorePrinterInput
 import com.azuredevid.cassy.domain.repository.StorePrinterRepository
 import com.azuredevid.cassy.ui.settings.PrinterSettingsViewModel
+import com.azuredevid.cassy.ui.settings.DisplayScreensViewModel
+import com.azuredevid.cassy.domain.repository.CreatedDisplayScreen
+import com.azuredevid.cassy.domain.repository.DisplayScreen
+import com.azuredevid.cassy.domain.repository.DisplayTokenRepository
 import com.azuredevid.cassy.domain.repository.ServerConnectionStatus
 import com.azuredevid.cassy.domain.repository.ServerConnectivityState
 import com.azuredevid.cassy.domain.repository.ServerHealthMonitor
@@ -278,6 +283,22 @@ class CassyUiShowcaseTest {
         override suspend fun listAll() = Result.success(printers)
         override suspend fun create(input: StorePrinterInput) = Result.success(printers.first())
         override suspend fun update(id: String, input: StorePrinterInput) = Result.success(printers.first())
+    }
+
+    private class ShowcaseDisplayTokens : DisplayTokenRepository {
+        private val screens = listOf(
+            DisplayScreen("d-1", "TV kasir depan", "2026-11-19T08:00:00Z", lastSeenAt = "2026-11-19T12:41:00Z"),
+            DisplayScreen("d-2", "TV lama", "2026-11-10T08:00:00Z", revokedAt = "2026-11-18T09:00:00Z")
+        )
+        override suspend fun list() = Result.success(screens)
+        override suspend fun create(name: String) = Result.success(
+            CreatedDisplayScreen(
+                DisplayScreen("d-3", name, "2026-11-19T13:00:00Z"),
+                "s1.d-3.secret",
+                "https://order.cassy.id/antrean#t=s1.d-3.secret"
+            )
+        )
+        override suspend fun revoke(id: String) = Result.success(Unit)
     }
 
     private fun showcasePrinterViewModel() =
@@ -727,7 +748,12 @@ class CassyUiShowcaseTest {
         )
         composeRule.setContent {
             CassyTheme(darkTheme = false) {
-                StoreSettingsScreen(onNavigateBack = {}, viewModel = vm, printerViewModel = showcasePrinterViewModel())
+                StoreSettingsScreen(
+                    onNavigateBack = {},
+                    viewModel = vm,
+                    printerViewModel = showcasePrinterViewModel(),
+                    displayViewModel = DisplayScreensViewModel(ShowcaseDisplayTokens())
+                )
             }
         }
         composeRule.waitForIdle()
@@ -746,6 +772,15 @@ class CassyUiShowcaseTest {
         composeRule.onNodeWithText(context.getString(R.string.printer_btn_add)).performClick()
         composeRule.onNodeWithText(context.getString(R.string.printer_address_required)).assertExists()
         captureScreen("StoreSettings/Tabs/PrinterEditor", preferFullDisplay = true)
+        composeRule.onNodeWithText(context.getString(R.string.btn_cancel)).performClick()
+        composeRule.onNodeWithText(context.getString(R.string.settings_tab_display)).performClick()
+        composeRule.onNodeWithText("TV kasir depan").assertExists()
+        captureScreen("StoreSettings/Tabs/DisplayTab")
+        composeRule.onNodeWithText(context.getString(R.string.display_btn_add)).performClick()
+        composeRule.onNodeWithText(context.getString(R.string.display_field_name)).performTextInput("TV teras")
+        composeRule.onNodeWithText(context.getString(R.string.display_btn_create)).performClick()
+        composeRule.onNodeWithText(context.getString(R.string.display_once_warning)).assertExists()
+        captureScreen("StoreSettings/Tabs/DisplayCreated", preferFullDisplay = true)
     }
 
     @Test

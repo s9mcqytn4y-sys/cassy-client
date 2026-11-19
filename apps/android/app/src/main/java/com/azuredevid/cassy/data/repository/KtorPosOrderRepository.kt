@@ -7,6 +7,7 @@ import com.azuredevid.cassy.data.model.InitiatePaymentRequestDto
 import com.azuredevid.cassy.data.model.InitiatePaymentResponseDto
 import com.azuredevid.cassy.data.model.OrderDetailResponseDto
 import com.azuredevid.cassy.data.network.HttpErrorMapper
+import com.azuredevid.cassy.data.network.deviceAuth
 import com.azuredevid.cassy.domain.model.CreatePosOrderInput
 import com.azuredevid.cassy.domain.model.InitiatePosPaymentInput
 import com.azuredevid.cassy.domain.model.InitiatePosPaymentResult
@@ -75,7 +76,9 @@ private data class OfflineSyncResponseDto(
 class KtorPosOrderRepository(
     private val httpClient: HttpClient,
     private val serverSettings: ServerSettingsRepository,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    /** Paired device credential; the offline batch endpoint authenticates the device, not the cashier. */
+    private val deviceCredential: () -> String? = { null }
 ) : PosOrderRepository {
 
     override suspend fun createOrder(input: CreatePosOrderInput): Result<PosOrder> = withContext(ioDispatcher) {
@@ -154,6 +157,9 @@ class KtorPosOrderRepository(
         orders: List<DeviceOfflineOrderSyncItem>
     ): Result<List<DeviceOfflineOrderSyncOutcome>> = withContext(ioDispatcher) {
         try {
+            // Without a device credential the coordinator falls back to replaying orders one by one.
+            val credential = deviceCredential()
+                ?: return@withContext Result.failure(IllegalStateException("Perangkat belum terdaftar untuk sinkron offline."))
             val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
             val dto = OfflineSyncRequestDto(
                 orders = orders.map { order ->
@@ -183,6 +189,7 @@ class KtorPosOrderRepository(
                 }
             )
             val response = httpClient.post("$baseUrl/api/v1/device/offline-orders/sync") {
+                deviceAuth(credential)
                 contentType(ContentType.Application.Json)
                 setBody(dto)
             }

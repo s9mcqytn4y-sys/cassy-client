@@ -4,7 +4,10 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -61,144 +64,216 @@ fun CatalogProductManagementRow(
             .animateContentSize(),
         contentPadding = CassyDimens.SpaceMd
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd)
-        ) {
-            val hasPhoto = product.imageUrl.isNotBlank()
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(CassyDimens.RadiusBadge))
-                    .background(
-                        if (hasPhoto) MaterialTheme.colorScheme.primaryContainer
-                        else MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                if (hasPhoto) {
-                    AsyncImage(
-                        model = product.imageUrl,
-                        contentDescription = product.name,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(56.dp)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Rounded.HideImage,
-                        contentDescription = stringResource(R.string.catalog_photo_missing),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val isCompact = maxWidth < 560.dp
+            if (isCompact) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
                 ) {
-                    Text(
-                        text = product.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                    CatalogProductHeaderInfo(
+                        product = product,
+                        rupiahFormat = rupiahFormat,
+                        modifier = Modifier.fillMaxWidth()
                     )
-                    CassyStatusBadge(
-                        text = if (product.isAvailable) {
-                            stringResource(R.string.catalog_status_available)
-                        } else {
-                            stringResource(R.string.catalog_status_sold_out)
-                        },
-                        tone = if (product.isAvailable) CassyToastTone.SUCCESS else CassyToastTone.WARNING
+                    CatalogProductActionControls(
+                        isAvailable = product.isAvailable,
+                        canManage = canManage,
+                        isUploading = isUploading,
+                        onToggleAvailability = onToggleAvailability,
+                        onUploadPhoto = onUploadPhoto,
+                        onManageVariants = onManageVariants,
+                        onEdit = onEdit,
+                        onArchive = onArchive,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
-                val variantLabel = pluralStringResource(
-                    R.plurals.catalog_variant_count,
-                    product.variants.size,
-                    product.variants.size
-                )
-                Text(
-                    text = stringResource(
-                        R.string.catalog_meta_format,
-                        rupiahFormat.format(product.basePriceIdr),
-                        product.prepStation.uppercase(),
-                        variantLabel
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                if (product.description.isNotBlank()) {
-                    Text(
-                        text = product.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd)
+                ) {
+                    CatalogProductHeaderInfo(
+                        product = product,
+                        rupiahFormat = rupiahFormat,
+                        modifier = Modifier.weight(1f)
+                    )
+                    CatalogProductActionControls(
+                        isAvailable = product.isAvailable,
+                        canManage = canManage,
+                        isUploading = isUploading,
+                        onToggleAvailability = onToggleAvailability,
+                        onUploadPhoto = onUploadPhoto,
+                        onManageVariants = onManageVariants,
+                        onEdit = onEdit,
+                        onArchive = onArchive
                     )
                 }
             }
+        }
+    }
+}
 
+@Composable
+private fun CatalogProductHeaderInfo(
+    product: CatalogProduct,
+    rupiahFormat: NumberFormat,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd)
+    ) {
+        val hasPhoto = product.imageUrl.isNotBlank()
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(CassyDimens.RadiusBadge))
+                .background(
+                    if (hasPhoto) MaterialTheme.colorScheme.primaryContainer
+                    else MaterialTheme.colorScheme.surfaceVariant
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (hasPhoto) {
+                AsyncImage(
+                    model = product.imageUrl,
+                    contentDescription = product.name,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(56.dp)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Rounded.HideImage,
+                    contentDescription = stringResource(R.string.catalog_photo_missing),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
             ) {
-                Box(
-                    modifier = Modifier
-                        .defaultMinSize(
-                            minWidth = CassyDimens.TouchTargetMin,
-                            minHeight = CassyDimens.TouchTargetMin
-                        )
-                        .semantics(mergeDescendants = true) {},
-                    contentAlignment = Alignment.Center
-                ) {
-                    Switch(
-                        checked = product.isAvailable,
-                        onCheckedChange = { onToggleAvailability() }
-                    )
-                }
+                Text(
+                    text = product.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                CassyStatusBadge(
+                    text = if (product.isAvailable) {
+                        stringResource(R.string.catalog_status_available)
+                    } else {
+                        stringResource(R.string.catalog_status_sold_out)
+                    },
+                    tone = if (product.isAvailable) CassyToastTone.SUCCESS else CassyToastTone.WARNING
+                )
+            }
+            val variantLabel = pluralStringResource(
+                R.plurals.catalog_variant_count,
+                product.variants.size,
+                product.variants.size
+            )
+            Text(
+                text = stringResource(
+                    R.string.catalog_meta_format,
+                    rupiahFormat.format(product.basePriceIdr),
+                    product.prepStation.uppercase(),
+                    variantLabel
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            if (product.description.isNotBlank()) {
+                Text(
+                    text = product.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
 
-                if (canManage) {
-                    CassySecondaryButton(
-                        text = stringResource(R.string.catalog_btn_upload_photo),
-                        onClick = onUploadPhoto,
-                        enabled = !isUploading,
-                        icon = Icons.Rounded.PhotoCamera
-                    )
-                    CassySecondaryButton(
-                        text = stringResource(R.string.catalog_btn_variants),
-                        onClick = onManageVariants,
-                        icon = Icons.Rounded.Tune
-                    )
-                    IconButton(
-                        onClick = onEdit,
-                        modifier = Modifier.defaultMinSize(
-                            minWidth = CassyDimens.TouchTargetMin,
-                            minHeight = CassyDimens.TouchTargetMin
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Edit,
-                            contentDescription = stringResource(R.string.catalog_edit_product)
-                        )
-                    }
-                    IconButton(
-                        onClick = onArchive,
-                        modifier = Modifier.defaultMinSize(
-                            minWidth = CassyDimens.TouchTargetMin,
-                            minHeight = CassyDimens.TouchTargetMin
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Delete,
-                            contentDescription = stringResource(R.string.catalog_btn_archive)
-                        )
-                    }
-                }
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CatalogProductActionControls(
+    isAvailable: Boolean,
+    canManage: Boolean,
+    isUploading: Boolean,
+    onToggleAvailability: () -> Unit,
+    onUploadPhoto: () -> Unit,
+    onManageVariants: () -> Unit,
+    onEdit: () -> Unit,
+    onArchive: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FlowRow(
+        modifier = modifier,
+        verticalArrangement = Arrangement.Center,
+        horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
+    ) {
+        Box(
+            modifier = Modifier
+                .defaultMinSize(
+                    minWidth = CassyDimens.TouchTargetMin,
+                    minHeight = CassyDimens.TouchTargetMin
+                )
+                .semantics(mergeDescendants = true) {},
+            contentAlignment = Alignment.Center
+        ) {
+            Switch(
+                checked = isAvailable,
+                onCheckedChange = { onToggleAvailability() }
+            )
+        }
+
+        if (canManage) {
+            CassySecondaryButton(
+                text = stringResource(R.string.catalog_btn_upload_photo),
+                onClick = onUploadPhoto,
+                enabled = !isUploading,
+                icon = Icons.Rounded.PhotoCamera
+            )
+            CassySecondaryButton(
+                text = stringResource(R.string.catalog_btn_variants),
+                onClick = onManageVariants,
+                icon = Icons.Rounded.Tune
+            )
+            IconButton(
+                onClick = onEdit,
+                modifier = Modifier.defaultMinSize(
+                    minWidth = CassyDimens.TouchTargetMin,
+                    minHeight = CassyDimens.TouchTargetMin
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Edit,
+                    contentDescription = stringResource(R.string.catalog_edit_product)
+                )
+            }
+            IconButton(
+                onClick = onArchive,
+                modifier = Modifier.defaultMinSize(
+                    minWidth = CassyDimens.TouchTargetMin,
+                    minHeight = CassyDimens.TouchTargetMin
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Delete,
+                    contentDescription = stringResource(R.string.catalog_btn_archive)
+                )
             }
         }
     }
