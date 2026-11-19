@@ -4,6 +4,7 @@ import androidx.room.Room
 import com.azuredevid.cassy.core.audio.CassySoundPlayer
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.data.local.CassyDatabase
+import com.azuredevid.cassy.data.local.OfflineOrderDao
 import com.azuredevid.cassy.data.local.OfflineSyncCoordinator
 import com.azuredevid.cassy.core.hardware.ShiftReportThermalBuilder
 import com.azuredevid.cassy.core.security.AeadCipher
@@ -16,6 +17,7 @@ import com.azuredevid.cassy.data.network.AndroidServerHealthMonitor
 import com.azuredevid.cassy.data.network.CassyHttpClientFactory
 import com.azuredevid.cassy.data.network.CassyRealtimeClient
 import com.azuredevid.cassy.data.repository.DataStorePrinterSettingsRepository
+import com.azuredevid.cassy.data.repository.KtorDeviceProfileRepository
 import com.azuredevid.cassy.data.repository.KtorDisplayTokenRepository
 import com.azuredevid.cassy.data.repository.KtorStorePrinterRepository
 import com.azuredevid.cassy.data.repository.DataStoreServerSettingsRepository
@@ -44,6 +46,7 @@ import com.azuredevid.cassy.domain.repository.ApprovalRepository
 import com.azuredevid.cassy.domain.repository.ServiceRequestRepository
 import com.azuredevid.cassy.domain.repository.TableTabRepository
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.domain.repository.DeviceProfileRepository
 import com.azuredevid.cassy.domain.repository.DisplayTokenRepository
 import com.azuredevid.cassy.domain.repository.StorePrinterRepository
 import com.azuredevid.cassy.domain.repository.ServerHealthMonitor
@@ -58,6 +61,7 @@ import com.azuredevid.cassy.ui.pos.PosViewModel
 import com.azuredevid.cassy.ui.pos.ServiceRequestViewModel
 import com.azuredevid.cassy.ui.pos.TabItemVoidViewModel
 import com.azuredevid.cassy.ui.settings.ServerConfigViewModel
+import com.azuredevid.cassy.ui.navigation.DeviceRoleViewModel
 import com.azuredevid.cassy.ui.settings.DisplayScreensViewModel
 import com.azuredevid.cassy.ui.settings.PrinterSettingsViewModel
 import com.azuredevid.cassy.ui.settings.StoreSettingsViewModel
@@ -182,6 +186,14 @@ val repositoryModule = module {
         )
     }
 
+    single<DeviceProfileRepository> {
+        KtorDeviceProfileRepository(
+            httpClient = get(),
+            serverSettings = get(),
+            deviceCredential = { get<SessionManager>().getDeviceCredential() }
+        )
+    }
+
     single<DisplayTokenRepository> {
         KtorDisplayTokenRepository(
             httpClient = get(),
@@ -262,6 +274,15 @@ val viewModelModule = module {
         )
     }
     viewModel { DisplayScreensViewModel(repository = get()) }
+    viewModel {
+        val shifts = get<ShiftRepository>()
+        val offline = get<OfflineOrderDao>()
+        DeviceRoleViewModel(
+            profiles = get(),
+            hasOpenShift = { shifts.getCurrentShift().getOrNull() != null },
+            pendingOfflineOrders = { offline.getPendingOrders().size }
+        )
+    }
     viewModel {
         PrinterSettingsViewModel(
             printers = get(),

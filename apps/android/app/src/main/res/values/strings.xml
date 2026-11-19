@@ -31,7 +31,7 @@
     <string name="order_type_dine_in">DINE-IN</string>
     <string name="order_type_takeaway">TAKEAWAY</string>
     <string name="cart_empty_title">Keranjang kasir masih kosong</string>
-    <string name="cart_empty_subtitle">Pilih menu dari katalog di sebelah kiri</string>
+    <string name="cart_empty_subtitle">Pilih menu dari katalog untuk memulai pesanan</string>
     <string name="a11y_decrease_qty">Kurangi jumlah %1$s</string>
     <string name="a11y_increase_qty">Tambah jumlah %1$s</string>
     <string name="subtotal_label">Subtotal</string>
@@ -39,7 +39,7 @@
     <string name="service_label">Biaya layanan</string>
     <string name="total_from_server">Total dihitung server setelah kasir masuk ke toko.</string>
     <string name="grand_total_label">Grand Total</string>
-    <string name="btn_kick_drawer">Buka Laci (RJ11)</string>
+    <string name="btn_kick_drawer">Buka Laci</string>
     <string name="btn_send_to_kitchen">Kirim ke Dapur</string>
     <string name="btn_pay_cash">Bayar Tunai</string>
     <string name="btn_pay_qris">QRIS Dinamis</string>
@@ -275,7 +275,7 @@
     <string name="server_config_preset_demo">Cloud HTTPS</string>
     <string name="server_config_preset_lan">LAN Toko Lokal</string>
     <string name="server_config_preset_emulator">Emulator Lokal</string>
-    <string name="server_config_test_btn">Uji Koneksi Server</string>
+    <string name="server_config_test_btn">Uji Koneksi</string>
     <string name="server_config_testing">Memeriksa koneksi…</string>
     <string name="server_config_test_ok">Server merespons (%1$s)</string>
     <string name="server_config_test_fail">Server tidak terjangkau: %1$s</string>
@@ -784,4 +784,5 @@
     <string name="display_msg_create_failed">Layar belum bisa dibuat. Coba lagi.</string>
     <string name="display_msg_revoke_failed">Layar belum bisa dicabut. Coba lagi.</string>
     <string name="display_msg_load_failed">Daftar layar belum bisa dimuat.</string>
+    <string name="device_role_held_banner">Peran perangkat diubah owner. Tutup shift dan sinkronkan order untuk beralih.</string>
 </resources>
