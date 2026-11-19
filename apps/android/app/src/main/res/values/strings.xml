@@ -614,4 +614,10 @@
     <string name="printer_msg_load_failed">Daftar printer belum bisa dimuat. Tablet memakai daftar terakhir yang tersimpan.</string>
     <string name="printer_msg_test_ok">%1$s terhubung.</string>
     <string name="printer_msg_test_failed">%1$s tidak terjangkau. Pastikan printer menyala dan satu jaringan dengan tablet.</string>
+    <string name="tab_split_by_item_btn">Bagi per item</string>
+    <string name="tab_split_by_item_title">Bagi tagihan per item</string>
+    <string name="tab_split_by_item_subtitle">Pilih tamu yang membayar tiap item. Nominal tiap bagian dihitung server.</string>
+    <string name="tab_split_by_item_guests">Jumlah tamu</string>
+    <string name="tab_split_guest">Tamu %1$d</string>
+    <string name="tab_split_by_item_empty_guest">Setiap tamu perlu membayar minimal satu item. Kurangi jumlah tamu atau pindahkan item.</string>
 </resources>

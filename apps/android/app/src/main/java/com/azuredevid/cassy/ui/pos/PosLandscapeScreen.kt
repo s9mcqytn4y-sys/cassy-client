@@ -48,6 +48,7 @@ import kotlinx.coroutines.launch
 import com.azuredevid.cassy.ui.pos.components.PosServiceRequestPill
 import com.azuredevid.cassy.ui.pos.components.PosServiceRequestsModal
 import com.azuredevid.cassy.ui.pos.components.PosTabItemVoidDialog
+import com.azuredevid.cassy.ui.pos.components.PosItemSplitDialog
 import com.azuredevid.cassy.ui.pos.components.PosTabSplitSection
 import org.koin.androidx.compose.koinViewModel
 import java.text.NumberFormat
@@ -194,7 +195,9 @@ fun PosLandscapeScreen(
                             rupiahFormat = rupiahFormat,
                             onSplitCountChange = posViewModel::setTabSplitCount,
                             onSplit = posViewModel::splitTab,
-                            onSelectSplit = posViewModel::selectSplit
+                            onSelectSplit = posViewModel::selectSplit,
+                            canSplitByItem = posState.canSplitByItem,
+                            onSplitByItem = posViewModel::openItemSplit
                         )
                     }
                 }
@@ -353,6 +356,17 @@ fun PosLandscapeScreen(
                         onNavigateToPairing = onNavigateToPairing
                     )
                 }
+            }
+
+            posState.itemSplit?.let { draft ->
+                PosItemSplitDialog(
+                    draft = draft,
+                    isBusy = posState.isSubmittingOrder,
+                    onGuestsChange = posViewModel::setItemSplitGuests,
+                    onAssign = posViewModel::assignUnit,
+                    onConfirm = posViewModel::confirmItemSplit,
+                    onDismiss = posViewModel::dismissItemSplit
+                )
             }
 
             val pricedQuote = posState.quote

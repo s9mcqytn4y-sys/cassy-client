@@ -329,6 +329,7 @@ class PosViewModelTest {
         val rounds = mutableListOf<List<CreatePosOrderItemInput>>()
         var closedTabId: String? = null
         var closedSplitCount: Int? = null
+        var closedShares: List<Map<String, Int>>? = null
 
         override suspend fun listTables(): Result<List<PosTable>> = Result.success(emptyList())
 
@@ -360,6 +361,13 @@ class PosViewModelTest {
             closedSplitCount = splitCount
             val shares = (1..splitCount).map { TabSplit("split-$it", it, totalAmount = 61600L / splitCount) }
             return Result.success(ClosedTab(PosOrder(id = orderId, orderNumber = "TAB-001", totalAmount = 61600L), shares))
+        }
+
+        override suspend fun closeTabByItem(orderId: String, shares: List<Map<String, Int>>): Result<ClosedTab> {
+            closedTabId = orderId
+            closedShares = shares
+            val splits = shares.indices.map { TabSplit("item-split-${it + 1}", it + 1, totalAmount = 30800L) }
+            return Result.success(ClosedTab(PosOrder(id = orderId, orderNumber = "TAB-001", totalAmount = 61600L), splits))
         }
     }
 
@@ -477,6 +485,45 @@ class PosViewModelTest {
         assertTrue(vm.uiState.value.cart.isEmpty())
         assertTrue(vm.uiState.value.tabSplits.isEmpty())
         assertEquals(1, vm.uiState.value.tabSplitCount)
+    }
+
+    @Test
+    fun boardTable_splitByItemGivesEachUnitToAGuest() = runTest {
+        val tabs = FakeTableTabRepository()
+        val vm = PosViewModel(
+            StubCatalogRepository { Result.success(CatalogSnapshot(listOf(coffeeCategory), listOf(latte))) },
+            flatQuote,
+            FakePosOrderRepository(),
+            FakePrinterSettingsRepository(),
+            signedInSession(backgroundScope),
+            tableTabRepository = tabs
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+        vm.selectTable(PosTable("t-7", "07", "", "Indoor", 4, "available", 0L))
+        vm.addProductToCart(latte)
+        vm.addProductToCart(latte)
+        testDispatcher.scheduler.advanceUntilIdle()
+        // Unsent rows have no server line ids yet.
+        assertFalse(vm.uiState.value.canSplitByItem)
+
+        vm.sendToKitchen()
+        testDispatcher.scheduler.advanceUntilIdle()
+        vm.openItemSplit()
+        val draft = vm.uiState.value.itemSplit
+        assertEquals(2, draft?.units?.size)
+
+        vm.assignUnit(0, 1)
+        vm.assignUnit(1, 1)
+        // Guest 2 would pay nothing, which the server rejects.
+        assertFalse(vm.uiState.value.itemSplit!!.canConfirm)
+        vm.assignUnit(1, 2)
+        vm.confirmItemSplit()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(listOf(mapOf("round-line-0" to 1), mapOf("round-line-0" to 1)), tabs.closedShares)
+        assertNull(vm.uiState.value.itemSplit)
+        assertEquals(2, vm.uiState.value.tabSplits.size)
+        assertEquals("item-split-1", vm.uiState.value.pendingSplitId)
     }
 
     @Test

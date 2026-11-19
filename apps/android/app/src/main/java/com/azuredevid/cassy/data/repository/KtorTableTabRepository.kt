@@ -73,8 +73,15 @@ private data class SubmitRoundRequestDto(
 @Serializable
 private data class CloseTabRequestDto(
     val strategy: String,
-    @SerialName("split_count") val splitCount: Int? = null
+    @SerialName("split_count") val splitCount: Int? = null,
+    val splits: List<SplitShareDto>? = null
 )
+
+@Serializable
+private data class SplitShareDto(val items: List<SplitItemDto>)
+
+@Serializable
+private data class SplitItemDto(@SerialName("order_item_id") val orderItemId: String, val quantity: Int)
 
 @Serializable
 private data class VoidTabItemRequestDto(
@@ -209,13 +216,17 @@ class KtorTableTabRepository(
         }
     }
 
-    override suspend fun closeTab(orderId: String, splitCount: Int): Result<ClosedTab> = withContext(ioDispatcher) {
+    override suspend fun closeTab(orderId: String, splitCount: Int): Result<ClosedTab> =
+        close(orderId, if (splitCount > 1) CloseTabRequestDto("equal", splitCount) else CloseTabRequestDto("full"))
+
+    override suspend fun closeTabByItem(orderId: String, shares: List<Map<String, Int>>): Result<ClosedTab> =
+        close(orderId, CloseTabRequestDto("by_item", splits = shares.map { share -> SplitShareDto(share.map { SplitItemDto(it.key, it.value) }) }))
+
+    private suspend fun close(orderId: String, request: CloseTabRequestDto): Result<ClosedTab> = withContext(ioDispatcher) {
         try {
             val response = httpClient.post("${baseUrl()}/api/v1/pos/tabs/$orderId/close") {
                 contentType(ContentType.Application.Json)
-                setBody(
-                    if (splitCount > 1) CloseTabRequestDto("equal", splitCount) else CloseTabRequestDto("full")
-                )
+                setBody(request)
             }
             if (!response.status.isSuccess()) {
                 return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal menutup tagihan meja."))

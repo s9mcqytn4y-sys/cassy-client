@@ -616,5 +616,11 @@
     <string name="printer_msg_load_failed">The printer list could not load. This tablet keeps using the last saved list.</string>
     <string name="printer_msg_test_ok">%1$s is connected.</string>
     <string name="printer_msg_test_failed">%1$s is unreachable. Check that it is on and on the same network as the tablet.</string>
+    <string name="tab_split_by_item_btn">Split by item</string>
+    <string name="tab_split_by_item_title">Split the bill by item</string>
+    <string name="tab_split_by_item_subtitle">Pick the guest who pays for each item. The server prices each share.</string>
+    <string name="tab_split_by_item_guests">Number of guests</string>
+    <string name="tab_split_guest">Guest %1$d</string>
+    <string name="tab_split_by_item_empty_guest">Every guest needs at least one item. Use fewer guests or move an item.</string>
 </resources>
 

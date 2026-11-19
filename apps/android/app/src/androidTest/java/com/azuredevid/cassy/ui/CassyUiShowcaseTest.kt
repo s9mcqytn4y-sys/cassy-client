@@ -78,6 +78,9 @@ import com.azuredevid.cassy.ui.pos.components.PosServiceRequestPill
 import com.azuredevid.cassy.ui.pos.components.PosServiceRequestsModal
 import com.azuredevid.cassy.ui.pos.components.PosTabItemVoidDialog
 import com.azuredevid.cassy.ui.pos.components.PosTabSplitSection
+import com.azuredevid.cassy.ui.pos.components.PosItemSplitDialog
+import com.azuredevid.cassy.ui.pos.ItemSplitDraft
+import com.azuredevid.cassy.ui.pos.SplitUnit
 import com.azuredevid.cassy.domain.repository.TabSplit
 import com.azuredevid.cassy.ui.pos.TabItemVoidUiState
 import com.azuredevid.cassy.ui.pos.TabVoidStep
@@ -904,6 +907,31 @@ class CassyUiShowcaseTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.tab_split_progress, 1, 3)).assertExists()
         captureScreen("PosTabSplit/SharesOnePaid", preferFullDisplay = true)
+    }
+
+    @Test
+    fun itemSplit_rendersGuestPickerPerUnit() {
+        val units = listOf(
+            SplitUnit("l-1", "Kopi Susu Gula Aren"),
+            SplitUnit("l-1", "Kopi Susu Gula Aren"),
+            SplitUnit("l-2", "Croissant Butter"),
+            SplitUnit("l-3", "Nasi Ayam Bakar")
+        )
+        composeRule.setContent {
+            CassyTheme(darkTheme = false) {
+                PosItemSplitDialog(
+                    draft = ItemSplitDraft(units, guests = 3, owners = listOf(1, 2, 2, null)),
+                    isBusy = false,
+                    onGuestsChange = {},
+                    onAssign = { _, _ -> },
+                    onConfirm = {},
+                    onDismiss = {}
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.tab_split_by_item_title)).assertExists()
+        captureScreen("PosTabSplit/ByItemPicker", preferFullDisplay = true)
     }
 
     @Test

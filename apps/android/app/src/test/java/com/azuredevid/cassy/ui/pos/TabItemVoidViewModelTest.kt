@@ -53,6 +53,7 @@ class TabItemVoidViewModelTest {
         override suspend fun submitRound(orderId: String, idempotencyKey: String, items: List<CreatePosOrderItemInput>): Result<Unit> = error("unused")
         override suspend fun getTab(orderId: String): Result<PosOrder> = error("unused")
         override suspend fun closeTab(orderId: String, splitCount: Int): Result<ClosedTab> = error("unused")
+        override suspend fun closeTabByItem(orderId: String, shares: List<Map<String, Int>>): Result<ClosedTab> = error("unused")
     }
 
     private class FakeApprovals(private val statuses: ArrayDeque<String>) : ApprovalRepository {

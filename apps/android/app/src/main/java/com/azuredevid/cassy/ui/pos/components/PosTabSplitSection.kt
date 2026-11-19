@@ -3,6 +3,8 @@ package com.azuredevid.cassy.ui.pos.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
@@ -16,8 +18,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.automirrored.rounded.CallSplit
+import androidx.compose.material.icons.automirrored.rounded.ReceiptLong
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Remove
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -38,9 +42,13 @@ import androidx.compose.ui.unit.dp
 import com.azuredevid.cassy.R
 import com.azuredevid.cassy.domain.repository.TabSplit
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
+import com.azuredevid.cassy.ui.designsystem.CassyModalDialog
+import com.azuredevid.cassy.ui.designsystem.CassyPrimaryButton
+import com.azuredevid.cassy.ui.designsystem.CassySecondaryButton
 import com.azuredevid.cassy.ui.designsystem.CassyStatusBadge
 import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import com.azuredevid.cassy.ui.designsystem.CassyTonalButton
+import com.azuredevid.cassy.ui.pos.ItemSplitDraft
 import java.text.NumberFormat
 
 /**
@@ -56,7 +64,9 @@ fun PosTabSplitSection(
     rupiahFormat: NumberFormat,
     onSplitCountChange: (Int) -> Unit,
     onSplit: () -> Unit,
-    onSelectSplit: (String) -> Unit
+    onSelectSplit: (String) -> Unit,
+    canSplitByItem: Boolean = false,
+    onSplitByItem: () -> Unit = {}
 ) {
     if (splits.size > 1) {
         SplitShares(splits, selectedSplitId, isBusy, rupiahFormat, onSelectSplit)
@@ -101,6 +111,109 @@ fun PosTabSplitSection(
                 enabled = !isBusy,
                 icon = Icons.AutoMirrored.Rounded.CallSplit,
                 modifier = Modifier.fillMaxWidth()
+            )
+        }
+        CassySecondaryButton(
+            text = stringResource(R.string.tab_split_by_item_btn),
+            onClick = onSplitByItem,
+            enabled = !isBusy && canSplitByItem,
+            icon = Icons.AutoMirrored.Rounded.ReceiptLong,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+/**
+ * Split by item: each unit of each sent line goes to one guest. Shares are priced by the server, so
+ * the dialog only shows who pays for what.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun PosItemSplitDialog(
+    draft: ItemSplitDraft,
+    isBusy: Boolean,
+    onGuestsChange: (Int) -> Unit,
+    onAssign: (unitIndex: Int, guest: Int) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    CassyModalDialog(
+        title = stringResource(R.string.tab_split_by_item_title),
+        subtitle = stringResource(R.string.tab_split_by_item_subtitle),
+        icon = Icons.AutoMirrored.Rounded.ReceiptLong,
+        dismissEnabled = !isBusy,
+        onDismissRequest = onDismiss,
+        footer = {
+            CassySecondaryButton(
+                text = stringResource(R.string.btn_cancel),
+                onClick = onDismiss,
+                enabled = !isBusy,
+                modifier = Modifier.weight(1f)
+            )
+            CassyPrimaryButton(
+                text = stringResource(R.string.tab_split_btn, draft.guests),
+                onClick = onConfirm,
+                enabled = draft.canConfirm && !isBusy,
+                loading = isBusy,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
+        ) {
+            Text(
+                text = stringResource(R.string.tab_split_by_item_guests),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f)
+            )
+            StepButton(
+                icon = Icons.Rounded.Remove,
+                description = stringResource(R.string.tab_split_a11y_fewer),
+                enabled = !isBusy && draft.guests > 2,
+                onClick = { onGuestsChange(draft.guests - 1) }
+            )
+            Text(
+                text = pluralStringResource(R.plurals.tab_split_guests, draft.guests, draft.guests),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.widthIn(min = 88.dp)
+            )
+            StepButton(
+                icon = Icons.Rounded.Add,
+                description = stringResource(R.string.tab_split_a11y_more),
+                enabled = !isBusy && draft.guests < minOf(MAX_SHARES, draft.units.size),
+                onClick = { onGuestsChange(draft.guests + 1) }
+            )
+        }
+        draft.units.forEachIndexed { index, unit ->
+            Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)) {
+                Text(text = unit.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                FlowRow(
+                    modifier = Modifier.selectableGroup(),
+                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)
+                ) {
+                    (1..draft.guests).forEach { guest ->
+                        val guestLabel = stringResource(R.string.tab_split_guest, guest)
+                        FilterChip(
+                            selected = draft.owners[index] == guest,
+                            onClick = { onAssign(index, guest) },
+                            enabled = !isBusy,
+                            label = { Text(guestLabel) },
+                            modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
+                        )
+                    }
+                }
+            }
+        }
+        if (draft.isFullyAssigned && !draft.canConfirm) {
+            Text(
+                text = stringResource(R.string.tab_split_by_item_empty_guest),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error
             )
         }
     }

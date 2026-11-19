@@ -29,6 +29,7 @@ import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import com.azuredevid.cassy.domain.repository.PrinterConfig
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.domain.repository.ClosedTab
 import com.azuredevid.cassy.domain.repository.PosTable
 import com.azuredevid.cassy.domain.repository.StorePrinterRepository
 import com.azuredevid.cassy.domain.repository.TabSplit
@@ -86,7 +87,8 @@ data class PosUiState(
     val pendingSplitId: String? = null,
     // Equal split of a table tab: the count is picked before closing, the shares come back from the server.
     val tabSplitCount: Int = 1,
-    val tabSplits: List<TabSplit> = emptyList()
+    val tabSplits: List<TabSplit> = emptyList(),
+    val itemSplit: ItemSplitDraft? = null
 ) {
     val displayedProducts: List<CatalogProduct>
         get() {
@@ -112,9 +114,30 @@ data class PosUiState(
     val selectedSplit: TabSplit?
         get() = tabSplits.takeIf { it.size > 1 }?.firstOrNull { it.id == pendingSplitId }
 
+    /** Splitting by item needs every row on the server (line ids) and at least two units to share. */
+    val canSplitByItem: Boolean
+        get() = tableId != null && pendingOrder == null && !isCartLocked && cart.isNotEmpty() &&
+            cart.all { it.isSentToKitchen && it.sentLines.isNotEmpty() } && cart.sumOf { it.quantity } >= 2
+
     /** What the next payment must cover: the selected share, else the quoted bill. */
     val payableAmount: Long?
         get() = selectedSplit?.remainingAmount ?: quote?.totalAmount
+}
+
+/** One unit of a sent tab line, waiting for a guest when the bill is split by item. */
+@Immutable
+data class SplitUnit(val lineId: String, val name: String)
+
+/** A split by item in progress: [owners] holds the guest (1-based) of each unit, null until picked. */
+@Immutable
+data class ItemSplitDraft(
+    val units: List<SplitUnit>,
+    val guests: Int = 2,
+    val owners: List<Int?> = units.map { null }
+) {
+    val isFullyAssigned: Boolean get() = owners.none { it == null }
+    /** Every unit has a guest and every guest pays for something, as the server requires. */
+    val canConfirm: Boolean get() = isFullyAssigned && (1..guests).all { it in owners }
 }
 
 sealed interface PosUiEffect {
@@ -775,7 +798,7 @@ class PosViewModel(
         }
         if (snapshot.tableId != null) {
             val repo = tableTabRepository ?: return Result.failure(IllegalStateException("table tabs unavailable"))
-            return closeTab(repo, snapshot, splitCount = 1)
+            return closeTab(repo, snapshot) { repo.closeTab(it) }
         }
         val key = snapshot.pendingOrderIdempotencyKey ?: UUID.randomUUID().toString()
         val orderTypeApi = if (snapshot.orderType == "DINE-IN") "dine_in" else "takeaway"
@@ -825,11 +848,59 @@ class PosViewModel(
         ) return
         viewModelScope.launch {
             _uiState.update { it.copy(isSubmittingOrder = true, settlementError = null) }
-            closeTab(repo, snapshot, snapshot.tabSplitCount).onFailure { err ->
+            closeTab(repo, snapshot) { repo.closeTab(it, snapshot.tabSplitCount) }.onFailure { err ->
                 _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_split_failed), CassyToastTone.ERROR))
             }
             _uiState.update { it.copy(isSubmittingOrder = false) }
         }
+    }
+
+    /** Starts a split by item: every unit of every sent line waits for a guest. */
+    fun openItemSplit() {
+        val state = _uiState.value
+        if (!state.canSplitByItem) return
+        val units = state.cart.flatMap { row ->
+            row.sentLines.flatMap { line -> List(line.quantity) { SplitUnit(line.id, row.product.name) } }
+        }
+        _uiState.update { it.copy(itemSplit = ItemSplitDraft(units)) }
+    }
+
+    fun dismissItemSplit() {
+        if (_uiState.value.isSubmittingOrder) return
+        _uiState.update { it.copy(itemSplit = null) }
+    }
+
+    fun setItemSplitGuests(count: Int) = editItemSplit { draft ->
+        val guests = count.coerceIn(2, minOf(MAX_TAB_SPLITS, draft.units.size))
+        draft.copy(guests = guests, owners = draft.owners.map { owner -> owner?.takeIf { it <= guests } })
+    }
+
+    fun assignUnit(index: Int, guest: Int) = editItemSplit { draft ->
+        if (index !in draft.owners.indices || guest !in 1..draft.guests) draft
+        else draft.copy(owners = draft.owners.toMutableList().also { it[index] = guest })
+    }
+
+    /** Closes the tab with one share per guest; the server checks the units and prices each share. */
+    fun confirmItemSplit() {
+        val snapshot = _uiState.value
+        val draft = snapshot.itemSplit ?: return
+        val repo = tableTabRepository ?: return
+        if (!draft.canConfirm || snapshot.isSubmittingOrder) return
+        val shares = (1..draft.guests).map { guest ->
+            draft.units.filterIndexed { i, _ -> draft.owners[i] == guest }.groupingBy { it.lineId }.eachCount()
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSubmittingOrder = true, settlementError = null) }
+            closeTab(repo, snapshot) { tabId -> repo.closeTabByItem(tabId, shares) }
+                .onSuccess { _uiState.update { it.copy(itemSplit = null) } }
+                .onFailure { err -> _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_split_failed), CassyToastTone.ERROR)) }
+            _uiState.update { it.copy(isSubmittingOrder = false) }
+        }
+    }
+
+    private fun editItemSplit(change: (ItemSplitDraft) -> ItemSplitDraft) {
+        if (_uiState.value.isSubmittingOrder) return
+        _uiState.update { state -> state.itemSplit?.let { state.copy(itemSplit = change(it)) } ?: state }
     }
 
     /** Selects which unpaid share the next payment covers. */
@@ -839,9 +910,13 @@ class PosViewModel(
         _uiState.update { it.copy(pendingSplitId = splitId) }
     }
 
-    private suspend fun closeTab(repo: TableTabRepository, snapshot: PosUiState, splitCount: Int): Result<PosOrder> {
+    private suspend fun closeTab(
+        repo: TableTabRepository,
+        snapshot: PosUiState,
+        close: suspend (tabId: String) -> Result<ClosedTab>
+    ): Result<PosOrder> {
         val tabId = submitTabRound(snapshot).getOrElse { return Result.failure(it) }
-        val closed = repo.closeTab(tabId, splitCount).getOrElse { return Result.failure(it) }
+        val closed = close(tabId).getOrElse { return Result.failure(it) }
         // A closed tab cannot be voided, so its rows drop the line ids that enable the void button.
         _uiState.update { state ->
             state.copy(

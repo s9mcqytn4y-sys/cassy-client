@@ -66,4 +66,10 @@ interface TableTabRepository {
 
     /** Freezes the bill. [splitCount] 1 makes one share; 2 to 20 asks the server for equal shares. */
     suspend fun closeTab(orderId: String, splitCount: Int = 1): Result<ClosedTab>
+
+    /**
+     * Freezes the bill into one share per guest. Each map holds server line id to units; together they
+     * must cover every unit of every line exactly once, and the server prices each share.
+     */
+    suspend fun closeTabByItem(orderId: String, shares: List<Map<String, Int>>): Result<ClosedTab>
 }
