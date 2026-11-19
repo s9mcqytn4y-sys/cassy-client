@@ -168,7 +168,11 @@ fun CassyNavHost(
 
         composable<CassyRoute.KdsBoard> {
             KdsScreen(
-                onNavigateBack = { navController.navigateUp() }
+                onNavigateBack = if (navController.previousBackStackEntry != null) {
+                    { navController.navigateUp() }
+                } else {
+                    null
+                }
             )
         }
 

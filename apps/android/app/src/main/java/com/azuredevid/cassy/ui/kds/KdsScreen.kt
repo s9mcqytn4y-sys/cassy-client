@@ -54,7 +54,8 @@ import org.koin.androidx.compose.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KdsScreen(
-    onNavigateBack: () -> Unit,
+    /** Null when the board is this device's home (RoleGate), so there is nowhere to go back to. */
+    onNavigateBack: (() -> Unit)?,
     modifier: Modifier = Modifier,
     viewModel: KdsViewModel = koinViewModel()
 ) {
@@ -90,8 +91,10 @@ fun KdsScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.a11y_navigate_back))
+                    if (onNavigateBack != null) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.a11y_navigate_back))
+                        }
                     }
                 },
                 actions = {
