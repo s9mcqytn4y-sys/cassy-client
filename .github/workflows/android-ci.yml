@@ -1,8 +1,8 @@
-name: Android POS & Companion CI
+name: Android POS CI
 
 on:
   push:
-    branches: [main, "docs/**", "feat/**", "fix/**", "chore/**"]
+    branches: [main, "feat/**", "fix/**", "docs/**", "chore/**"]
     paths:
       - "apps/android/**"
       - "packages/design-tokens/**"
@@ -22,30 +22,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  android-verify-and-build:
-    name: Gradle Unit Tests & Debug APK Build
+  build-and-test:
+    name: Build, Lint & Unit Tests (JDK 17)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/android
+
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup JDK 17
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: "17"
-          cache: "gradle"
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x apps/android/gradlew
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v4
 
-      - name: Run Android Unit & Compose Tests
+      - name: Run Unit Tests & Debug Bundle
         run: |
-          cd apps/android
-          ./gradlew test --max-workers=2 --no-daemon --stacktrace
+          chmod +x gradlew
+          ./gradlew testDevDebugUnitTest bundleDevDebug --max-workers=2 --no-daemon --stacktrace
 
-      - name: Assemble Debug APK
-        run: |
-          cd apps/android
-          ./gradlew assembleDebug --max-workers=2 --no-daemon --stacktrace
-
+      - name: Run Lint & R8 Prod Release Bundle
+        run: ./gradlew lintDevDebug bundleProdRelease --max-workers=1 --no-daemon --stacktrace

@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -71,72 +73,76 @@ fun StorePairingBrandPane(
     onNavigateToServerConfig: () -> Unit,
     onRetryHealthProbe: () -> Unit,
     fillFullHeight: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // System bar insets this pane sits under; applied inside the green background so it runs edge to edge.
+    contentInsets: WindowInsets = WindowInsets(0)
 ) {
     val doodleBitmap = ImageBitmap.imageResource(id = R.drawable.bg_cassy_cafe_doodle)
+    val outerPadding = if (fillFullHeight) CassyDimens.Space2Xl else CassyDimens.SpaceLg
+    val logoCircleSize = if (fillFullHeight) 64.dp else 48.dp
+    val logoIconSize = if (fillFullHeight) 40.dp else 30.dp
 
     Column(
         modifier = modifier
             .clipToBounds()
             .background(BrandPanelPandan)
             .cassyCafePatternBackground(doodleBitmap)
-            .padding(CassyDimens.Space2Xl),
-        verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceLg)
+            .windowInsetsPadding(contentInsets)
+            .padding(outerPadding),
+        verticalArrangement = Arrangement.spacedBy(if (fillFullHeight) CassyDimens.SpaceLg else CassyDimens.SpaceSm)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceLg)
+            horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd)
         ) {
             Surface(
                 shape = CircleShape,
                 color = Color.White,
-                modifier = Modifier.size(64.dp)
+                modifier = Modifier.size(logoCircleSize)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_cassy_monogram),
                         contentDescription = stringResource(R.string.a11y_cassy_logo),
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(logoIconSize)
                     )
                 }
             }
             Column {
                 Text(
                     text = stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.headlineLarge,
+                    style = if (fillFullHeight) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
                 Spacer(Modifier.height(CassyDimens.SpaceXxs))
                 Text(
                     text = stringResource(R.string.pairing_brand_tagline),
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = if (fillFullHeight) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium,
                     color = CassyPutihTulang.copy(alpha = 0.88f)
                 )
             }
         }
 
-        Spacer(Modifier.height(CassyDimens.SpaceSm))
-
-        Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd)) {
-            BrandCapabilityCard(
-                icon = Icons.Rounded.Sync,
-                text = stringResource(R.string.pairing_highlight_1)
-            )
-            BrandCapabilityCard(
-                icon = Icons.Rounded.Print,
-                text = stringResource(R.string.pairing_highlight_2)
-            )
-            BrandCapabilityCard(
-                icon = Icons.Rounded.VerifiedUser,
-                text = stringResource(R.string.pairing_highlight_3)
-            )
-        }
-
         if (fillFullHeight) {
+            Spacer(Modifier.height(CassyDimens.SpaceSm))
+
+            Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd)) {
+                BrandCapabilityCard(
+                    icon = Icons.Rounded.Sync,
+                    text = stringResource(R.string.pairing_highlight_1)
+                )
+                BrandCapabilityCard(
+                    icon = Icons.Rounded.Print,
+                    text = stringResource(R.string.pairing_highlight_2)
+                )
+                BrandCapabilityCard(
+                    icon = Icons.Rounded.VerifiedUser,
+                    text = stringResource(R.string.pairing_highlight_3)
+                )
+            }
+
             Spacer(Modifier.weight(1f))
-        } else {
-            Spacer(Modifier.height(CassyDimens.SpaceMd))
         }
 
         Row(

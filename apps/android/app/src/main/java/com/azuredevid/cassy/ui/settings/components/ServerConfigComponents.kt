@@ -98,7 +98,8 @@ fun EnvironmentSecurityBadge(
 @Composable
 fun ColumnScope.ServerConfigInfoPane(
     state: ServerConfigUiState,
-    onDiscoverMdns: () -> Unit
+    onDiscoverMdns: () -> Unit,
+    isSplitPane: Boolean = true
 ) {
     CassyCard(
         modifier = Modifier.fillMaxWidth(),
@@ -142,61 +143,80 @@ fun ColumnScope.ServerConfigInfoPane(
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFFF7F5F0)
         )
-    }
-
-    Spacer(Modifier.height(CassyDimens.SpaceLg))
-
-    CassyCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .weight(1f),
-        containerColor = Color(0xFFECE9DF),
-        borderColor = Color(0xFFD8D3C5)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-        ) {
-            CassySectionHeader(title = stringResource(R.string.server_config_guide_title))
+        if (!isSplitPane) {
             Spacer(Modifier.height(CassyDimens.SpaceMd))
-
-            GuideFeatureRow(
-                icon = Icons.Rounded.CloudQueue,
-                title = stringResource(R.string.server_config_guide_cloud_title),
-                description = stringResource(R.string.server_config_guide_cloud_desc)
-            )
-            Spacer(Modifier.height(18.dp))
-            GuideFeatureRow(
-                icon = Icons.Rounded.Router,
-                title = stringResource(R.string.server_config_guide_lan_title),
-                description = stringResource(R.string.server_config_guide_lan_desc)
-            )
-            Spacer(Modifier.height(18.dp))
-            GuideFeatureRow(
-                icon = Icons.Rounded.Devices,
-                title = stringResource(R.string.server_config_guide_emulator_title),
-                description = stringResource(R.string.server_config_guide_emulator_desc)
+            CassySecondaryButton(
+                text = if (state.isDiscoveringMdns) {
+                    stringResource(R.string.server_config_discovering_mdns)
+                } else {
+                    stringResource(R.string.server_config_discover_mdns)
+                },
+                onClick = onDiscoverMdns,
+                loading = state.isDiscoveringMdns,
+                icon = Icons.Rounded.TravelExplore,
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = CassyPandan,
+                borderColor = CassyPandan,
+                modifier = Modifier.fillMaxWidth()
             )
         }
+    }
 
-        Spacer(Modifier.height(CassyDimens.SpaceMd))
+    if (isSplitPane) {
+        Spacer(Modifier.height(CassyDimens.SpaceLg))
 
-        CassySecondaryButton(
-            text = if (state.isDiscoveringMdns) {
-                stringResource(R.string.server_config_discovering_mdns)
-            } else {
-                stringResource(R.string.server_config_discover_mdns)
-            },
-            onClick = onDiscoverMdns,
-            loading = state.isDiscoveringMdns,
-            icon = Icons.Rounded.TravelExplore,
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = CassyPandan,
-            borderColor = CassyPandan,
-            modifier = Modifier.fillMaxWidth()
-        )
+        CassyCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            containerColor = Color(0xFFECE9DF),
+            borderColor = Color(0xFFD8D3C5)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                CassySectionHeader(title = stringResource(R.string.server_config_guide_title))
+                Spacer(Modifier.height(CassyDimens.SpaceMd))
+
+                GuideFeatureRow(
+                    icon = Icons.Rounded.CloudQueue,
+                    title = stringResource(R.string.server_config_guide_cloud_title),
+                    description = stringResource(R.string.server_config_guide_cloud_desc)
+                )
+                Spacer(Modifier.height(18.dp))
+                GuideFeatureRow(
+                    icon = Icons.Rounded.Router,
+                    title = stringResource(R.string.server_config_guide_lan_title),
+                    description = stringResource(R.string.server_config_guide_lan_desc)
+                )
+                Spacer(Modifier.height(18.dp))
+                GuideFeatureRow(
+                    icon = Icons.Rounded.Devices,
+                    title = stringResource(R.string.server_config_guide_emulator_title),
+                    description = stringResource(R.string.server_config_guide_emulator_desc)
+                )
+            }
+
+            Spacer(Modifier.height(CassyDimens.SpaceMd))
+
+            CassySecondaryButton(
+                text = if (state.isDiscoveringMdns) {
+                    stringResource(R.string.server_config_discovering_mdns)
+                } else {
+                    stringResource(R.string.server_config_discover_mdns)
+                },
+                onClick = onDiscoverMdns,
+                loading = state.isDiscoveringMdns,
+                icon = Icons.Rounded.TravelExplore,
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = CassyPandan,
+                borderColor = CassyPandan,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
@@ -265,7 +285,7 @@ fun ConnectionDiagnosticsBox(
         }
         isFailed -> stringResource(
             R.string.server_config_test_fail,
-            state.probeErrorMessage ?: "Connection refused"
+            state.probeErrorMessage?.asString() ?: stringResource(R.string.server_msg_connection_refused)
         )
         else -> stringResource(R.string.server_config_diag_status_ready)
     }

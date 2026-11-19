@@ -103,9 +103,9 @@ fun ServerConfigScreen(
                         CassyFeedbackCue.warningOrError(view)
                     }
                     val msg = if (effect.success) {
-                        String.format(probeOkTemplate, effect.detail)
+                        String.format(probeOkTemplate, effect.detail.asString(view.context))
                     } else {
-                        String.format(probeFailTemplate, effect.detail)
+                        String.format(probeFailTemplate, effect.detail.asString(view.context))
                     }
                     snackbarHostState.showCassySnackbar(
                         message = msg,
@@ -165,46 +165,55 @@ fun ServerConfigScreen(
             )
         }
     ) { paddingValues ->
-        CassySplitPane(
-            modifier = Modifier.padding(paddingValues),
-            leftWeight = 0.42f,
-            rightWeight = 0.58f,
-            leftContent = {
-                ServerConfigInfoPane(
-                    state = state,
-                    onDiscoverMdns = {
-                        CassyFeedbackCue.tap(view)
-                        viewModel.discoverLocalServers()
-                    }
-                )
-            },
-            rightContent = {
-                ServerConfigFormPane(
-                    state = state,
-                    onUrlChanged = viewModel::onUrlChanged,
-                    onClearUrl = {
-                        CassyFeedbackCue.tap(view)
-                        viewModel.clearUrl()
-                    },
-                    onApplyPreset = { presetUrl ->
-                        CassyFeedbackCue.tap(view)
-                        viewModel.applyPreset(presetUrl)
-                    },
-                    onTestConnection = {
-                        CassyFeedbackCue.tap(view)
-                        viewModel.testConnection()
-                    },
-                    onSave = {
-                        if (viewModel.save()) {
-                            CassyFeedbackCue.success(view)
-                            onNavigateBack()
-                        } else {
-                            CassyFeedbackCue.warningOrError(view)
+        androidx.compose.foundation.layout.BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            val isSplitPane = maxWidth >= CassyDimens.SplitPaneBreakpoint
+            CassySplitPane(
+                modifier = Modifier.fillMaxSize(),
+                leftWeight = 0.42f,
+                rightWeight = 0.58f,
+                leftContent = {
+                    ServerConfigInfoPane(
+                        state = state,
+                        isSplitPane = isSplitPane,
+                        onDiscoverMdns = {
+                            CassyFeedbackCue.tap(view)
+                            viewModel.discoverLocalServers()
                         }
-                    }
-                )
-            }
-        )
+                    )
+                },
+                rightContent = {
+                    ServerConfigFormPane(
+                        state = state,
+                        isSplitPane = isSplitPane,
+                        onUrlChanged = viewModel::onUrlChanged,
+                        onClearUrl = {
+                            CassyFeedbackCue.tap(view)
+                            viewModel.clearUrl()
+                        },
+                        onApplyPreset = { presetUrl ->
+                            CassyFeedbackCue.tap(view)
+                            viewModel.applyPreset(presetUrl)
+                        },
+                        onTestConnection = {
+                            CassyFeedbackCue.tap(view)
+                            viewModel.testConnection()
+                        },
+                        onSave = {
+                            if (viewModel.save()) {
+                                CassyFeedbackCue.success(view)
+                                onNavigateBack()
+                            } else {
+                                CassyFeedbackCue.warningOrError(view)
+                            }
+                        }
+                    )
+                }
+            )
+        }
     }
 }
 
@@ -212,6 +221,7 @@ fun ServerConfigScreen(
 @Composable
 private fun ColumnScope.ServerConfigFormPane(
     state: ServerConfigUiState,
+    isSplitPane: Boolean,
     onUrlChanged: (String) -> Unit,
     onClearUrl: () -> Unit,
     onApplyPreset: (String) -> Unit,
@@ -228,16 +238,27 @@ private fun ColumnScope.ServerConfigFormPane(
     val cloudPresetUrl = ServerEndpointPresets.cloudPresetUrl(isProd)
     val lanPresetUrl = ServerEndpointPresets.lanPresetUrl(isProd)
 
-    CassyCard(
-        modifier = Modifier
+    val cardModifier = if (isSplitPane) {
+        Modifier
             .fillMaxWidth()
             .fillMaxHeight()
+    } else {
+        Modifier.fillMaxWidth()
+    }
+    val innerColumnModifier = if (isSplitPane) {
+        Modifier
+            .fillMaxWidth()
+            .weight(1f)
+            .verticalScroll(rememberScrollState())
+    } else {
+        Modifier.fillMaxWidth()
+    }
+
+    CassyCard(
+        modifier = cardModifier
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
+            modifier = innerColumnModifier
         ) {
             CassySectionHeader(title = stringResource(R.string.server_config_url_label))
             Spacer(Modifier.height(CassyDimens.SpaceMd))

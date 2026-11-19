@@ -16,12 +16,16 @@ import com.azuredevid.cassy.data.network.AndroidServerHealthMonitor
 import com.azuredevid.cassy.data.network.CassyHttpClientFactory
 import com.azuredevid.cassy.data.network.CassyRealtimeClient
 import com.azuredevid.cassy.data.repository.DataStorePrinterSettingsRepository
+import com.azuredevid.cassy.data.repository.KtorStorePrinterRepository
 import com.azuredevid.cassy.data.repository.DataStoreServerSettingsRepository
 import com.azuredevid.cassy.data.repository.KtorAuthRepository
 import com.azuredevid.cassy.data.repository.KtorCatalogRepository
 import com.azuredevid.cassy.data.repository.KtorKdsRepository
 import com.azuredevid.cassy.data.repository.KtorOrderQuoteRepository
 import com.azuredevid.cassy.data.repository.KtorPosOrderRepository
+import com.azuredevid.cassy.data.repository.KtorApprovalRepository
+import com.azuredevid.cassy.data.repository.KtorServiceRequestRepository
+import com.azuredevid.cassy.data.repository.KtorTableTabRepository
 import com.azuredevid.cassy.data.repository.KtorShiftRepository
 import com.azuredevid.cassy.data.repository.KtorSplitBillRepository
 import com.azuredevid.cassy.data.repository.KtorStoreGovernanceRepository
@@ -35,7 +39,11 @@ import com.azuredevid.cassy.domain.repository.RealtimeEventSource
 import com.azuredevid.cassy.domain.repository.LocalServerDiscoveryRepository
 import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
+import com.azuredevid.cassy.domain.repository.ApprovalRepository
+import com.azuredevid.cassy.domain.repository.ServiceRequestRepository
+import com.azuredevid.cassy.domain.repository.TableTabRepository
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.domain.repository.StorePrinterRepository
 import com.azuredevid.cassy.domain.repository.ServerHealthMonitor
 import com.azuredevid.cassy.domain.repository.ShiftRepository
 import com.azuredevid.cassy.domain.repository.StoreGovernanceRepository
@@ -45,7 +53,10 @@ import com.azuredevid.cassy.ui.kds.KdsViewModel
 import com.azuredevid.cassy.ui.pos.split.SplitSettlementViewModel
 import com.azuredevid.cassy.ui.pairing.StorePairingViewModel
 import com.azuredevid.cassy.ui.pos.PosViewModel
+import com.azuredevid.cassy.ui.pos.ServiceRequestViewModel
+import com.azuredevid.cassy.ui.pos.TabItemVoidViewModel
 import com.azuredevid.cassy.ui.settings.ServerConfigViewModel
+import com.azuredevid.cassy.ui.settings.PrinterSettingsViewModel
 import com.azuredevid.cassy.ui.settings.StoreSettingsViewModel
 import com.azuredevid.cassy.ui.shift.ShiftViewModel
 import com.azuredevid.cassy.ui.tables.TableManagementViewModel
@@ -139,10 +150,38 @@ val repositoryModule = module {
         )
     }
 
+    single<ServiceRequestRepository> {
+        KtorServiceRequestRepository(
+            httpClient = get(),
+            serverSettings = get()
+        )
+    }
+
+    single<ApprovalRepository> {
+        KtorApprovalRepository(
+            httpClient = get(),
+            serverSettings = get()
+        )
+    }
+
+    single<TableTabRepository> {
+        KtorTableTabRepository(
+            httpClient = get(),
+            serverSettings = get()
+        )
+    }
+
     single {
         OfflineSyncCoordinator(
             offlineOrderDao = get(),
             posOrderRepository = get()
+        )
+    }
+
+    single<StorePrinterRepository> {
+        KtorStorePrinterRepository(
+            httpClient = get(),
+            serverSettings = get()
         )
     }
 
@@ -177,6 +216,18 @@ val repositoryModule = module {
 
 val viewModelModule = module {
     viewModel {
+        TabItemVoidViewModel(
+            tabs = get(),
+            approvals = get()
+        )
+    }
+    viewModel {
+        ServiceRequestViewModel(
+            repository = get(),
+            realtimeClient = get()
+        )
+    }
+    viewModel {
         StorePairingViewModel(
             authRepository = get(),
             healthMonitor = get(),
@@ -196,9 +247,14 @@ val viewModelModule = module {
         StoreSettingsViewModel(
             repository = get(),
             sessionManager = get(),
-            printerSettings = get(),
-            printerManager = get(),
             savedStateHandle = get()
+        )
+    }
+    viewModel {
+        PrinterSettingsViewModel(
+            printers = get(),
+            printerSettings = get(),
+            printerManager = get()
         )
     }
     viewModel {
@@ -222,6 +278,8 @@ val viewModelModule = module {
             realtimeClient = get(),
             soundPlayer = get(),
             offlineSyncCoordinator = get(),
+            tableTabRepository = get(),
+            storePrinters = get(),
             savedStateHandle = get()
         )
     }

@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -42,6 +43,7 @@ import com.azuredevid.cassy.ui.designsystem.CassyStatusBadge
 import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import com.azuredevid.cassy.ui.designsystem.showCassySnackbar
 import com.azuredevid.cassy.ui.settings.components.MidtransCredentialsTab
+import com.azuredevid.cassy.ui.settings.components.PrinterEditorDialog
 import com.azuredevid.cassy.ui.settings.components.PrinterSettingsTab
 import com.azuredevid.cassy.ui.settings.components.StoreBrandCmsTab
 import com.azuredevid.cassy.ui.settings.components.StoreServiceModeTab
@@ -52,10 +54,18 @@ import org.koin.androidx.compose.koinViewModel
 fun StoreSettingsScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: StoreSettingsViewModel = koinViewModel()
+    viewModel: StoreSettingsViewModel = koinViewModel(),
+    printerViewModel: PrinterSettingsViewModel = koinViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val printerState by printerViewModel.uiState.collectAsState()
+    val printerTabOpen = state.selectedTabIndex == 3
+    // The server list is fetched when the tab opens, after the role is known.
+    LaunchedEffect(printerTabOpen, state.hasManageAccess, state.isLoading) {
+        if (printerTabOpen && !state.isLoading) printerViewModel.load(state.hasManageAccess)
+    }
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     val colors = MaterialTheme.colorScheme
 
     // Single source of snackbar truth from one-shot effects to avoid double-firing.
@@ -64,7 +74,7 @@ fun StoreSettingsScreen(
             when (effect) {
                 is StoreSettingsUiEffect.ShowSnackbar -> {
                     snackbarHostState.showCassySnackbar(
-                        message = effect.message,
+                        message = effect.message.asString(context),
                         tone = if (effect.isError) CassyToastTone.ERROR else CassyToastTone.SUCCESS
                     )
                     viewModel.onEvent(StoreSettingsUiEvent.DismissMessage)
@@ -138,38 +148,61 @@ fun StoreSettingsScreen(
                 stringResource(R.string.settings_tab_printer)
             )
 
-            PrimaryTabRow(
-                selectedTabIndex = state.selectedTabIndex,
-                containerColor = colors.surface,
-                contentColor = colors.onSurface,
-                indicator = {
-                    TabRowDefaults.PrimaryIndicator(
-                        modifier = Modifier.tabIndicatorOffset(state.selectedTabIndex),
-                        color = colors.primary
-                    )
-                }
+            androidx.compose.foundation.layout.BoxWithConstraints(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = state.selectedTabIndex == index,
-                        onClick = { viewModel.onEvent(StoreSettingsUiEvent.SelectTab(index)) },
-                        text = {
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = if (state.selectedTabIndex == index) {
-                                    FontWeight.Bold
-                                } else {
-                                    FontWeight.Normal
-                                },
-                                color = if (state.selectedTabIndex == index) {
-                                    colors.onSurface
-                                } else {
-                                    colors.onSurfaceVariant
-                                }
+                val isWide = maxWidth >= CassyDimens.SplitPaneBreakpoint
+                val tabContent: @Composable () -> Unit = {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = state.selectedTabIndex == index,
+                            onClick = { viewModel.onEvent(StoreSettingsUiEvent.SelectTab(index)) },
+                            text = {
+                                Text(
+                                    text = title,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = if (state.selectedTabIndex == index) {
+                                        FontWeight.Bold
+                                    } else {
+                                        FontWeight.Normal
+                                    },
+                                    color = if (state.selectedTabIndex == index) {
+                                        colors.onSurface
+                                    } else {
+                                        colors.onSurfaceVariant
+                                    }
+                                )
+                            },
+                            modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
+                        )
+                    }
+                }
+                if (isWide) {
+                    PrimaryTabRow(
+                        selectedTabIndex = state.selectedTabIndex,
+                        containerColor = colors.surface,
+                        contentColor = colors.onSurface,
+                        indicator = {
+                            TabRowDefaults.PrimaryIndicator(
+                                modifier = Modifier.tabIndicatorOffset(state.selectedTabIndex),
+                                color = colors.primary
                             )
                         },
-                        modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
+                        tabs = tabContent
+                    )
+                } else {
+                    androidx.compose.material3.PrimaryScrollableTabRow(
+                        selectedTabIndex = state.selectedTabIndex,
+                        containerColor = colors.surface,
+                        contentColor = colors.onSurface,
+                        edgePadding = CassyDimens.SpaceMd,
+                        indicator = {
+                            TabRowDefaults.PrimaryIndicator(
+                                modifier = Modifier.tabIndicatorOffset(state.selectedTabIndex),
+                                color = colors.primary
+                            )
+                        },
+                        tabs = tabContent
                     )
                 }
             }
@@ -224,13 +257,29 @@ fun StoreSettingsScreen(
                         RestrictedAccessNotice(modifier = Modifier.fillMaxSize())
                     }
                     3 -> PrinterSettingsTab(
-                        state = state,
-                        onEvent = viewModel::onEvent,
+                        state = printerState,
+                        onAdd = printerViewModel::openNew,
+                        onEdit = printerViewModel::openEdit,
+                        onTest = printerViewModel::test,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
             }
         }
+    }
+
+    printerState.editor?.let { editor ->
+        PrinterEditorDialog(
+            editor = editor,
+            isSaving = printerState.isSaving,
+            error = printerState.message?.asString(),
+            onName = printerViewModel::setName,
+            onStation = printerViewModel::setStation,
+            onAddress = printerViewModel::setLanAddress,
+            onPaper = printerViewModel::setPaperWidth,
+            onSave = printerViewModel::save,
+            onDismiss = printerViewModel::dismissEditor
+        )
     }
 }
 

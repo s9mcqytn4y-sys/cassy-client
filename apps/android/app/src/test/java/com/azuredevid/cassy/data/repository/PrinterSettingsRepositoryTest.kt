@@ -60,7 +60,6 @@ class PrinterSettingsRepositoryTest {
                 cashierPrinterPort = 9101,
                 barPrinterIp = "192.168.10.221",
                 kitchenPrinterIp = "192.168.10.222",
-                pastryPrinterIp = "",
                 expediterPrinterIp = "",
                 paperWidthMm = 58
             )
@@ -87,7 +86,6 @@ class PrinterSettingsRepositoryTest {
             cashierPrinterPort = 9100,
             barPrinterIp = "192.168.10.221",
             kitchenPrinterIp = "192.168.10.222",
-            pastryPrinterIp = "192.168.10.223",
             expediterPrinterIp = "192.168.10.224",
             paperWidthMm = 58
         )

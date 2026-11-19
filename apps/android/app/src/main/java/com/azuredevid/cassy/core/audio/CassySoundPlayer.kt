@@ -44,6 +44,9 @@ class CassySoundPlayer(context: Context) {
         emptyMap()
     }
 
+    // One fallback generator, created on first use and freed in release(); a new one per cue leaked native audio.
+    private var fallbackTone: ToneGenerator? = null
+
     fun play(cue: CassyAudioCue) {
         if (released) return
         val id = loadedIds[cue]
@@ -54,7 +57,7 @@ class CassySoundPlayer(context: Context) {
         }
         if (!played && cue == CassyAudioCue.SOFT_ERROR) {
             runCatching {
-                val tone = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 45)
+                val tone = fallbackTone ?: ToneGenerator(AudioManager.STREAM_NOTIFICATION, 45).also { fallbackTone = it }
                 tone.startTone(ToneGenerator.TONE_PROP_NACK, 120)
             }
         }
@@ -63,5 +66,7 @@ class CassySoundPlayer(context: Context) {
     fun release() {
         released = true
         runCatching { soundPool?.release() }
+        runCatching { fallbackTone?.release() }
+        fallbackTone = null
     }
 }

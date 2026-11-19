@@ -3,7 +3,9 @@ package com.azuredevid.cassy.ui.scanner
 import android.graphics.Rect
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -139,7 +141,7 @@ fun CameraQrScannerView(
             .build()
 
         imageAnalysis.setAnalyzer(cameraExecutor) { imageProxy ->
-            val mediaImage = imageProxy.image
+            val mediaImage = imageProxy.mediaImage()
             if (mediaImage != null && !detectedLock.get()) {
                 val rotation = imageProxy.imageInfo.rotationDegrees
                 val frameWidth = if (rotation == 90 || rotation == 270) imageProxy.height else imageProxy.width
@@ -429,3 +431,7 @@ private fun DrawScope.drawCornerBrackets(
     drawLine(color, Offset(right - bracketLen, bottom), Offset(right, bottom), strokeWidth, strokeCap)
     drawLine(color, Offset(right, bottom - bracketLen), Offset(right, bottom), strokeWidth, strokeCap)
 }
+
+// ML Kit needs the raw media.Image; CameraX marks that getter experimental. Opt in only here.
+@androidx.annotation.OptIn(ExperimentalGetImage::class)
+private fun ImageProxy.mediaImage() = image

@@ -12,6 +12,8 @@ import com.azuredevid.cassy.domain.model.InitiatePosPaymentInput
 import com.azuredevid.cassy.domain.model.InitiatePosPaymentResult
 import com.azuredevid.cassy.domain.model.PosOrder
 import com.azuredevid.cassy.domain.model.PosOrderDetail
+import com.azuredevid.cassy.domain.repository.DeviceOfflineOrderSyncItem
+import com.azuredevid.cassy.domain.repository.DeviceOfflineOrderSyncOutcome
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -24,6 +26,51 @@ import io.ktor.http.isSuccess
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+private data class OfflinePaymentInputDto(
+    val method: String = "cash",
+    @SerialName("cash_tendered_amount") val cashTenderedAmount: Long,
+    val reference: String = ""
+)
+
+@Serializable
+private data class OfflineOrderInputDto(
+    @SerialName("client_order_id") val clientOrderId: String,
+    @SerialName("offline_queue_number") val offlineQueueNumber: String,
+    @SerialName("offline_created_at") val offlineCreatedAt: String,
+    @SerialName("cashier_id") val cashierId: String,
+    @SerialName("shift_id") val shiftId: String,
+    @SerialName("catalog_version") val catalogVersion: String,
+    @SerialName("order_type") val orderType: String,
+    @SerialName("customer_name") val customerName: String,
+    val notes: String? = null,
+    val items: List<CreateOrderItemInputDto>,
+    val payment: OfflinePaymentInputDto,
+    @SerialName("printed_locally") val printedLocally: Boolean = true
+)
+
+@Serializable
+private data class OfflineSyncRequestDto(
+    val orders: List<OfflineOrderInputDto>
+)
+
+@Serializable
+private data class OfflineSyncResultDto(
+    @SerialName("client_order_id") val clientOrderId: String,
+    val status: String,
+    val reason: String = "",
+    @SerialName("order_id") val orderId: String? = null,
+    @SerialName("order_number") val orderNumber: String = "",
+    @SerialName("queue_number") val queueNumber: String = ""
+)
+
+@Serializable
+private data class OfflineSyncResponseDto(
+    val results: List<OfflineSyncResultDto> = emptyList()
+)
 
 class KtorPosOrderRepository(
     private val httpClient: HttpClient,
@@ -100,6 +147,63 @@ class KtorPosOrderRepository(
             Result.success(response.body<OrderDetailResponseDto>().toDomain())
         } catch (t: Throwable) {
             Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal memeriksa status pesanan."))
+        }
+    }
+
+    override suspend fun syncDeviceOfflineOrders(
+        orders: List<DeviceOfflineOrderSyncItem>
+    ): Result<List<DeviceOfflineOrderSyncOutcome>> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val dto = OfflineSyncRequestDto(
+                orders = orders.map { order ->
+                    OfflineOrderInputDto(
+                        clientOrderId = order.clientOrderId,
+                        offlineQueueNumber = order.offlineQueueNumber,
+                        offlineCreatedAt = order.offlineCreatedAtIso,
+                        cashierId = order.cashierId,
+                        shiftId = order.shiftId,
+                        catalogVersion = order.catalogVersion,
+                        orderType = order.orderType,
+                        customerName = order.customerName.trim().ifBlank { "Pelanggan Walk-In" },
+                        notes = order.notes.takeIf { it.isNotBlank() },
+                        items = order.items.map { item ->
+                            CreateOrderItemInputDto(
+                                productId = item.productId,
+                                quantity = item.quantity,
+                                notes = item.notes.takeIf { it.isNotBlank() }
+                            )
+                        },
+                        payment = OfflinePaymentInputDto(
+                            method = "cash",
+                            cashTenderedAmount = order.cashTenderedAmount
+                        ),
+                        printedLocally = order.printedLocally
+                    )
+                }
+            )
+            val response = httpClient.post("$baseUrl/api/v1/device/offline-orders/sync") {
+                contentType(ContentType.Application.Json)
+                setBody(dto)
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(
+                    HttpErrorMapper.toDomainException(response, "Gagal menyinkronkan antrean pesanan offline.")
+                )
+            }
+            val results = response.body<OfflineSyncResponseDto>().results.map {
+                DeviceOfflineOrderSyncOutcome(
+                    clientOrderId = it.clientOrderId,
+                    status = it.status,
+                    reason = it.reason,
+                    orderId = it.orderId,
+                    orderNumber = it.orderNumber,
+                    queueNumber = it.queueNumber
+                )
+            }
+            Result.success(results)
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal menyinkronkan antrean pesanan offline."))
         }
     }
 }

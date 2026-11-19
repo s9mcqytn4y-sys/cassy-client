@@ -73,18 +73,11 @@ fun StoreBrandCmsTab(
     val scrollState = rememberScrollState()
     val colors = MaterialTheme.colorScheme
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(CassyDimens.SpaceXl),
-        horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXl)
+    androidx.compose.foundation.layout.BoxWithConstraints(
+        modifier = modifier.fillMaxWidth()
     ) {
-        Column(
-            modifier = Modifier
-                .weight(0.6f)
-                .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceLg)
-        ) {
+        val isWide = maxWidth >= CassyDimens.SplitPaneBreakpoint
+        val formCards: @Composable () -> Unit = {
             CassyCard {
                 CassySectionHeader(
                     title = stringResource(R.string.cms_section_title),
@@ -298,11 +291,43 @@ fun StoreBrandCmsTab(
             )
         }
 
-        StoreBrandPreviewPanel(
-            state = state,
-            modifier = Modifier
-                .weight(0.4f)
-                .fillMaxWidth()
-        )
+        if (isWide) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(CassyDimens.SpaceXl),
+                horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXl)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .weight(0.6f)
+                        .verticalScroll(scrollState),
+                    verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceLg)
+                ) {
+                    formCards()
+                }
+
+                StoreBrandPreviewPanel(
+                    state = state,
+                    modifier = Modifier
+                        .weight(0.4f)
+                        .fillMaxWidth()
+                )
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(scrollState)
+                    .padding(CassyDimens.SpaceLg),
+                verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceLg)
+            ) {
+                formCards()
+                StoreBrandPreviewPanel(
+                    state = state,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
     }
 }

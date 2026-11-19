@@ -1,18 +1,18 @@
 package com.azuredevid.cassy.ui.settings
 
+import com.azuredevid.cassy.ui.designsystem.toUiText
+import com.azuredevid.cassy.ui.designsystem.UiText
+import com.azuredevid.cassy.R
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.core.security.SessionManager
 import com.azuredevid.cassy.domain.model.MidtransEnvironment
 import com.azuredevid.cassy.domain.model.PaymentCredentialInput
 import com.azuredevid.cassy.domain.model.QRServiceMode
 import com.azuredevid.cassy.domain.model.StoreCMSConfigInput
 import com.azuredevid.cassy.domain.model.StoreSettingsPatch
-import com.azuredevid.cassy.domain.repository.PrinterConfig
-import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
 import com.azuredevid.cassy.domain.repository.StoreGovernanceRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +42,7 @@ data class StoreSettingsUiState(
     val lastVerifiedAt: String? = null,
     val isVerifyingMidtrans: Boolean = false,
     val verificationStatus: String? = null,
-    val verificationMessage: String? = null,
+    val verificationMessage: UiText? = null,
     val isSavingMidtrans: Boolean = false,
 
     // Brand CMS Form
@@ -63,23 +63,13 @@ data class StoreSettingsUiState(
     val tableTimeLimitMinutes: Int = 90,
     val tableTimerWarningMinutes: Int = 15,
     val enabledPaymentMethods: List<String> = emptyList(),
+    // Last list the server confirmed; null until settings load.
+    val savedPaymentMethods: List<String>? = null,
     val isSavingSettings: Boolean = false,
 
-    // Local LAN Printer Config (Port 9100)
-    val cashierPrinterIp: String = "",
-    val cashierPrinterPort: String = "9100",
-    val kitchenPrinterIp: String = "",
-    val barPrinterIp: String = "",
-    val pastryPrinterIp: String = "",
-    val expediterPrinterIp: String = "",
-    val paperWidthMm: Int = 80,
-    val isTestingPrinter: Boolean = false,
-    val printerTestOk: Boolean? = null,
-    val printerTestMessage: String? = null,
-    val isSavingPrinter: Boolean = false,
 
-    val errorMessage: String? = null,
-    val successMessage: String? = null
+    val errorMessage: UiText? = null,
+    val successMessage: UiText? = null
 ) {
     val isSandbox: Boolean
         get() = serverKey.startsWith("SB-") || clientKey.startsWith("SB-") || serverKeyMasked.startsWith("SB-")
@@ -120,7 +110,7 @@ data class StoreSettingsUiState(
 }
 
 sealed interface StoreSettingsUiEffect {
-    data class ShowSnackbar(val message: String, val isError: Boolean = false) : StoreSettingsUiEffect
+    data class ShowSnackbar(val message: UiText, val isError: Boolean = false) : StoreSettingsUiEffect
 }
 
 sealed interface StoreSettingsUiEvent {
@@ -154,16 +144,6 @@ sealed interface StoreSettingsUiEvent {
     data class ToggleRemotePaymentMethod(val method: String, val enabled: Boolean) : StoreSettingsUiEvent
     data object SaveStoreSettings : StoreSettingsUiEvent
 
-    // Printer LAN Events
-    data class UpdateCashierPrinterIp(val value: String) : StoreSettingsUiEvent
-    data class UpdateCashierPrinterPort(val value: String) : StoreSettingsUiEvent
-    data class UpdateKitchenPrinterIp(val value: String) : StoreSettingsUiEvent
-    data class UpdateBarPrinterIp(val value: String) : StoreSettingsUiEvent
-    data class UpdatePastryPrinterIp(val value: String) : StoreSettingsUiEvent
-    data class UpdateExpediterPrinterIp(val value: String) : StoreSettingsUiEvent
-    data class UpdatePaperWidthMm(val widthMm: Int) : StoreSettingsUiEvent
-    data object TestCashierPrinter : StoreSettingsUiEvent
-    data object SavePrinterConfig : StoreSettingsUiEvent
 
     data object DismissMessage : StoreSettingsUiEvent
 }
@@ -171,8 +151,6 @@ sealed interface StoreSettingsUiEvent {
 class StoreSettingsViewModel(
     private val repository: StoreGovernanceRepository,
     private val sessionManager: SessionManager,
-    private val printerSettings: PrinterSettingsRepository,
-    private val printerManager: PrinterPort9100Manager = PrinterPort9100Manager(),
     private val savedStateHandle: SavedStateHandle = SavedStateHandle()
 ) : ViewModel() {
 
@@ -194,7 +172,6 @@ class StoreSettingsViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            val config = printerSettings.getConfig()
             val session = sessionManager.awaitLoaded() ?: sessionManager.currentSession()
             val role = session?.staff?.role.orEmpty()
             val canManage = session != null && (
@@ -205,14 +182,7 @@ class StoreSettingsViewModel(
             _uiState.update { current ->
                 current.copy(
                     hasManageAccess = canManage,
-                    staffRoleLabel = role,
-                    cashierPrinterIp = config.cashierPrinterIp,
-                    cashierPrinterPort = config.cashierPrinterPort.toString(),
-                    kitchenPrinterIp = config.kitchenPrinterIp,
-                    barPrinterIp = config.barPrinterIp,
-                    pastryPrinterIp = config.pastryPrinterIp,
-                    expediterPrinterIp = config.expediterPrinterIp,
-                    paperWidthMm = config.paperWidthMm
+                    staffRoleLabel = role
                 )
             }
 
@@ -257,7 +227,8 @@ class StoreSettingsViewModel(
                         qrOrderingPaused = settings.qrOrderingPaused,
                         tableTimeLimitMinutes = settings.tableTimeLimitMinutes,
                         tableTimerWarningMinutes = settings.tableTimerWarningMinutes,
-                        enabledPaymentMethods = settings.enabledPaymentMethods
+                        enabledPaymentMethods = settings.enabledPaymentMethods,
+                        savedPaymentMethods = settings.enabledPaymentMethods
                     )
                 }
             }
@@ -301,7 +272,7 @@ class StoreSettingsViewModel(
             is StoreSettingsUiEvent.ToggleRemotePaymentMethod -> {
                 _uiState.update { current ->
                     if (!current.validationStatus.equals("valid", ignoreCase = true) && event.enabled) {
-                        return@update current.copy(errorMessage = "Midtrans BYOK harus terverifikasi sebelum mengaktifkan metode digital.")
+                        return@update current.copy(errorMessage = UiText.res(R.string.settings_msg_byok_required))
                     }
                     val updated = if (event.enabled) {
                         (current.enabledPaymentMethods + event.method).distinct()
@@ -313,18 +284,6 @@ class StoreSettingsViewModel(
             }
             StoreSettingsUiEvent.SaveStoreSettings -> saveSettings()
 
-            is StoreSettingsUiEvent.UpdateCashierPrinterIp -> _uiState.update { it.copy(cashierPrinterIp = event.value) }
-            is StoreSettingsUiEvent.UpdateCashierPrinterPort -> {
-                val digits = event.value.filter { ch -> ch.isDigit() }
-                _uiState.update { it.copy(cashierPrinterPort = digits) }
-            }
-            is StoreSettingsUiEvent.UpdateKitchenPrinterIp -> _uiState.update { it.copy(kitchenPrinterIp = event.value) }
-            is StoreSettingsUiEvent.UpdateBarPrinterIp -> _uiState.update { it.copy(barPrinterIp = event.value) }
-            is StoreSettingsUiEvent.UpdatePastryPrinterIp -> _uiState.update { it.copy(pastryPrinterIp = event.value) }
-            is StoreSettingsUiEvent.UpdateExpediterPrinterIp -> _uiState.update { it.copy(expediterPrinterIp = event.value) }
-            is StoreSettingsUiEvent.UpdatePaperWidthMm -> _uiState.update { it.copy(paperWidthMm = event.widthMm) }
-            StoreSettingsUiEvent.TestCashierPrinter -> testCashierPrinter()
-            StoreSettingsUiEvent.SavePrinterConfig -> savePrinterConfig()
 
             StoreSettingsUiEvent.DismissMessage -> {
                 _uiState.update { it.copy(errorMessage = null, successMessage = null) }
@@ -336,14 +295,14 @@ class StoreSettingsViewModel(
         viewModelScope.launch {
             val state = _uiState.value
             if (!state.hasManageAccess) {
-                val denied = "Akses ditolak: izin kelola gerai diperlukan."
+                val denied = UiText.res(R.string.settings_msg_access_denied)
                 _uiState.update { it.copy(errorMessage = denied) }
                 _effects.emit(StoreSettingsUiEffect.ShowSnackbar(denied, isError = true))
                 return@launch
             }
 
             if (!state.isMerchantIdValid || !state.isClientKeyValid || !state.isServerKeyValid) {
-                val msg = "Lengkapi Merchant ID, Client Key, dan Server Key penuh yang valid."
+                val msg = UiText.res(R.string.settings_msg_midtrans_incomplete)
                 _uiState.update {
                     it.copy(
                         verificationStatus = if (verifyLive) "error" else it.verificationStatus,
@@ -360,7 +319,7 @@ class StoreSettingsViewModel(
                     isSavingMidtrans = !verifyLive,
                     isVerifyingMidtrans = verifyLive,
                     verificationStatus = if (verifyLive) "testing" else it.verificationStatus,
-                    verificationMessage = if (verifyLive) "Menghubungi Midtrans melalui server..." else it.verificationMessage,
+                    verificationMessage = if (verifyLive) UiText.res(R.string.settings_msg_midtrans_contacting) else it.verificationMessage,
                     errorMessage = null
                 )
             }
@@ -379,9 +338,9 @@ class StoreSettingsViewModel(
             repository.savePaymentCredentials(input)
                 .onSuccess { creds ->
                     val successText = if (verifyLive) {
-                        "Kredensial Midtrans terverifikasi live (${creds.validationStatus.ifBlank { "valid" }})."
+                        UiText.res(R.string.settings_msg_midtrans_verified, creds.validationStatus.ifBlank { "valid" })
                     } else {
-                        "Kredensial Midtrans tersimpan aman di server."
+                        UiText.res(R.string.settings_msg_midtrans_saved)
                     }
                     _uiState.update {
                         it.copy(
@@ -399,7 +358,7 @@ class StoreSettingsViewModel(
                     _effects.emit(StoreSettingsUiEffect.ShowSnackbar(successText))
                 }
                 .onFailure { error ->
-                    val msg = error.message ?: "Gagal menyimpan kredensial Midtrans."
+                    val msg = error.toUiText(R.string.settings_msg_midtrans_save_failed)
                     _uiState.update {
                         it.copy(
                             isSavingMidtrans = false,
@@ -418,13 +377,13 @@ class StoreSettingsViewModel(
         viewModelScope.launch {
             val state = _uiState.value
             if (!state.hasManageAccess) {
-                val denied = "Akses ditolak: izin kelola gerai diperlukan."
+                val denied = UiText.res(R.string.settings_msg_access_denied)
                 _uiState.update { it.copy(errorMessage = denied) }
                 _effects.emit(StoreSettingsUiEffect.ShowSnackbar(denied, isError = true))
                 return@launch
             }
             if (!state.isHeroBannerUrlValid || !state.isPrimaryHexValid || !state.isAccentHexValid) {
-                val msg = "Periksa URL banner HTTPS dan format warna HEX (#RRGGBB)."
+                val msg = UiText.res(R.string.settings_msg_cms_invalid)
                 _uiState.update { it.copy(errorMessage = msg) }
                 _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg, isError = true))
                 return@launch
@@ -445,12 +404,12 @@ class StoreSettingsViewModel(
 
             repository.saveStoreCMS(input)
                 .onSuccess {
-                    val msg = "Pengaturan tampilan tamu tersimpan."
+                    val msg = UiText.res(R.string.settings_msg_cms_saved)
                     _uiState.update { it.copy(isSavingCms = false, successMessage = msg) }
                     _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg))
                 }
                 .onFailure { error ->
-                    val msg = error.message ?: "Gagal menyimpan pengaturan tampilan."
+                    val msg = error.toUiText(R.string.settings_msg_cms_save_failed)
                     _uiState.update { it.copy(isSavingCms = false, errorMessage = msg) }
                     _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg, isError = true))
                 }
@@ -461,7 +420,7 @@ class StoreSettingsViewModel(
         viewModelScope.launch {
             val state = _uiState.value
             if (!state.hasManageAccess) {
-                val denied = "Akses ditolak: izin kelola gerai diperlukan."
+                val denied = UiText.res(R.string.settings_msg_access_denied)
                 _uiState.update { it.copy(errorMessage = denied) }
                 _effects.emit(StoreSettingsUiEffect.ShowSnackbar(denied, isError = true))
                 return@launch
@@ -474,92 +433,32 @@ class StoreSettingsViewModel(
                 qrOrderingPaused = state.qrOrderingPaused,
                 tableTimeLimitMinutes = state.tableTimeLimitMinutes,
                 tableTimerWarningMinutes = state.tableTimerWarningMinutes,
-                enabledPaymentMethods = state.enabledPaymentMethods.takeIf { it.isNotEmpty() }
+                // Only a real change is sent, empty included: the server then explains why it rejects an empty list.
+                enabledPaymentMethods = state.enabledPaymentMethods.takeIf {
+                    state.savedPaymentMethods != null && it != state.savedPaymentMethods
+                }
             )
 
             repository.updateStoreSettings(patch)
                 .onSuccess { settings ->
-                    val msg = "Kebijakan layanan gerai diperbarui."
+                    val msg = UiText.res(R.string.settings_msg_policy_saved)
                     _uiState.update {
                         it.copy(
                             isSavingSettings = false,
                             qrServiceMode = settings.qrServiceMode,
                             qrOrderingPaused = settings.qrOrderingPaused,
                             enabledPaymentMethods = settings.enabledPaymentMethods,
+                            savedPaymentMethods = settings.enabledPaymentMethods,
                             successMessage = msg
                         )
                     }
                     _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg))
                 }
                 .onFailure { error ->
-                    val msg = error.message ?: "Gagal memperbarui kebijakan layanan."
+                    val msg = error.toUiText(R.string.settings_msg_policy_save_failed)
                     _uiState.update { it.copy(isSavingSettings = false, errorMessage = msg) }
                     _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg, isError = true))
                 }
-        }
-    }
-
-    private fun testCashierPrinter() {
-        viewModelScope.launch {
-            val state = _uiState.value
-            val ip = state.cashierPrinterIp.trim()
-            val port = state.cashierPrinterPort.toIntOrNull()?.takeIf { it in 1..65535 } ?: 9100
-            if (ip.isBlank()) {
-                _uiState.update {
-                    it.copy(
-                        printerTestOk = false,
-                        printerTestMessage = "Masukkan IP printer kasir terlebih dahulu."
-                    )
-                }
-                return@launch
-            }
-
-            _uiState.update {
-                it.copy(
-                    isTestingPrinter = true,
-                    printerTestOk = null,
-                    printerTestMessage = "Memeriksa $ip:$port..."
-                )
-            }
-
-            val result = printerManager.checkPrinterHealth(ip, port)
-            val isReady = result.health == PrinterPort9100Manager.PrinterHealth.READY
-            _uiState.update {
-                it.copy(
-                    isTestingPrinter = false,
-                    printerTestOk = isReady,
-                    printerTestMessage = result.details
-                )
-            }
-        }
-    }
-
-    private fun savePrinterConfig() {
-        viewModelScope.launch {
-            val state = _uiState.value
-            val port = state.cashierPrinterPort.toIntOrNull()?.takeIf { it in 1..65535 } ?: 9100
-            _uiState.update { it.copy(isSavingPrinter = true, errorMessage = null) }
-
-            val config = PrinterConfig(
-                cashierPrinterIp = state.cashierPrinterIp.trim(),
-                cashierPrinterPort = port,
-                barPrinterIp = state.barPrinterIp.trim(),
-                kitchenPrinterIp = state.kitchenPrinterIp.trim(),
-                pastryPrinterIp = state.pastryPrinterIp.trim(),
-                expediterPrinterIp = state.expediterPrinterIp.trim(),
-                paperWidthMm = state.paperWidthMm
-            )
-            printerSettings.saveConfig(config)
-
-            val msg = "Pengaturan printer LAN tersimpan."
-            _uiState.update {
-                it.copy(
-                    isSavingPrinter = false,
-                    cashierPrinterPort = port.toString(),
-                    successMessage = msg
-                )
-            }
-            _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg))
         }
     }
 

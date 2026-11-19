@@ -9,7 +9,7 @@ Client applications for **Cassy by AzureDevID** (F&B POS and QR table ordering, 
 | Path | App | Stack |
 |---|---|---|
 | `apps/web` | Guest QR ordering PWA | Next.js 15 App Router, React 19, Tailwind CSS v4, Playwright + axe |
-| `apps/android` | Cassy POS tablet | Kotlin, Jetpack Compose, Koin, Ktor, DataStore + Tink (`com.azuredevid.cassy`) |
+| `apps/android` | Cassy POS tablet | Kotlin, Jetpack Compose, Koin, Ktor, DataStore + Tink, Room for offline cache and queue (`com.azuredevid.cassy`) |
 | `apps/ios` | Hardware printer bridge | Objective-C (ARC), no UI |
 | `packages/design-tokens` | Master visual tokens | `tokens.json` -> CSS / Kotlin / Compose tokens |
 

@@ -24,9 +24,9 @@ concurrency:
 
 jobs:
   android-emulator-screenshots:
-    name: Tablet Emulator UI Tests & Screenshots
+    name: Tablet & Mobile Emulator UI Tests & Screenshots
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -57,7 +57,7 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDevDebug assembleDevDebugAndroidTest --max-workers=2 --no-daemon --stacktrace
 
-      - name: Run Emulator Live Pairing Flow & CassyUiShowcaseTest
+      - name: Run Tablet & Mobile Emulator Live Pairing Flow & CassyUiShowcaseTest
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -74,6 +74,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: android-ui-v2.4.0-screenshots
-          path: artifacts/ui-v2.4.0/
+          name: android-ui-v2.5.0-screenshots
+          path: artifacts/ui-v2.5.0/
           if-no-files-found: warn

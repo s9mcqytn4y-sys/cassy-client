@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.azuredevid.cassy.R
 import com.azuredevid.cassy.data.model.OrderQuote
+import com.azuredevid.cassy.domain.repository.PosTable
 import com.azuredevid.cassy.ui.designsystem.CassyCard
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
 import com.azuredevid.cassy.ui.designsystem.CassyEmptyState
@@ -101,7 +102,13 @@ fun PosOrderSummaryPanel(
     onOpenOpenBills: () -> Unit = {},
     failoverWarning: String?,
     onReprintStations: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    tables: List<PosTable> = emptyList(),
+    isLoadingTables: Boolean = false,
+    selectedTableId: String? = null,
+    onOpenTableBoard: () -> Unit = {},
+    onTableSelected: (PosTable) -> Unit = {},
+    splitSection: @Composable () -> Unit = {}
 ) {
     var showTableDialog by remember { mutableStateOf(false) }
 
@@ -135,6 +142,7 @@ fun PosOrderSummaryPanel(
                         .defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
                         .clickable(enabled = orderType == "DINE-IN" && !isCartLocked) {
                             showTableDialog = true
+                            onOpenTableBoard()
                         }
                         .padding(end = CassyDimens.SpaceSm),
                     verticalArrangement = Arrangement.Center
@@ -258,7 +266,7 @@ fun PosOrderSummaryPanel(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
                     ) {
-                        items(cart, key = { it.product.id }) { item ->
+                        items(cart, key = { "${it.product.id}-${it.isSentToKitchen}" }) { item ->
                             val decreaseDesc = stringResource(R.string.a11y_decrease_qty, item.product.name)
                             val increaseDesc = stringResource(R.string.a11y_increase_qty, item.product.name)
                             val lineTotal = item.product.basePriceIdr * item.quantity
@@ -291,6 +299,13 @@ fun PosOrderSummaryPanel(
                                             fontWeight = FontWeight.SemiBold,
                                             color = MaterialTheme.colorScheme.primary
                                         )
+                                        if (item.isSentToKitchen) {
+                                            Text(
+                                                text = stringResource(R.string.cart_line_sent),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
                                     }
 
                                     Row(
@@ -299,7 +314,8 @@ fun PosOrderSummaryPanel(
                                     ) {
                                         OutlinedButton(
                                             onClick = { onDecreaseQuantity(item) },
-                                            enabled = !isCartLocked,
+                                            // A sent line can only be taken back as a void of a server tab line.
+                                            enabled = !isCartLocked && (!item.isSentToKitchen || item.sentLines.isNotEmpty()),
                                             shape = RoundedCornerShape(CassyDimens.RadiusButton),
                                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                                             contentPadding = PaddingValues(0.dp),
@@ -400,6 +416,8 @@ fun PosOrderSummaryPanel(
                     }
                 }
 
+                splitSection()
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
@@ -451,13 +469,16 @@ fun PosOrderSummaryPanel(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
                 ) {
-                    CassyTonalButton(
-                        text = stringResource(R.string.split_btn_split_bill),
-                        onClick = onOpenSplitBill,
-                        enabled = isShiftOpen && quote != null && cart.isNotEmpty() && !isCartLocked && !isSubmittingOrder,
-                        icon = Icons.AutoMirrored.Rounded.CallSplit,
-                        modifier = Modifier.weight(1f)
-                    )
+                    // A table bill is divided in splitSection when it closes; this split serves pay-first orders.
+                    if (selectedTableId == null) {
+                        CassyTonalButton(
+                            text = stringResource(R.string.split_btn_split_bill),
+                            onClick = onOpenSplitBill,
+                            enabled = isShiftOpen && quote != null && cart.isNotEmpty() && !isCartLocked && !isSubmittingOrder,
+                            icon = Icons.AutoMirrored.Rounded.CallSplit,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                     CassySecondaryButton(
                         text = stringResource(R.string.split_btn_open_bills),
                         onClick = onOpenOpenBills,
@@ -474,7 +495,7 @@ fun PosOrderSummaryPanel(
         CassyModalDialog(
             title = stringResource(R.string.order_table_dialog_title),
             icon = Icons.Rounded.TableRestaurant,
-            maxWidth = CassyDimens.ModalWidthNarrow,
+            maxWidth = CassyDimens.ModalWidthStandard,
             onDismissRequest = { showTableDialog = false },
             footer = {
                 CassySecondaryButton(
@@ -492,6 +513,23 @@ fun PosOrderSummaryPanel(
                 )
             }
         ) {
+            if (tables.isNotEmpty() || isLoadingTables) {
+                PosTableBoard(
+                    tables = tables,
+                    isLoading = isLoadingTables,
+                    selectedTableId = selectedTableId,
+                    rupiahFormat = rupiahFormat,
+                    onTableSelected = {
+                        onTableSelected(it)
+                        showTableDialog = false
+                    }
+                )
+                Text(
+                    text = stringResource(R.string.order_table_free_text),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             CassyTextField(
                 value = draft,
                 onValueChange = { draft = it },

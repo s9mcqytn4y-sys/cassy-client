@@ -1,5 +1,6 @@
 package com.azuredevid.cassy.data.repository
 
+import com.azuredevid.cassy.core.coroutines.runCatchingCancellable
 import android.content.Context
 import com.azuredevid.cassy.data.local.CachedCategoryEntity
 import com.azuredevid.cassy.data.local.CachedProductEntity
@@ -66,7 +67,7 @@ class KtorCatalogRepository(
     private suspend fun persistSnapshot(storeSlug: String, snapshot: CatalogSnapshot) {
         val dao = catalogCacheDao ?: return
         val now = System.currentTimeMillis()
-        runCatching {
+        runCatchingCancellable {
             dao.replaceSnapshot(
                 storeSlug = storeSlug,
                 categories = snapshot.categories.map {
@@ -90,7 +91,7 @@ class KtorCatalogRepository(
 
     private suspend fun readCachedProducts(storeSlug: String): List<CatalogProduct> {
         val dao = catalogCacheDao ?: return emptyList()
-        return runCatching {
+        return runCatchingCancellable {
             dao.getProducts(storeSlug).mapNotNull { entity ->
                 runCatching { cacheJson.decodeFromString<CatalogProduct>(entity.payloadJson) }.getOrNull()
             }

@@ -5,6 +5,7 @@ import com.azuredevid.cassy.domain.error.DomainException
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.IOException
@@ -43,7 +44,9 @@ object HttpErrorMapper {
         return DomainException(error)
     }
 
+    /** Maps a caught failure to a [DomainException]; a [CancellationException] is rethrown so cancellation is never reported as an error. */
     fun fromThrowable(throwable: Throwable, fallbackMessage: String): DomainException {
+        if (throwable is CancellationException) throw throwable
         if (throwable is DomainException) return throwable
         val error = when (throwable) {
             is IOException -> DomainError.NetworkUnavailable("Koneksi ke server terputus. Periksa jaringan Anda.")

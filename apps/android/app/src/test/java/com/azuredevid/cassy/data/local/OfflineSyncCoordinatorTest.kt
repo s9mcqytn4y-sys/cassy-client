@@ -6,12 +6,18 @@ import com.azuredevid.cassy.domain.model.InitiatePosPaymentResult
 import com.azuredevid.cassy.domain.model.PosOrder
 import com.azuredevid.cassy.domain.model.PosOrderDetail
 import com.azuredevid.cassy.domain.model.PosPaymentAttempt
+import com.azuredevid.cassy.domain.repository.DeviceOfflineOrderSyncItem
+import com.azuredevid.cassy.domain.repository.DeviceOfflineOrderSyncOutcome
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class OfflineSyncCoordinatorTest {
@@ -51,6 +57,7 @@ class OfflineSyncCoordinatorTest {
 
         override suspend fun createOrder(input: CreatePosOrderInput): Result<PosOrder> {
             createdKeys.add(input.idempotencyKey)
+            delay(10)
             return Result.success(PosOrder(id = "ord-1", orderNumber = "A-001", totalAmount = 50_000L))
         }
 
@@ -95,5 +102,106 @@ class OfflineSyncCoordinatorTest {
         assertEquals(OfflinePendingOrderEntity.STATUS_SYNCED, dao.get(entity.clientOrderId)?.syncStatus)
         assertEquals(listOf(entity.idempotencyKey), repo.createdKeys)
         assertEquals(listOf("${entity.idempotencyKey}_cash"), repo.paymentKeys)
+    }
+
+    @Test
+    fun `concurrent syncs send each pending order once`() = runTest {
+        val dao = InMemoryOfflineOrderDao()
+        val repo = FakePosOrderRepository()
+        val coordinator = OfflineSyncCoordinator(dao, repo, StandardTestDispatcher(testScheduler))
+        coordinator.enqueueCashOrder("central-cafe", "take_away", null, "Budi", listOf(OfflineOrderItemPayload("p1", 1)), 50_000L)
+
+        val first = launch { coordinator.syncPendingOrders() }
+        val second = launch { coordinator.syncPendingOrders() }
+        first.join()
+        second.join()
+
+        assertEquals(1, repo.createdKeys.size)
+        assertEquals(1, repo.paymentKeys.size)
+    }
+
+    @Test
+    fun `enqueue stops at the order cap and at the age cap`() = runTest {
+        val item = listOf(OfflineOrderItemPayload("p1", 1))
+        val byCount = OfflineSyncCoordinator(InMemoryOfflineOrderDao(), FakePosOrderRepository(), StandardTestDispatcher(testScheduler), maxOfflineOrders = 2)
+        byCount.enqueueCashOrder("s", "take_away", null, "", item, 10_000L)
+        byCount.enqueueCashOrder("s", "take_away", null, "", item, 10_000L)
+        assertTrue(runCatching { byCount.enqueueCashOrder("s", "take_away", null, "", item, 10_000L) }.exceptionOrNull() is OfflineLimitReachedException)
+
+        var now = 0L
+        val byAge = OfflineSyncCoordinator(InMemoryOfflineOrderDao(), FakePosOrderRepository(), StandardTestDispatcher(testScheduler), nowMs = { now })
+        byAge.enqueueCashOrder("s", "take_away", null, "", item, 10_000L)
+        now = 12 * 3_600_000L + 1
+        assertTrue(runCatching { byAge.enqueueCashOrder("s", "take_away", null, "", item, 10_000L) }.exceptionOrNull() is OfflineLimitReachedException)
+    }
+
+    @Test
+    fun `device batch sync marks accepted orders synced and rejected orders failed`() = runTest {
+        val dao = InMemoryOfflineOrderDao()
+        val batchRepo = object : PosOrderRepository {
+            override suspend fun createOrder(input: CreatePosOrderInput): Result<PosOrder> =
+                Result.failure(AssertionError("createOrder should not be called for batch-synced entries"))
+
+            override suspend fun initiatePayment(input: InitiatePosPaymentInput): Result<InitiatePosPaymentResult> =
+                Result.failure(AssertionError("initiatePayment should not be called for batch-synced entries"))
+
+            override suspend fun getOrder(orderId: String): Result<PosOrderDetail> =
+                Result.failure(UnsupportedOperationException())
+
+            override suspend fun syncDeviceOfflineOrders(
+                orders: List<DeviceOfflineOrderSyncItem>
+            ): Result<List<DeviceOfflineOrderSyncOutcome>> {
+                return Result.success(
+                    orders.mapIndexed { idx, item ->
+                        if (idx == 0) {
+                            DeviceOfflineOrderSyncOutcome(
+                                clientOrderId = item.clientOrderId,
+                                status = "accepted",
+                                orderId = "srv-ord-1",
+                                orderNumber = "ORD-001",
+                                queueNumber = "A01"
+                            )
+                        } else {
+                            DeviceOfflineOrderSyncOutcome(
+                                clientOrderId = item.clientOrderId,
+                                status = "rejected",
+                                reason = "Shift mismatch"
+                            )
+                        }
+                    }
+                )
+            }
+        }
+        val coordinator = OfflineSyncCoordinator(dao, batchRepo, StandardTestDispatcher(testScheduler))
+        coordinator.updateOfflinePolicy(maxOrders = 50, maxHours = 6)
+
+        val accepted = coordinator.enqueueCashOrder(
+            storeSlug = "central-cafe",
+            orderType = "take_away",
+            tableNumber = null,
+            customerName = "Ayu",
+            items = listOf(OfflineOrderItemPayload("p1", 1)),
+            cashReceivedIdr = 35_000L,
+            cashierId = "00000000-0000-0000-0000-000000000001",
+            shiftId = "00000000-0000-0000-0000-000000000002",
+            catalogVersion = "2026-11-18T10:00:00Z"
+        )
+        val rejected = coordinator.enqueueCashOrder(
+            storeSlug = "central-cafe",
+            orderType = "take_away",
+            tableNumber = null,
+            customerName = "Damar",
+            items = listOf(OfflineOrderItemPayload("p1", 1)),
+            cashReceivedIdr = 35_000L,
+            cashierId = "00000000-0000-0000-0000-000000000001",
+            shiftId = "00000000-0000-0000-0000-000000000002",
+            catalogVersion = "2026-11-18T10:00:00Z"
+        )
+
+        val syncedCount = coordinator.syncPendingOrders()
+        assertEquals(1, syncedCount)
+        assertEquals(OfflinePendingOrderEntity.STATUS_SYNCED, dao.get(accepted.clientOrderId)?.syncStatus)
+        assertEquals(OfflinePendingOrderEntity.STATUS_FAILED, dao.get(rejected.clientOrderId)?.syncStatus)
+        assertEquals("Shift mismatch", dao.get(rejected.clientOrderId)?.lastError)
     }
 }

@@ -18,6 +18,8 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -70,9 +72,28 @@ import com.azuredevid.cassy.domain.repository.DiscoveredLocalServer
 import com.azuredevid.cassy.domain.repository.LocalServerDiscoveryRepository
 import com.azuredevid.cassy.domain.repository.MobileBootstrapData
 import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
+import com.azuredevid.cassy.domain.repository.PosTable
+import com.azuredevid.cassy.domain.repository.ServiceRequest
+import com.azuredevid.cassy.ui.pos.components.PosServiceRequestPill
+import com.azuredevid.cassy.ui.pos.components.PosServiceRequestsModal
+import com.azuredevid.cassy.ui.pos.components.PosTabItemVoidDialog
+import com.azuredevid.cassy.ui.pos.components.PosTabSplitSection
+import com.azuredevid.cassy.ui.pos.components.PosItemSplitDialog
+import com.azuredevid.cassy.ui.pos.ItemSplitDraft
+import com.azuredevid.cassy.ui.pos.SplitUnit
+import com.azuredevid.cassy.domain.repository.TabSplit
+import com.azuredevid.cassy.ui.pos.TabItemVoidUiState
+import com.azuredevid.cassy.ui.pos.TabVoidStep
+import com.azuredevid.cassy.ui.pos.CartItem
+import com.azuredevid.cassy.ui.pos.components.PosOrderSummaryPanel
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import com.azuredevid.cassy.domain.repository.PrinterConfig
+import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.domain.repository.StorePrinter
+import com.azuredevid.cassy.domain.repository.StorePrinterInput
+import com.azuredevid.cassy.domain.repository.StorePrinterRepository
+import com.azuredevid.cassy.ui.settings.PrinterSettingsViewModel
 import com.azuredevid.cassy.domain.repository.ServerConnectionStatus
 import com.azuredevid.cassy.domain.repository.ServerConnectivityState
 import com.azuredevid.cassy.domain.repository.ServerHealthMonitor
@@ -103,6 +124,7 @@ import com.azuredevid.cassy.ui.theme.CassyTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import android.view.accessibility.AccessibilityNodeInfo
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -118,8 +140,20 @@ class CassyUiShowcaseTest {
     private val context: Context
         get() = ApplicationProvider.getApplicationContext()
 
+    /**
+     * The CI emulator often shows "Pixel Launcher isn't responding" over the app. When the active
+     * window is that system dialog, press Wait so the full-display capture shows Cassy, not the ANR.
+     */
+    private fun dismissSystemAnrDialog() {
+        val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow ?: return
+        if (root.packageName != "android") return
+        root.findAccessibilityNodeInfosByText("Wait").firstOrNull()?.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+        SystemClock.sleep(500L)
+    }
+
     private fun captureScreen(name: String, preferFullDisplay: Boolean = false) {
         composeRule.waitForIdle()
+        if (preferFullDisplay) dismissSystemAnrDialog()
         runCatching {
             val fullDisplayBitmap = if (
                 preferFullDisplay &&
@@ -232,6 +266,22 @@ class CassyUiShowcaseTest {
             state.value = PrinterConfig()
         }
     }
+
+    private class ShowcaseStorePrinters : StorePrinterRepository {
+        private val printers = listOf(
+            StorePrinter("pr-1", "Struk kasir depan", "receipt", "192.168.10.200:9100", 80),
+            StorePrinter("pr-2", "Dapur panas", "kitchen", "192.168.10.201:9100", 58),
+            StorePrinter("pr-3", "Bar kopi", "bar", "192.168.10.202:9100", 58),
+            StorePrinter("pr-4", "Label cup", "label", null, 40)
+        )
+        override suspend fun listForTablet() = Result.success(printers.filter { it.lanAddress != null })
+        override suspend fun listAll() = Result.success(printers)
+        override suspend fun create(input: StorePrinterInput) = Result.success(printers.first())
+        override suspend fun update(id: String, input: StorePrinterInput) = Result.success(printers.first())
+    }
+
+    private fun showcasePrinterViewModel() =
+        PrinterSettingsViewModel(ShowcaseStorePrinters(), ShowcasePrinterSettingsRepo(), PrinterPort9100Manager())
 
     private class ShowcaseAuthRepository : AuthRepository {
         override suspend fun login(
@@ -514,8 +564,8 @@ class CassyUiShowcaseTest {
             }
         }
         composeRule.onNodeWithText(context.getString(R.string.pairing_screen_title)).assertIsDisplayed()
-        composeRule.onNodeWithText(context.getString(R.string.btn_scan_qr_camera)).assertIsDisplayed()
-        composeRule.onNodeWithText(context.getString(R.string.auth_btn_sign_in)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.btn_scan_qr_camera)).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.auth_btn_sign_in)).performScrollTo().assertIsDisplayed()
         captureScreen("StorePairing/DefaultOnline")
     }
 
@@ -534,10 +584,11 @@ class CassyUiShowcaseTest {
             vm.onEvent(StorePairingUiEvent.SubmitLogin)
         }
         composeRule.waitForIdle()
+        // The chip has no scroll parent on tablet, and on a phone the validation error can push it off screen.
         composeRule.onNodeWithText(context.getString(R.string.pairing_server_status_server_unreachable))
-            .assertIsDisplayed()
-        composeRule.onNodeWithText(context.getString(R.string.auth_err_store_slug_required)).assertIsDisplayed()
-        composeRule.onNodeWithText(context.getString(R.string.auth_btn_sign_in)).assertIsDisplayed()
+            .assertExists()
+        composeRule.onNodeWithText(context.getString(R.string.auth_err_store_slug_required)).performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.auth_btn_sign_in)).performScrollTo().assertIsDisplayed()
         captureScreen("StorePairing/Errors/ValidationAndOffline")
 
         composeRule.runOnIdle {
@@ -636,8 +687,19 @@ class CassyUiShowcaseTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithText("Paket Nasi Ayam Bakar").performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
-        captureScreen("PosLandscape/PosMain")
+        val hasTabletPayCash = composeRule.onAllNodesWithText(context.getString(R.string.btn_pay_cash))
+            .fetchSemanticsNodes().isNotEmpty()
+        if (hasTabletPayCash) {
+            composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
+            captureScreen("PosLandscape/PosMain")
+        } else {
+            composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart)).assertIsDisplayed()
+            captureScreen("PosLandscape/PosMain")
+            composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart)).performClick()
+            composeRule.waitForIdle()
+            composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
+            captureScreen("PosLandscape/Modals/PosMobileCartSheet", preferFullDisplay = true)
+        }
     }
 
     @Test
@@ -653,7 +715,7 @@ class CassyUiShowcaseTest {
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.catalog_mgmt_title)).assertIsDisplayed()
-        composeRule.onNodeWithText("Paket Nasi Ayam Bakar").assertIsDisplayed()
+        composeRule.onNodeWithText("Paket Nasi Ayam Bakar").performScrollTo().assertExists()
         captureScreen("CatalogManagement/CatalogMain")
     }
 
@@ -661,26 +723,215 @@ class CassyUiShowcaseTest {
     fun storeSettingsScreen_switchesAllFourTabsCleanly() {
         val vm = StoreSettingsViewModel(
             repository = ShowcaseGovernanceRepo(),
-            sessionManager = ShowcaseSessionManager(ownerSession()),
-            printerSettings = ShowcasePrinterSettingsRepo()
+            sessionManager = ShowcaseSessionManager(ownerSession())
         )
         composeRule.setContent {
             CassyTheme(darkTheme = false) {
-                StoreSettingsScreen(onNavigateBack = {}, viewModel = vm)
+                StoreSettingsScreen(onNavigateBack = {}, viewModel = vm, printerViewModel = showcasePrinterViewModel())
             }
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_midtrans)).assertIsDisplayed()
         captureScreen("StoreSettings/Tabs/MidtransTab")
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_cms)).performClick()
-        composeRule.onNodeWithText(context.getString(R.string.cms_preview_heading)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.cms_section_title)).assertIsDisplayed()
         captureScreen("StoreSettings/Tabs/CmsTab")
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_service)).performClick()
         composeRule.onNodeWithText(context.getString(R.string.service_section_title)).assertIsDisplayed()
         captureScreen("StoreSettings/Tabs/ServiceModeTab")
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_printer)).performClick()
         composeRule.onNodeWithText(context.getString(R.string.printer_tab_title)).assertIsDisplayed()
+        composeRule.onNodeWithText("Struk kasir depan").assertExists()
         captureScreen("StoreSettings/Tabs/PrinterTab")
+        composeRule.onNodeWithText(context.getString(R.string.printer_btn_add)).performClick()
+        composeRule.onNodeWithText(context.getString(R.string.printer_address_required)).assertExists()
+        captureScreen("StoreSettings/Tabs/PrinterEditor", preferFullDisplay = true)
+    }
+
+    @Test
+    fun posTableBoard_rendersStatesAndRunningBill() {
+        val rupiah = NumberFormat.getIntegerInstance(Locale("id", "ID"))
+        val coffee = sampleProducts.first()
+        val tables = listOf(
+            PosTable("t-1", "M-01", "Meja A1", "Indoor", 2, "available", 0L),
+            PosTable("t-2", "M-02", "Meja A2", "Indoor", 2, "occupied", 61_600L),
+            PosTable("t-3", "M-03", "Sofa", "Indoor", 4, "settled", 0L),
+            PosTable("t-4", "G-01", "Teras", "Garden", 4, "available", 0L),
+            PosTable("t-5", "VIP-01", "Ruang VIP", "VIP", 8, "occupied", 245_000L)
+        )
+        composeRule.setContent {
+            CassyTheme(darkTheme = false) {
+                PosOrderSummaryPanel(
+                    panelWidth = 420.dp,
+                    tableName = "M-02",
+                    orderType = "DINE-IN",
+                    onToggleOrderType = {},
+                    // One sent line from the open tab plus a new unsent line of the same product.
+                    cart = listOf(CartItem(coffee, 2, isSentToKitchen = true), CartItem(coffee, 1)),
+                    isCartLocked = false,
+                    onIncreaseQuantity = {},
+                    onDecreaseQuantity = {},
+                    quote = OrderQuote(subtotalAmount = 84_000L, taxAmount = 8_400L, totalAmount = 92_400L),
+                    rupiahFormat = rupiah,
+                    onOpenDrawerKick = {},
+                    onSendToKitchen = {},
+                    onOpenCashModal = {},
+                    onOpenQrisModal = {},
+                    failoverWarning = null,
+                    onReprintStations = {},
+                    tables = tables,
+                    selectedTableId = "t-2"
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        captureScreen("PosTables/OpenBillCart", preferFullDisplay = true)
+        composeRule.onNodeWithText(context.getString(R.string.order_table_tap_hint)).performClick()
+        composeRule.onNodeWithText(context.getString(R.string.order_table_board_title)).assertIsDisplayed()
+        composeRule.onNodeWithText("VIP-01").assertIsDisplayed()
+        captureScreen("PosTables/TableBoardPicker", preferFullDisplay = true)
+    }
+
+    @Test
+    fun serviceRequestQueue_rendersPillAndWaitingCalls() {
+        val requests = listOf(
+            ServiceRequest("sr-1", "M-02", "Minta bill", null, "open", "2026-11-19T08:02:00Z"),
+            ServiceRequest("sr-2", "VIP-01", "Air putih", "Tanpa es, 3 gelas", "acknowledged", "2026-11-19T08:05:00Z"),
+            ServiceRequest("sr-3", "G-01", "Panggil pelayan", null, "open", "2026-11-19T08:09:00Z")
+        )
+        composeRule.setContent {
+            CassyTheme(darkTheme = false) {
+                PosServiceRequestPill(count = requests.size, onClick = {})
+                PosServiceRequestsModal(
+                    requests = requests,
+                    busyRequestId = null,
+                    onAcknowledge = {},
+                    onDone = {},
+                    onDismiss = {}
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.service_panel_title)).assertIsDisplayed()
+        composeRule.onNodeWithText("Tanpa es, 3 gelas").assertExists()
+        captureScreen("PosServiceRequests/QueueModal", preferFullDisplay = true)
+    }
+
+    @Test
+    fun tabItemVoid_rendersOwnerStepAndRemoteWait() {
+        val owner = TabItemVoidUiState(
+            tabId = "tab-1",
+            itemId = "line-1",
+            itemName = "Wagyu Rice Bowl",
+            maxQuantity = 3,
+            quantity = 2,
+            reason = "Tamu batal pesan",
+            pin = "482913",
+            step = TabVoidStep.OWNER
+        )
+        val state = androidx.compose.runtime.mutableStateOf(owner)
+        composeRule.setContent {
+            CassyTheme(darkTheme = false) {
+                PosTabItemVoidDialog(
+                    state = state.value,
+                    onQuantityChange = {},
+                    onReasonChange = {},
+                    onPinChange = {},
+                    onOwnerPinChange = {},
+                    onSubmit = {},
+                    onAskOwner = {},
+                    onDismiss = {}
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.tab_void_owner_needed)).assertExists()
+        captureScreen("PosTabItemVoid/OwnerNeeded", preferFullDisplay = true)
+
+        state.value = owner.copy(step = TabVoidStep.WAITING)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.tab_void_waiting)).assertExists()
+        captureScreen("PosTabItemVoid/WaitingForOwner", preferFullDisplay = true)
+    }
+
+    @Test
+    fun tabSplit_rendersGuestCountThenServerShares() {
+        val rupiah = NumberFormat.getIntegerInstance(Locale("id", "ID"))
+        val coffee = sampleProducts.first()
+        var count by mutableIntStateOf(3)
+        var splits by androidx.compose.runtime.mutableStateOf(emptyList<TabSplit>())
+        composeRule.setContent {
+            CassyTheme(darkTheme = false) {
+                PosOrderSummaryPanel(
+                    panelWidth = 420.dp,
+                    tableName = "M-02",
+                    orderType = "DINE-IN",
+                    onToggleOrderType = {},
+                    cart = listOf(CartItem(coffee, 3, isSentToKitchen = true)),
+                    isCartLocked = false,
+                    onIncreaseQuantity = {},
+                    onDecreaseQuantity = {},
+                    quote = OrderQuote(subtotalAmount = 84_000L, taxAmount = 8_400L, totalAmount = 92_400L),
+                    rupiahFormat = rupiah,
+                    onOpenDrawerKick = {},
+                    onSendToKitchen = {},
+                    onOpenCashModal = {},
+                    onOpenQrisModal = {},
+                    failoverWarning = null,
+                    onReprintStations = {},
+                    selectedTableId = "t-2",
+                    splitSection = {
+                        PosTabSplitSection(
+                            splitCount = count,
+                            splits = splits,
+                            selectedSplitId = "split-2",
+                            isBusy = false,
+                            rupiahFormat = rupiah,
+                            onSplitCountChange = { count = it },
+                            onSplit = {},
+                            onSelectSplit = {}
+                        )
+                    }
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.tab_split_btn, 3)).assertExists()
+        captureScreen("PosTabSplit/GuestCount", preferFullDisplay = true)
+
+        splits = listOf(
+            TabSplit("split-1", 1, 30_800L, 30_800L, "paid"),
+            TabSplit("split-2", 2, 30_800L),
+            TabSplit("split-3", 3, 30_800L)
+        )
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.tab_split_progress, 1, 3)).assertExists()
+        captureScreen("PosTabSplit/SharesOnePaid", preferFullDisplay = true)
+    }
+
+    @Test
+    fun itemSplit_rendersGuestPickerPerUnit() {
+        val units = listOf(
+            SplitUnit("l-1", "Kopi Susu Gula Aren"),
+            SplitUnit("l-1", "Kopi Susu Gula Aren"),
+            SplitUnit("l-2", "Croissant Butter"),
+            SplitUnit("l-3", "Nasi Ayam Bakar")
+        )
+        composeRule.setContent {
+            CassyTheme(darkTheme = false) {
+                PosItemSplitDialog(
+                    draft = ItemSplitDraft(units, guests = 3, owners = listOf(1, 2, 2, null)),
+                    isBusy = false,
+                    onGuestsChange = {},
+                    onAssign = { _, _ -> },
+                    onConfirm = {},
+                    onDismiss = {}
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.tab_split_by_item_title)).assertExists()
+        captureScreen("PosTabSplit/ByItemPicker", preferFullDisplay = true)
     }
 
     @Test

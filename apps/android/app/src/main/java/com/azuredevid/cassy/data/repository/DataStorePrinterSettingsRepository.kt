@@ -80,9 +80,11 @@ class DataStorePrinterSettingsRepository(
                     cashierPrinterIp = config.cashierPrinterIp.trim(),
                     cashierPrinterPort = config.cashierPrinterPort.coerceIn(1, 65535),
                     barPrinterIp = config.barPrinterIp.trim(),
+                    barPrinterPort = config.barPrinterPort.coerceIn(1, 65535),
                     kitchenPrinterIp = config.kitchenPrinterIp.trim(),
-                    pastryPrinterIp = config.pastryPrinterIp.trim(),
+                    kitchenPrinterPort = config.kitchenPrinterPort.coerceIn(1, 65535),
                     expediterPrinterIp = config.expediterPrinterIp.trim(),
+                    expediterPrinterPort = config.expediterPrinterPort.coerceIn(1, 65535),
                     paperWidthMm = if (config.paperWidthMm == 58) 58 else 80
                 )
             }
