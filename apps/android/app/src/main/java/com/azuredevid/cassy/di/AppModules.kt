@@ -16,6 +16,7 @@ import com.azuredevid.cassy.data.network.AndroidServerHealthMonitor
 import com.azuredevid.cassy.data.network.CassyHttpClientFactory
 import com.azuredevid.cassy.data.network.CassyRealtimeClient
 import com.azuredevid.cassy.data.repository.DataStorePrinterSettingsRepository
+import com.azuredevid.cassy.data.repository.KtorDisplayTokenRepository
 import com.azuredevid.cassy.data.repository.KtorStorePrinterRepository
 import com.azuredevid.cassy.data.repository.DataStoreServerSettingsRepository
 import com.azuredevid.cassy.data.repository.KtorAuthRepository
@@ -43,6 +44,7 @@ import com.azuredevid.cassy.domain.repository.ApprovalRepository
 import com.azuredevid.cassy.domain.repository.ServiceRequestRepository
 import com.azuredevid.cassy.domain.repository.TableTabRepository
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.domain.repository.DisplayTokenRepository
 import com.azuredevid.cassy.domain.repository.StorePrinterRepository
 import com.azuredevid.cassy.domain.repository.ServerHealthMonitor
 import com.azuredevid.cassy.domain.repository.ShiftRepository
@@ -56,6 +58,7 @@ import com.azuredevid.cassy.ui.pos.PosViewModel
 import com.azuredevid.cassy.ui.pos.ServiceRequestViewModel
 import com.azuredevid.cassy.ui.pos.TabItemVoidViewModel
 import com.azuredevid.cassy.ui.settings.ServerConfigViewModel
+import com.azuredevid.cassy.ui.settings.DisplayScreensViewModel
 import com.azuredevid.cassy.ui.settings.PrinterSettingsViewModel
 import com.azuredevid.cassy.ui.settings.StoreSettingsViewModel
 import com.azuredevid.cassy.ui.shift.ShiftViewModel
@@ -178,6 +181,13 @@ val repositoryModule = module {
         )
     }
 
+    single<DisplayTokenRepository> {
+        KtorDisplayTokenRepository(
+            httpClient = get(),
+            serverSettings = get()
+        )
+    }
+
     single<StorePrinterRepository> {
         KtorStorePrinterRepository(
             httpClient = get(),
@@ -250,6 +260,7 @@ val viewModelModule = module {
             savedStateHandle = get()
         )
     }
+    viewModel { DisplayScreensViewModel(repository = get()) }
     viewModel {
         PrinterSettingsViewModel(
             printers = get(),

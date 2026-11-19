@@ -43,7 +43,11 @@ import com.azuredevid.cassy.ui.designsystem.CassyStatusBadge
 import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import com.azuredevid.cassy.ui.designsystem.showCassySnackbar
 import com.azuredevid.cassy.ui.settings.components.MidtransCredentialsTab
+import com.azuredevid.cassy.ui.settings.components.CreatedDisplayDialog
+import com.azuredevid.cassy.ui.settings.components.DisplayScreensTab
+import com.azuredevid.cassy.ui.settings.components.NewDisplayDialog
 import com.azuredevid.cassy.ui.settings.components.PrinterEditorDialog
+import com.azuredevid.cassy.ui.settings.components.RevokeDisplayDialog
 import com.azuredevid.cassy.ui.settings.components.PrinterSettingsTab
 import com.azuredevid.cassy.ui.settings.components.StoreBrandCmsTab
 import com.azuredevid.cassy.ui.settings.components.StoreServiceModeTab
@@ -55,11 +59,16 @@ fun StoreSettingsScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: StoreSettingsViewModel = koinViewModel(),
-    printerViewModel: PrinterSettingsViewModel = koinViewModel()
+    printerViewModel: PrinterSettingsViewModel = koinViewModel(),
+    displayViewModel: DisplayScreensViewModel = koinViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
     val printerState by printerViewModel.uiState.collectAsState()
     val printerTabOpen = state.selectedTabIndex == 3
+    val displayState by displayViewModel.uiState.collectAsState()
+    LaunchedEffect(state.selectedTabIndex == 4, state.hasManageAccess) {
+        if (state.selectedTabIndex == 4 && state.hasManageAccess) displayViewModel.load()
+    }
     // The server list is fetched when the tab opens, after the role is known.
     LaunchedEffect(printerTabOpen, state.hasManageAccess, state.isLoading) {
         if (printerTabOpen && !state.isLoading) printerViewModel.load(state.hasManageAccess)
@@ -145,7 +154,8 @@ fun StoreSettingsScreen(
                 stringResource(R.string.settings_tab_midtrans),
                 stringResource(R.string.settings_tab_cms),
                 stringResource(R.string.settings_tab_service),
-                stringResource(R.string.settings_tab_printer)
+                stringResource(R.string.settings_tab_printer),
+                stringResource(R.string.settings_tab_display)
             )
 
             androidx.compose.foundation.layout.BoxWithConstraints(
@@ -263,9 +273,39 @@ fun StoreSettingsScreen(
                         onTest = printerViewModel::test,
                         modifier = Modifier.fillMaxSize()
                     )
+                    4 -> if (state.hasManageAccess) {
+                        DisplayScreensTab(
+                            state = displayState,
+                            onAdd = displayViewModel::openNew,
+                            onRevoke = displayViewModel::askRevoke,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        RestrictedAccessNotice(modifier = Modifier.fillMaxSize())
+                    }
                 }
             }
         }
+    }
+
+    displayState.newName?.let { name ->
+        NewDisplayDialog(
+            name = name,
+            isBusy = displayState.isBusy,
+            error = displayState.message?.asString(),
+            onName = displayViewModel::setName,
+            onCreate = displayViewModel::create,
+            onDismiss = displayViewModel::dismissNew
+        )
+    }
+    displayState.created?.let { CreatedDisplayDialog(created = it, onDismiss = displayViewModel::dismissCreated) }
+    displayState.revoking?.let { screen ->
+        RevokeDisplayDialog(
+            screen = screen,
+            isBusy = displayState.isBusy,
+            onConfirm = displayViewModel::confirmRevoke,
+            onDismiss = displayViewModel::cancelRevoke
+        )
     }
 
     printerState.editor?.let { editor ->

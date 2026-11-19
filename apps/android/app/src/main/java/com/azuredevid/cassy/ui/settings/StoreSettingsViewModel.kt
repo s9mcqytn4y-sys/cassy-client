@@ -156,7 +156,7 @@ class StoreSettingsViewModel(
 
     private val _uiState = MutableStateFlow(
         StoreSettingsUiState(
-            selectedTabIndex = (savedStateHandle.get<Int>(KEY_SELECTED_TAB) ?: 0).coerceIn(0, 3)
+            selectedTabIndex = (savedStateHandle.get<Int>(KEY_SELECTED_TAB) ?: 0).coerceIn(0, 4)
         )
     )
     val uiState: StateFlow<StoreSettingsUiState> = _uiState.asStateFlow()
@@ -240,7 +240,7 @@ class StoreSettingsViewModel(
     fun onEvent(event: StoreSettingsUiEvent) {
         when (event) {
             is StoreSettingsUiEvent.SelectTab -> {
-                val bounded = event.tabIndex.coerceIn(0, 3)
+                val bounded = event.tabIndex.coerceIn(0, 4)
                 savedStateHandle[KEY_SELECTED_TAB] = bounded
                 _uiState.update { it.copy(selectedTabIndex = bounded) }
             }
