@@ -214,7 +214,19 @@ const id = {
   downloadReceiptPdf: "Unduh PDF Struk",
   printReceipt: "Cetak Struk",
   legalIntegrityLabel: "Integritas dokumen (SHA-256)",
-  copyHash: "Salin hash"
+  copyHash: "Salin hash",
+  queueSetupTitle: "Layar antrean",
+  queueSetupBody: "Tempel kode layar dari tablet owner (Pengaturan, Layar antrean), atau buka tautan yang dibagikan dari sana.",
+  queueTokenLabel: "Kode layar",
+  queueTokenSubmit: "Tampilkan antrean",
+  queueLoading: "Memuat antrean",
+  queueLoadingBody: "Sebentar, layar sedang mengambil nomor antrean.",
+  queueOfflineTitle: "Antrean belum bisa dimuat",
+  queueOffline: "Koneksi terputus. Nomor terakhir tetap tampil.",
+  queuePreparing: "Sedang disiapkan",
+  queueReady: "Siap diambil",
+  queueNonePreparing: "Belum ada pesanan yang disiapkan.",
+  queueNoneReady: "Belum ada pesanan yang siap."
 };
 
 export type Messages = typeof id;
@@ -435,7 +447,19 @@ const en: Messages = {
   downloadReceiptPdf: "Download PDF Receipt",
   printReceipt: "Print Receipt",
   legalIntegrityLabel: "Document integrity (SHA-256)",
-  copyHash: "Copy hash"
+  copyHash: "Copy hash",
+  queueSetupTitle: "Queue screen",
+  queueSetupBody: "Paste the screen code from the owner tablet (Settings, Queue screens), or open the link shared from there.",
+  queueTokenLabel: "Screen code",
+  queueTokenSubmit: "Show the queue",
+  queueLoading: "Loading the queue",
+  queueLoadingBody: "One moment, the screen is fetching queue numbers.",
+  queueOfflineTitle: "The queue could not load",
+  queueOffline: "Connection lost. The last numbers stay on screen.",
+  queuePreparing: "Being prepared",
+  queueReady: "Ready for pickup",
+  queueNonePreparing: "No orders are being prepared.",
+  queueNoneReady: "No orders are ready yet."
 };
 
 export const MESSAGES = { "id-ID": id, "en-US": en };
