@@ -426,21 +426,13 @@
     <string name="qris_expired_badge">QRIS Expired</string>
 
     <!-- Printer LAN Tab -->
-    <string name="printer_tab_title">LAN Thermal Printer Configuration (Port 9100)</string>
-    <string name="printer_tab_desc">Set local ESC/POS printer IP addresses for cashier, bar, kitchen, pastry, and expediter stations. Leave unused stations blank.</string>
-    <string name="printer_cashier_ip_label">Cashier &amp; RJ11 Drawer Printer IP</string>
-    <string name="printer_ip_placeholder">Example: 192.168.10.200</string>
-    <string name="printer_port_label">Cashier TCP Port</string>
-    <string name="printer_kitchen_ip_label">Kitchen Printer IP</string>
-    <string name="printer_bar_ip_label">Bar Printer IP</string>
-    <string name="printer_pastry_ip_label">Pastry Printer IP</string>
-    <string name="printer_expediter_ip_label">Expediter Printer IP</string>
+    <string name="printer_tab_title">Store printers</string>
+    <string name="printer_tab_desc">Set printers up once here and every cashier tablet uses them. Tablets print directly to printers that have an IP address.</string>
     <string name="printer_paper_width_label">Receipt Paper Width</string>
     <string name="printer_paper_58">58 mm</string>
     <string name="printer_paper_80">80 mm</string>
-    <string name="printer_btn_test">Test Cashier Connection</string>
-    <string name="printer_btn_save">Save Printer Settings</string>
-    <string name="printer_btn_saving">Saving Printers…</string>
+    <string name="printer_btn_test">Test connection</string>
+    <string name="printer_btn_save">Save printer</string>
 
     <!-- POS & Shift Overhaul Additions -->
     <string name="shift_banner_id_format">SHIFT #%1$s</string>
@@ -528,8 +520,6 @@
     <string name="settings_msg_cms_save_failed">Could not save the display settings.</string>
     <string name="settings_msg_policy_saved">Store service policy updated.</string>
     <string name="settings_msg_policy_save_failed">Could not update the service policy.</string>
-    <string name="settings_msg_printer_ip_required">Enter the cashier printer IP first.</string>
-    <string name="settings_msg_printer_saved">LAN printer settings saved.</string>
     <string name="server_msg_network_error">Network error</string>
     <string name="server_msg_connection_refused">Connection refused</string>
     <string name="notif_channel_orders_name">Orders &amp; Payments</string>
@@ -599,5 +589,32 @@
     <string name="tab_split_paid">Paid</string>
     <string name="pos_msg_split_failed">The bill could not be split. Try again.</string>
     <string name="pos_msg_split_paid">Share %1$d paid. Continue with the next share.</string>
+    <string name="printer_tab_desc_readonly">Printers are managed by the owner or a manager. This tablet uses the list below and can test the connection.</string>
+    <string name="printer_btn_add">Add printer</string>
+    <string name="printer_btn_edit">Edit</string>
+    <string name="printer_empty_title">No printers yet</string>
+    <string name="printer_empty_body">Add a receipt printer so the cashier can print and open the cash drawer.</string>
+    <string name="printer_row_meta">%1$s, %2$d mm paper</string>
+    <string name="printer_inactive">Inactive</string>
+    <string name="printer_via_agent">Printed by the print agent</string>
+    <string name="printer_editor_new">Add printer</string>
+    <string name="printer_editor_edit">Edit printer</string>
+    <string name="printer_field_name">Printer name</string>
+    <string name="printer_field_name_hint">For example: Front receipt</string>
+    <string name="printer_field_station">Used for</string>
+    <string name="printer_field_address">Printer IP address</string>
+    <string name="printer_field_address_hint">192.168.1.50 or 192.168.1.50:9100</string>
+    <string name="printer_address_required">A receipt printer needs an IP address on the store network.</string>
+    <string name="printer_address_optional">Leave empty if the print agent on the store computer prints it.</string>
+    <string name="printer_station_receipt">Cashier receipt</string>
+    <string name="printer_station_bar">Bar</string>
+    <string name="printer_station_kitchen">Kitchen</string>
+    <string name="printer_station_checker">Checker</string>
+    <string name="printer_station_label">Label</string>
+    <string name="printer_msg_saved">Printer saved. Every tablet uses it when the cashier screen opens.</string>
+    <string name="printer_msg_save_failed">The printer was not saved. Check the name and IP address.</string>
+    <string name="printer_msg_load_failed">The printer list could not load. This tablet keeps using the last saved list.</string>
+    <string name="printer_msg_test_ok">%1$s is connected.</string>
+    <string name="printer_msg_test_failed">%1$s is unreachable. Check that it is on and on the same network as the tablet.</string>
 </resources>
 

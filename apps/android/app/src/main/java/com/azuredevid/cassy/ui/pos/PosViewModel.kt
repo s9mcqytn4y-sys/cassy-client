@@ -30,8 +30,10 @@ import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import com.azuredevid.cassy.domain.repository.PrinterConfig
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
 import com.azuredevid.cassy.domain.repository.PosTable
+import com.azuredevid.cassy.domain.repository.StorePrinterRepository
 import com.azuredevid.cassy.domain.repository.TabSplit
 import com.azuredevid.cassy.domain.repository.TableTabRepository
+import com.azuredevid.cassy.domain.repository.toPrinterConfig
 import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -135,6 +137,7 @@ class PosViewModel(
     private val soundPlayer: CassySoundPlayer? = null,
     private val offlineSyncCoordinator: OfflineSyncCoordinator? = null,
     private val tableTabRepository: TableTabRepository? = null,
+    private val storePrinters: StorePrinterRepository? = null,
     private val savedStateHandle: SavedStateHandle = SavedStateHandle()
 ) : ViewModel() {
 
@@ -223,6 +226,11 @@ class PosViewModel(
                 )
             }
             return
+        }
+
+        viewModelScope.launch {
+            // Printers are configured on the server; offline, the last synced copy keeps printing.
+            storePrinters?.listForTablet()?.onSuccess { printerSettings.saveConfig(it.toPrinterConfig()) }
         }
 
         viewModelScope.launch {
@@ -957,16 +965,13 @@ class PosViewModel(
         val fallback = config.cashierPrinterIp.takeIf { it.isNotBlank() }
         val list = mutableListOf<KdsTicketRouter.StationPrinterConfig>()
         if (config.barPrinterIp.isNotBlank()) {
-            list.add(KdsTicketRouter.StationPrinterConfig("bar", "BARISTA", config.barPrinterIp, fallback, config.cashierPrinterPort))
+            list.add(KdsTicketRouter.StationPrinterConfig("bar", "BARISTA", config.barPrinterIp, fallback, config.barPrinterPort))
         }
         if (config.kitchenPrinterIp.isNotBlank()) {
-            list.add(KdsTicketRouter.StationPrinterConfig("kitchen", "DAPUR PANAS", config.kitchenPrinterIp, fallback, config.cashierPrinterPort))
-        }
-        if (config.pastryPrinterIp.isNotBlank()) {
-            list.add(KdsTicketRouter.StationPrinterConfig("pastry", "PASTRY & DINGIN", config.pastryPrinterIp, fallback, config.cashierPrinterPort))
+            list.add(KdsTicketRouter.StationPrinterConfig("kitchen", "DAPUR PANAS", config.kitchenPrinterIp, fallback, config.kitchenPrinterPort))
         }
         if (config.expediterPrinterIp.isNotBlank()) {
-            list.add(KdsTicketRouter.StationPrinterConfig("runner", "RUNNER / EXPO", config.expediterPrinterIp, fallback, config.cashierPrinterPort))
+            list.add(KdsTicketRouter.StationPrinterConfig("runner", "RUNNER / EXPO", config.expediterPrinterIp, fallback, config.expediterPrinterPort))
         }
         return list
     }

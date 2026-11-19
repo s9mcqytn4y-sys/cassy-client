@@ -85,7 +85,12 @@ import com.azuredevid.cassy.ui.pos.CartItem
 import com.azuredevid.cassy.ui.pos.components.PosOrderSummaryPanel
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import com.azuredevid.cassy.domain.repository.PrinterConfig
+import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.domain.repository.StorePrinter
+import com.azuredevid.cassy.domain.repository.StorePrinterInput
+import com.azuredevid.cassy.domain.repository.StorePrinterRepository
+import com.azuredevid.cassy.ui.settings.PrinterSettingsViewModel
 import com.azuredevid.cassy.domain.repository.ServerConnectionStatus
 import com.azuredevid.cassy.domain.repository.ServerConnectivityState
 import com.azuredevid.cassy.domain.repository.ServerHealthMonitor
@@ -258,6 +263,22 @@ class CassyUiShowcaseTest {
             state.value = PrinterConfig()
         }
     }
+
+    private class ShowcaseStorePrinters : StorePrinterRepository {
+        private val printers = listOf(
+            StorePrinter("pr-1", "Struk kasir depan", "receipt", "192.168.10.200:9100", 80),
+            StorePrinter("pr-2", "Dapur panas", "kitchen", "192.168.10.201:9100", 58),
+            StorePrinter("pr-3", "Bar kopi", "bar", "192.168.10.202:9100", 58),
+            StorePrinter("pr-4", "Label cup", "label", null, 40)
+        )
+        override suspend fun listForTablet() = Result.success(printers.filter { it.lanAddress != null })
+        override suspend fun listAll() = Result.success(printers)
+        override suspend fun create(input: StorePrinterInput) = Result.success(printers.first())
+        override suspend fun update(id: String, input: StorePrinterInput) = Result.success(printers.first())
+    }
+
+    private fun showcasePrinterViewModel() =
+        PrinterSettingsViewModel(ShowcaseStorePrinters(), ShowcasePrinterSettingsRepo(), PrinterPort9100Manager())
 
     private class ShowcaseAuthRepository : AuthRepository {
         override suspend fun login(
@@ -699,12 +720,11 @@ class CassyUiShowcaseTest {
     fun storeSettingsScreen_switchesAllFourTabsCleanly() {
         val vm = StoreSettingsViewModel(
             repository = ShowcaseGovernanceRepo(),
-            sessionManager = ShowcaseSessionManager(ownerSession()),
-            printerSettings = ShowcasePrinterSettingsRepo()
+            sessionManager = ShowcaseSessionManager(ownerSession())
         )
         composeRule.setContent {
             CassyTheme(darkTheme = false) {
-                StoreSettingsScreen(onNavigateBack = {}, viewModel = vm)
+                StoreSettingsScreen(onNavigateBack = {}, viewModel = vm, printerViewModel = showcasePrinterViewModel())
             }
         }
         composeRule.waitForIdle()
@@ -718,7 +738,11 @@ class CassyUiShowcaseTest {
         captureScreen("StoreSettings/Tabs/ServiceModeTab")
         composeRule.onNodeWithText(context.getString(R.string.settings_tab_printer)).performClick()
         composeRule.onNodeWithText(context.getString(R.string.printer_tab_title)).assertIsDisplayed()
+        composeRule.onNodeWithText("Struk kasir depan").assertExists()
         captureScreen("StoreSettings/Tabs/PrinterTab")
+        composeRule.onNodeWithText(context.getString(R.string.printer_btn_add)).performClick()
+        composeRule.onNodeWithText(context.getString(R.string.printer_address_required)).assertExists()
+        captureScreen("StoreSettings/Tabs/PrinterEditor", preferFullDisplay = true)
     }
 
     @Test

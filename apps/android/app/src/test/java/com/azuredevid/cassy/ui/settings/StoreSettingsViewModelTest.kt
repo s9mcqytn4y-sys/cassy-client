@@ -12,8 +12,6 @@ import com.azuredevid.cassy.domain.model.StoreCMSConfigInput
 import com.azuredevid.cassy.domain.model.StoreSettings
 import com.azuredevid.cassy.domain.model.StoreSettingsPatch
 import com.azuredevid.cassy.domain.model.StoredSession
-import com.azuredevid.cassy.domain.repository.PrinterConfig
-import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
 import com.azuredevid.cassy.domain.repository.StoreGovernanceRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -53,15 +51,6 @@ class StoreSettingsViewModelTest {
             }
     }
 
-    private class FakePrinterSettingsRepository(
-        initial: PrinterConfig = PrinterConfig()
-    ) : PrinterSettingsRepository {
-        private val state = MutableStateFlow(initial)
-        override val configFlow: Flow<PrinterConfig> = state
-        override suspend fun getConfig(): PrinterConfig = state.value
-        override suspend fun saveConfig(config: PrinterConfig) { state.value = config }
-        override suspend fun clearConfig() { state.value = PrinterConfig() }
-    }
 
     private class FakeStoreGovernanceRepository : StoreGovernanceRepository {
         var currentCreds = PaymentCredentials(
@@ -148,8 +137,7 @@ class StoreSettingsViewModelTest {
             staff = StaffIdentity("u1", "Owner", "owner@cassy.id", "owner", "s1", "cassy", "Cassy")
         )
         val repo = FakeStoreGovernanceRepository()
-        val printerSettings = FakePrinterSettingsRepository()
-        val vm = StoreSettingsViewModel(repo, sessionManager, printerSettings)
+        val vm = StoreSettingsViewModel(repo, sessionManager)
         testDispatcher.scheduler.advanceUntilIdle()
 
         val state = vm.uiState.value
@@ -183,8 +171,7 @@ class StoreSettingsViewModelTest {
             permissions = listOf("pos.order.create")
         )
         val repo = FakeStoreGovernanceRepository()
-        val printerSettings = FakePrinterSettingsRepository()
-        val vm = StoreSettingsViewModel(repo, sessionManager, printerSettings)
+        val vm = StoreSettingsViewModel(repo, sessionManager)
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertFalse(vm.uiState.value.hasManageAccess)
@@ -194,12 +181,6 @@ class StoreSettingsViewModelTest {
         vm.onEvent(StoreSettingsUiEvent.SaveStoreSettings)
         testDispatcher.scheduler.advanceUntilIdle()
         assertNull(repo.patchedSettings)
-
-        // Cashier can still configure local LAN printer
-        vm.onEvent(StoreSettingsUiEvent.UpdateCashierPrinterIp("192.168.10.210"))
-        vm.onEvent(StoreSettingsUiEvent.SavePrinterConfig)
-        testDispatcher.scheduler.advanceUntilIdle()
-        assertEquals("192.168.10.210", printerSettings.getConfig().cashierPrinterIp)
     }
 
     @Test
@@ -213,8 +194,7 @@ class StoreSettingsViewModelTest {
             permissions = listOf("store.settings.manage")
         )
         val repo = FakeStoreGovernanceRepository()
-        val printerSettings = FakePrinterSettingsRepository()
-        val vm = StoreSettingsViewModel(repo, sessionManager, printerSettings)
+        val vm = StoreSettingsViewModel(repo, sessionManager)
         testDispatcher.scheduler.advanceUntilIdle()
 
         vm.onEvent(StoreSettingsUiEvent.SetServiceMode(QRServiceMode.PICKUP))

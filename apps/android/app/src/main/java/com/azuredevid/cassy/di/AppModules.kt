@@ -16,6 +16,7 @@ import com.azuredevid.cassy.data.network.AndroidServerHealthMonitor
 import com.azuredevid.cassy.data.network.CassyHttpClientFactory
 import com.azuredevid.cassy.data.network.CassyRealtimeClient
 import com.azuredevid.cassy.data.repository.DataStorePrinterSettingsRepository
+import com.azuredevid.cassy.data.repository.KtorStorePrinterRepository
 import com.azuredevid.cassy.data.repository.DataStoreServerSettingsRepository
 import com.azuredevid.cassy.data.repository.KtorAuthRepository
 import com.azuredevid.cassy.data.repository.KtorCatalogRepository
@@ -36,6 +37,7 @@ import com.azuredevid.cassy.domain.repository.ApprovalRepository
 import com.azuredevid.cassy.domain.repository.ServiceRequestRepository
 import com.azuredevid.cassy.domain.repository.TableTabRepository
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.domain.repository.StorePrinterRepository
 import com.azuredevid.cassy.domain.repository.ServerHealthMonitor
 import com.azuredevid.cassy.domain.repository.ShiftRepository
 import com.azuredevid.cassy.domain.repository.StoreGovernanceRepository
@@ -45,6 +47,7 @@ import com.azuredevid.cassy.ui.pos.PosViewModel
 import com.azuredevid.cassy.ui.pos.ServiceRequestViewModel
 import com.azuredevid.cassy.ui.pos.TabItemVoidViewModel
 import com.azuredevid.cassy.ui.settings.ServerConfigViewModel
+import com.azuredevid.cassy.ui.settings.PrinterSettingsViewModel
 import com.azuredevid.cassy.ui.settings.StoreSettingsViewModel
 import com.azuredevid.cassy.ui.shift.ShiftViewModel
 import io.ktor.client.HttpClient
@@ -164,6 +167,13 @@ val repositoryModule = module {
         )
     }
 
+    single<StorePrinterRepository> {
+        KtorStorePrinterRepository(
+            httpClient = get(),
+            serverSettings = get()
+        )
+    }
+
     single<ShiftRepository> {
         KtorShiftRepository(
             httpClient = get(),
@@ -205,9 +215,14 @@ val viewModelModule = module {
         StoreSettingsViewModel(
             repository = get(),
             sessionManager = get(),
-            printerSettings = get(),
-            printerManager = get(),
             savedStateHandle = get()
+        )
+    }
+    viewModel {
+        PrinterSettingsViewModel(
+            printers = get(),
+            printerSettings = get(),
+            printerManager = get()
         )
     }
     viewModel {
@@ -232,6 +247,7 @@ val viewModelModule = module {
             soundPlayer = get(),
             offlineSyncCoordinator = get(),
             tableTabRepository = get(),
+            storePrinters = get(),
             savedStateHandle = get()
         )
     }

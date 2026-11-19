@@ -426,21 +426,13 @@
     <string name="qris_expired_badge">QRIS Kedaluwarsa</string>
 
     <!-- Printer LAN Tab -->
-    <string name="printer_tab_title">Konfigurasi Printer Thermal LAN (Port 9100)</string>
-    <string name="printer_tab_desc">Atur alamat IP printer ESC/POS lokal untuk kasir, bar, dapur, pastry, dan expediter. Kosongkan stasiun yang tidak digunakan.</string>
-    <string name="printer_cashier_ip_label">IP Printer Kasir &amp; Laci RJ11</string>
-    <string name="printer_ip_placeholder">Contoh: 192.168.10.200</string>
-    <string name="printer_port_label">Port TCP Kasir</string>
-    <string name="printer_kitchen_ip_label">IP Printer Dapur (Kitchen)</string>
-    <string name="printer_bar_ip_label">IP Printer Bar</string>
-    <string name="printer_pastry_ip_label">IP Printer Pastry</string>
-    <string name="printer_expediter_ip_label">IP Printer Expediter</string>
+    <string name="printer_tab_title">Printer toko</string>
+    <string name="printer_tab_desc">Atur printer sekali di sini, semua tablet kasir ikut memakainya. Tablet mencetak langsung ke printer yang punya alamat IP.</string>
     <string name="printer_paper_width_label">Lebar Kertas Struk</string>
     <string name="printer_paper_58">58 mm</string>
     <string name="printer_paper_80">80 mm</string>
-    <string name="printer_btn_test">Uji Koneksi Kasir</string>
-    <string name="printer_btn_save">Simpan Pengaturan Printer</string>
-    <string name="printer_btn_saving">Menyimpan Printer…</string>
+    <string name="printer_btn_test">Uji koneksi</string>
+    <string name="printer_btn_save">Simpan printer</string>
 
     <!-- POS & Shift Overhaul Additions -->
     <string name="shift_banner_id_format">SHIFT #%1$s</string>
@@ -528,8 +520,6 @@
     <string name="settings_msg_cms_save_failed">Gagal menyimpan pengaturan tampilan.</string>
     <string name="settings_msg_policy_saved">Kebijakan layanan gerai diperbarui.</string>
     <string name="settings_msg_policy_save_failed">Gagal memperbarui kebijakan layanan.</string>
-    <string name="settings_msg_printer_ip_required">Masukkan IP printer kasir terlebih dahulu.</string>
-    <string name="settings_msg_printer_saved">Pengaturan printer LAN tersimpan.</string>
     <string name="server_msg_network_error">Network error</string>
     <string name="server_msg_connection_refused">Connection refused</string>
     <string name="notif_channel_orders_name">Pesanan &amp; Pembayaran</string>
@@ -597,4 +587,31 @@
     <string name="tab_split_paid">Lunas</string>
     <string name="pos_msg_split_failed">Tagihan belum bisa dibagi. Coba lagi.</string>
     <string name="pos_msg_split_paid">Bagian %1$d lunas. Lanjutkan ke bagian berikutnya.</string>
+    <string name="printer_tab_desc_readonly">Printer diatur owner atau manajer. Tablet ini memakai daftar di bawah dan bisa menguji koneksinya.</string>
+    <string name="printer_btn_add">Tambah printer</string>
+    <string name="printer_btn_edit">Ubah</string>
+    <string name="printer_empty_title">Belum ada printer</string>
+    <string name="printer_empty_body">Tambahkan printer struk agar kasir bisa mencetak dan membuka laci kas.</string>
+    <string name="printer_row_meta">%1$s, kertas %2$d mm</string>
+    <string name="printer_inactive">Nonaktif</string>
+    <string name="printer_via_agent">Dicetak lewat print agent</string>
+    <string name="printer_editor_new">Tambah printer</string>
+    <string name="printer_editor_edit">Ubah printer</string>
+    <string name="printer_field_name">Nama printer</string>
+    <string name="printer_field_name_hint">Contoh: Struk kasir depan</string>
+    <string name="printer_field_station">Dipakai untuk</string>
+    <string name="printer_field_address">Alamat IP printer</string>
+    <string name="printer_field_address_hint">192.168.1.50 atau 192.168.1.50:9100</string>
+    <string name="printer_address_required">Printer struk wajib punya alamat IP jaringan toko.</string>
+    <string name="printer_address_optional">Kosongkan jika printer ini dicetak lewat print agent di komputer toko.</string>
+    <string name="printer_station_receipt">Struk kasir</string>
+    <string name="printer_station_bar">Bar</string>
+    <string name="printer_station_kitchen">Dapur</string>
+    <string name="printer_station_checker">Checker</string>
+    <string name="printer_station_label">Label</string>
+    <string name="printer_msg_saved">Printer tersimpan. Semua tablet memakainya saat layar kasir dibuka.</string>
+    <string name="printer_msg_save_failed">Printer belum tersimpan. Periksa nama dan alamat IP.</string>
+    <string name="printer_msg_load_failed">Daftar printer belum bisa dimuat. Tablet memakai daftar terakhir yang tersimpan.</string>
+    <string name="printer_msg_test_ok">%1$s terhubung.</string>
+    <string name="printer_msg_test_failed">%1$s tidak terjangkau. Pastikan printer menyala dan satu jaringan dengan tablet.</string>
 </resources>

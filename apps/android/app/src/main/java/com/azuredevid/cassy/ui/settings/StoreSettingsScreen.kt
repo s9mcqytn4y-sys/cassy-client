@@ -43,6 +43,7 @@ import com.azuredevid.cassy.ui.designsystem.CassyStatusBadge
 import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import com.azuredevid.cassy.ui.designsystem.showCassySnackbar
 import com.azuredevid.cassy.ui.settings.components.MidtransCredentialsTab
+import com.azuredevid.cassy.ui.settings.components.PrinterEditorDialog
 import com.azuredevid.cassy.ui.settings.components.PrinterSettingsTab
 import com.azuredevid.cassy.ui.settings.components.StoreBrandCmsTab
 import com.azuredevid.cassy.ui.settings.components.StoreServiceModeTab
@@ -53,9 +54,16 @@ import org.koin.androidx.compose.koinViewModel
 fun StoreSettingsScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: StoreSettingsViewModel = koinViewModel()
+    viewModel: StoreSettingsViewModel = koinViewModel(),
+    printerViewModel: PrinterSettingsViewModel = koinViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
+    val printerState by printerViewModel.uiState.collectAsState()
+    val printerTabOpen = state.selectedTabIndex == 3
+    // The server list is fetched when the tab opens, after the role is known.
+    LaunchedEffect(printerTabOpen, state.hasManageAccess, state.isLoading) {
+        if (printerTabOpen && !state.isLoading) printerViewModel.load(state.hasManageAccess)
+    }
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     val colors = MaterialTheme.colorScheme
@@ -249,13 +257,29 @@ fun StoreSettingsScreen(
                         RestrictedAccessNotice(modifier = Modifier.fillMaxSize())
                     }
                     3 -> PrinterSettingsTab(
-                        state = state,
-                        onEvent = viewModel::onEvent,
+                        state = printerState,
+                        onAdd = printerViewModel::openNew,
+                        onEdit = printerViewModel::openEdit,
+                        onTest = printerViewModel::test,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
             }
         }
+    }
+
+    printerState.editor?.let { editor ->
+        PrinterEditorDialog(
+            editor = editor,
+            isSaving = printerState.isSaving,
+            error = printerState.message?.asString(),
+            onName = printerViewModel::setName,
+            onStation = printerViewModel::setStation,
+            onAddress = printerViewModel::setLanAddress,
+            onPaper = printerViewModel::setPaperWidth,
+            onSave = printerViewModel::save,
+            onDismiss = printerViewModel::dismissEditor
+        )
     }
 }
 

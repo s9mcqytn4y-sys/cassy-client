@@ -7,15 +7,12 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.core.security.SessionManager
 import com.azuredevid.cassy.domain.model.MidtransEnvironment
 import com.azuredevid.cassy.domain.model.PaymentCredentialInput
 import com.azuredevid.cassy.domain.model.QRServiceMode
 import com.azuredevid.cassy.domain.model.StoreCMSConfigInput
 import com.azuredevid.cassy.domain.model.StoreSettingsPatch
-import com.azuredevid.cassy.domain.repository.PrinterConfig
-import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
 import com.azuredevid.cassy.domain.repository.StoreGovernanceRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,18 +67,6 @@ data class StoreSettingsUiState(
     val savedPaymentMethods: List<String>? = null,
     val isSavingSettings: Boolean = false,
 
-    // Local LAN Printer Config (Port 9100)
-    val cashierPrinterIp: String = "",
-    val cashierPrinterPort: String = "9100",
-    val kitchenPrinterIp: String = "",
-    val barPrinterIp: String = "",
-    val pastryPrinterIp: String = "",
-    val expediterPrinterIp: String = "",
-    val paperWidthMm: Int = 80,
-    val isTestingPrinter: Boolean = false,
-    val printerTestOk: Boolean? = null,
-    val printerTestMessage: UiText? = null,
-    val isSavingPrinter: Boolean = false,
 
     val errorMessage: UiText? = null,
     val successMessage: UiText? = null
@@ -159,16 +144,6 @@ sealed interface StoreSettingsUiEvent {
     data class ToggleRemotePaymentMethod(val method: String, val enabled: Boolean) : StoreSettingsUiEvent
     data object SaveStoreSettings : StoreSettingsUiEvent
 
-    // Printer LAN Events
-    data class UpdateCashierPrinterIp(val value: String) : StoreSettingsUiEvent
-    data class UpdateCashierPrinterPort(val value: String) : StoreSettingsUiEvent
-    data class UpdateKitchenPrinterIp(val value: String) : StoreSettingsUiEvent
-    data class UpdateBarPrinterIp(val value: String) : StoreSettingsUiEvent
-    data class UpdatePastryPrinterIp(val value: String) : StoreSettingsUiEvent
-    data class UpdateExpediterPrinterIp(val value: String) : StoreSettingsUiEvent
-    data class UpdatePaperWidthMm(val widthMm: Int) : StoreSettingsUiEvent
-    data object TestCashierPrinter : StoreSettingsUiEvent
-    data object SavePrinterConfig : StoreSettingsUiEvent
 
     data object DismissMessage : StoreSettingsUiEvent
 }
@@ -176,8 +151,6 @@ sealed interface StoreSettingsUiEvent {
 class StoreSettingsViewModel(
     private val repository: StoreGovernanceRepository,
     private val sessionManager: SessionManager,
-    private val printerSettings: PrinterSettingsRepository,
-    private val printerManager: PrinterPort9100Manager = PrinterPort9100Manager(),
     private val savedStateHandle: SavedStateHandle = SavedStateHandle()
 ) : ViewModel() {
 
@@ -199,7 +172,6 @@ class StoreSettingsViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            val config = printerSettings.getConfig()
             val session = sessionManager.awaitLoaded() ?: sessionManager.currentSession()
             val role = session?.staff?.role.orEmpty()
             val canManage = session != null && (
@@ -210,14 +182,7 @@ class StoreSettingsViewModel(
             _uiState.update { current ->
                 current.copy(
                     hasManageAccess = canManage,
-                    staffRoleLabel = role,
-                    cashierPrinterIp = config.cashierPrinterIp,
-                    cashierPrinterPort = config.cashierPrinterPort.toString(),
-                    kitchenPrinterIp = config.kitchenPrinterIp,
-                    barPrinterIp = config.barPrinterIp,
-                    pastryPrinterIp = config.pastryPrinterIp,
-                    expediterPrinterIp = config.expediterPrinterIp,
-                    paperWidthMm = config.paperWidthMm
+                    staffRoleLabel = role
                 )
             }
 
@@ -319,18 +284,6 @@ class StoreSettingsViewModel(
             }
             StoreSettingsUiEvent.SaveStoreSettings -> saveSettings()
 
-            is StoreSettingsUiEvent.UpdateCashierPrinterIp -> _uiState.update { it.copy(cashierPrinterIp = event.value) }
-            is StoreSettingsUiEvent.UpdateCashierPrinterPort -> {
-                val digits = event.value.filter { ch -> ch.isDigit() }
-                _uiState.update { it.copy(cashierPrinterPort = digits) }
-            }
-            is StoreSettingsUiEvent.UpdateKitchenPrinterIp -> _uiState.update { it.copy(kitchenPrinterIp = event.value) }
-            is StoreSettingsUiEvent.UpdateBarPrinterIp -> _uiState.update { it.copy(barPrinterIp = event.value) }
-            is StoreSettingsUiEvent.UpdatePastryPrinterIp -> _uiState.update { it.copy(pastryPrinterIp = event.value) }
-            is StoreSettingsUiEvent.UpdateExpediterPrinterIp -> _uiState.update { it.copy(expediterPrinterIp = event.value) }
-            is StoreSettingsUiEvent.UpdatePaperWidthMm -> _uiState.update { it.copy(paperWidthMm = event.widthMm) }
-            StoreSettingsUiEvent.TestCashierPrinter -> testCashierPrinter()
-            StoreSettingsUiEvent.SavePrinterConfig -> savePrinterConfig()
 
             StoreSettingsUiEvent.DismissMessage -> {
                 _uiState.update { it.copy(errorMessage = null, successMessage = null) }
@@ -506,70 +459,6 @@ class StoreSettingsViewModel(
                     _uiState.update { it.copy(isSavingSettings = false, errorMessage = msg) }
                     _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg, isError = true))
                 }
-        }
-    }
-
-    private fun testCashierPrinter() {
-        viewModelScope.launch {
-            val state = _uiState.value
-            val ip = state.cashierPrinterIp.trim()
-            val port = state.cashierPrinterPort.toIntOrNull()?.takeIf { it in 1..65535 } ?: 9100
-            if (ip.isBlank()) {
-                _uiState.update {
-                    it.copy(
-                        printerTestOk = false,
-                        printerTestMessage = UiText.res(R.string.settings_msg_printer_ip_required)
-                    )
-                }
-                return@launch
-            }
-
-            _uiState.update {
-                it.copy(
-                    isTestingPrinter = true,
-                    printerTestOk = null,
-                    printerTestMessage = UiText.res(R.string.settings_msg_printer_checking, ip, port)
-                )
-            }
-
-            val result = printerManager.checkPrinterHealth(ip, port)
-            val isReady = result.health == PrinterPort9100Manager.PrinterHealth.READY
-            _uiState.update {
-                it.copy(
-                    isTestingPrinter = false,
-                    printerTestOk = isReady,
-                    printerTestMessage = UiText.Raw(result.details)
-                )
-            }
-        }
-    }
-
-    private fun savePrinterConfig() {
-        viewModelScope.launch {
-            val state = _uiState.value
-            val port = state.cashierPrinterPort.toIntOrNull()?.takeIf { it in 1..65535 } ?: 9100
-            _uiState.update { it.copy(isSavingPrinter = true, errorMessage = null) }
-
-            val config = PrinterConfig(
-                cashierPrinterIp = state.cashierPrinterIp.trim(),
-                cashierPrinterPort = port,
-                barPrinterIp = state.barPrinterIp.trim(),
-                kitchenPrinterIp = state.kitchenPrinterIp.trim(),
-                pastryPrinterIp = state.pastryPrinterIp.trim(),
-                expediterPrinterIp = state.expediterPrinterIp.trim(),
-                paperWidthMm = state.paperWidthMm
-            )
-            printerSettings.saveConfig(config)
-
-            val msg = UiText.res(R.string.settings_msg_printer_saved)
-            _uiState.update {
-                it.copy(
-                    isSavingPrinter = false,
-                    cashierPrinterPort = port.toString(),
-                    successMessage = msg
-                )
-            }
-            _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg))
         }
     }
 
