@@ -262,6 +262,47 @@ class EscPosReceiptBuilder(
         return build()
     }
 
+    /**
+     * Receipt for one share of a split bill: the share amount and how it was paid. Line items stay on
+     * the full receipt that prints when the last share is paid.
+     */
+    fun buildShareReceipt(
+        storeName: String,
+        orderId: String,
+        tableName: String,
+        cashierName: String,
+        shareNumber: Int,
+        shareCount: Int,
+        shareTotalIdr: Long,
+        paymentMethod: String,
+        cashTenderedIdr: Long? = null,
+        changeIdr: Long? = null
+    ): ByteArray {
+        title(storeName)
+        separator()
+        alignLeft()
+        row("No. Pesanan:", orderId.takeLast(12).uppercase())
+        row("Meja / Tipe:", tableName)
+        row("Kasir:", cashierName)
+        row("Waktu:", dateFormat.format(Date()))
+        doubleSeparator()
+        bold(true)
+        row("BAGIAN $shareNumber DARI $shareCount:", "Rp " + rupiahFormat.format(shareTotalIdr))
+        bold(false)
+        separator()
+        row("Metode Bayar:", paymentMethod)
+        if (cashTenderedIdr != null && cashTenderedIdr > 0) {
+            row("Tunai Diterima:", "Rp " + rupiahFormat.format(cashTenderedIdr))
+            row("Kembalian:", "Rp " + rupiahFormat.format(changeIdr ?: 0))
+        }
+        separator()
+        alignCenter()
+        text("Rincian pesanan ada di struk akhir.")
+        emptyLine(1)
+        feedAndCut()
+        return build()
+    }
+
     data class ReceiptItem(
         val name: String,
         val qty: Int,
