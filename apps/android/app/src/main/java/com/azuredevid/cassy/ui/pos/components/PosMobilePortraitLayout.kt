@@ -1,6 +1,7 @@
 package com.azuredevid.cassy.ui.pos.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,12 +15,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Inventory2
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Payments
 import androidx.compose.material.icons.rounded.QrCode2
 import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.material.icons.rounded.Restaurant
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.SoupKitchen
+import androidx.compose.material.icons.rounded.TableRestaurant
 import androidx.compose.material.icons.rounded.ShoppingCart
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -110,8 +116,12 @@ fun PosMobilePortraitLayout(
     onNavigateToSettings: () -> Unit,
     onNavigateToCatalog: () -> Unit,
     onNavigateToPairing: () -> Unit,
+    onNavigateToKds: () -> Unit = {},
+    onNavigateToTables: () -> Unit = {},
+    splitBillEnabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
+    var showMoreMenu by rememberSaveable { mutableStateOf(false) }
     var showCartSheet by rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val totalItems = cart.sumOf { it.quantity }
@@ -174,17 +184,36 @@ fun PosMobilePortraitLayout(
                             contentDescription = stringResource(R.string.btn_byok_settings)
                         )
                     }
-                    IconButton(
-                        onClick = onNavigateToPairing,
-                        modifier = Modifier.defaultMinSize(
-                            minWidth = CassyDimens.TouchTargetMin,
-                            minHeight = CassyDimens.TouchTargetMin
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.QrCodeScanner,
-                            contentDescription = stringResource(R.string.btn_pair_device)
-                        )
+                    // The phone header has no room for the tablet rail, so the less used screens sit in a menu.
+                    Box {
+                        IconButton(
+                            onClick = { showMoreMenu = true },
+                            modifier = Modifier.defaultMinSize(
+                                minWidth = CassyDimens.TouchTargetMin,
+                                minHeight = CassyDimens.TouchTargetMin
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.MoreVert,
+                                contentDescription = stringResource(R.string.pos_more_menu)
+                            )
+                        }
+                        DropdownMenu(expanded = showMoreMenu, onDismissRequest = { showMoreMenu = false }) {
+                            listOf(
+                                Triple(R.string.tables_nav_label, Icons.Rounded.TableRestaurant, onNavigateToTables),
+                                Triple(R.string.kds_nav_label, Icons.Rounded.SoupKitchen, onNavigateToKds),
+                                Triple(R.string.btn_pair_device, Icons.Rounded.QrCodeScanner, onNavigateToPairing)
+                            ).forEach { (label, icon, onClick) ->
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(label)) },
+                                    leadingIcon = { Icon(icon, contentDescription = null) },
+                                    onClick = {
+                                        showMoreMenu = false
+                                        onClick()
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -372,6 +401,7 @@ fun PosMobilePortraitLayout(
                     onOpenTableBoard = onOpenTableBoard,
                     onTableSelected = onTableSelected,
                     splitSection = splitSection,
+                    splitBillEnabled = splitBillEnabled,
                     onOpenSplitBill = {
                         showCartSheet = false
                         onOpenSplitBill()

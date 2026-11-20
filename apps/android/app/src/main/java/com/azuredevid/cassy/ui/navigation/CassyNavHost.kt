@@ -149,7 +149,8 @@ fun CassyNavHost(
                 },
                 onNavigateToPairing = {
                     navController.navigate(CassyRoute.StorePairing)
-                }
+                },
+                splitBillEnabled = roleState.splitBillEnabled
             )
             }
         }

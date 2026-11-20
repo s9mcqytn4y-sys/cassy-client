@@ -83,6 +83,7 @@ fun PosLandscapeScreen(
     onNavigateToKds: () -> Unit = {},
     onNavigateToTables: () -> Unit = {},
     onNavigateToPairing: () -> Unit = {},
+    splitBillEnabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -209,7 +210,9 @@ fun PosLandscapeScreen(
                     }
                 }
                 val splitSection: @Composable () -> Unit = {
-                    if (posState.tableId != null && posState.cart.isNotEmpty()) {
+                    // With split_bill off a tab that was already split stays payable per share.
+                    val canShow = splitBillEnabled || posState.tabSplits.size > 1
+                    if (posState.tableId != null && posState.cart.isNotEmpty() && canShow) {
                         PosTabSplitSection(
                             splitCount = posState.tabSplitCount,
                             splits = posState.tabSplits,
@@ -344,6 +347,7 @@ fun PosLandscapeScreen(
                             onOpenTableBoard = { posViewModel.loadTables() },
                             onTableSelected = { posViewModel.selectTable(it) },
                             splitSection = splitSection,
+                            splitBillEnabled = splitBillEnabled,
                             onOpenSplitBill = handleOpenSplitBill,
                             onOpenOpenBills = { splitViewModel.showOpenBills() }
                         )
@@ -396,7 +400,10 @@ fun PosLandscapeScreen(
                         onOpenOpenBills = { splitViewModel.showOpenBills() },
                         onNavigateToSettings = onNavigateToSettings,
                         onNavigateToCatalog = onNavigateToCatalog,
-                        onNavigateToPairing = onNavigateToPairing
+                        onNavigateToPairing = onNavigateToPairing,
+                        onNavigateToKds = onNavigateToKds,
+                        onNavigateToTables = onNavigateToTables,
+                        splitBillEnabled = splitBillEnabled
                     )
                 }
             }

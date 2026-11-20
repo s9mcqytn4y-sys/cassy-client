@@ -785,4 +785,5 @@
     <string name="display_msg_revoke_failed">Layar belum bisa dicabut. Coba lagi.</string>
     <string name="display_msg_load_failed">Daftar layar belum bisa dimuat.</string>
     <string name="device_role_held_banner">Peran perangkat diubah owner. Tutup shift dan sinkronkan order untuk beralih.</string>
+    <string name="pos_more_menu">Menu lainnya</string>
 </resources>

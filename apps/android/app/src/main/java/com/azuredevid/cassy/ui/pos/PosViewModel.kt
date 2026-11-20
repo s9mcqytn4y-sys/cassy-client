@@ -562,7 +562,11 @@ class PosViewModel(
                     printerManager.openCashDrawer(config.cashierPrinterIp, config.cashierPrinterPort)
                 }
                 if (!settlesWholeBill(settledOrder)) {
-                    advanceToNextSplit()
+                    advanceToNextSplit(
+                        paymentLabel = "TUNAI",
+                        cashTenderedIdr = res.payment.cashTenderedAmount ?: tenderedAmount,
+                        changeIdr = res.payment.changeGivenAmount
+                    )
                     return@onSuccess
                 }
                 dispatchReceiptsAndKitchenTickets(
@@ -703,7 +707,7 @@ class PosViewModel(
         if (!settlesWholeBill(order)) {
             qrisPollJob?.cancel()
             qrisPollJob = null
-            advanceToNextSplit()
+            advanceToNextSplit(paymentLabel = "QRIS")
             return
         }
         val snapshot = _uiState.value
@@ -1003,10 +1007,11 @@ class PosViewModel(
             state.tabSplits.none { !it.isPaid && it.id != state.pendingSplitId }
     }
 
-    // shortcut: a share paid before the last prints no receipt; the full receipt prints when the bill is settled.
-    private suspend fun advanceToNextSplit() {
+    /** A share paid before the last prints its own short receipt; the full receipt prints when the bill is settled. */
+    private suspend fun advanceToNextSplit(paymentLabel: String, cashTenderedIdr: Long? = null, changeIdr: Long? = null) {
         val state = _uiState.value
         val paid = state.selectedSplit ?: return
+        printShareReceipt(state, paid, paymentLabel, cashTenderedIdr, changeIdr)
         val splits = state.tabSplits.map {
             if (it.id == paid.id) it.copy(status = "paid", paidAmount = it.totalAmount) else it
         }
@@ -1023,6 +1028,37 @@ class PosViewModel(
         }
         soundPlayer?.play(CassyAudioCue.ORDER_PAID)
         _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.pos_msg_split_paid, paid.number)))
+    }
+
+    private suspend fun printShareReceipt(
+        state: PosUiState,
+        share: TabSplit,
+        paymentLabel: String,
+        cashTenderedIdr: Long?,
+        changeIdr: Long?
+    ) {
+        val config = printerSettings.getConfig()
+        if (!config.hasCashierPrinter) return
+        val paperWidth = if (config.paperWidthMm == 58) {
+            EscPosReceiptBuilder.PaperWidth.WIDTH_58MM
+        } else {
+            EscPosReceiptBuilder.PaperWidth.WIDTH_80MM
+        }
+        val order = state.pendingOrder
+        val bytes = EscPosReceiptBuilder(paperWidth).buildShareReceipt(
+            storeName = state.storeName.ifBlank { "KASIR POS" },
+            orderId = order?.orderNumber?.ifBlank { order.id } ?: share.id,
+            tableName = resolveTableLabel(state),
+            cashierName = state.cashierName.ifBlank { "Kasir" },
+            shareNumber = share.number,
+            shareCount = state.tabSplits.size,
+            shareTotalIdr = share.totalAmount,
+            paymentMethod = paymentLabel,
+            cashTenderedIdr = cashTenderedIdr,
+            changeIdr = changeIdr ?: cashTenderedIdr?.let { (it - share.totalAmount).coerceAtLeast(0L) }
+        )
+        // A failed print must not undo a recorded payment; the cashier can reprint from the final receipt.
+        printerManager.printRawBytes(config.cashierPrinterIp, bytes, config.cashierPrinterPort)
     }
 
     private suspend fun dispatchReceiptsAndKitchenTickets(

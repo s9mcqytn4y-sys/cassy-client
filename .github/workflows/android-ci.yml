@@ -25,6 +25,7 @@ jobs:
   build-and-test:
     name: Build, Lint & Unit Tests (JDK 17)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: apps/android
