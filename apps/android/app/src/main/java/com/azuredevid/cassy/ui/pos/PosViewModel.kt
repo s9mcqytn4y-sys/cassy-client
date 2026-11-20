@@ -11,6 +11,7 @@ import com.azuredevid.cassy.core.audio.CassyAudioCue
 import com.azuredevid.cassy.core.audio.CassySoundPlayer
 import com.azuredevid.cassy.core.hardware.DEFAULT_RECEIPT_FOOTER
 import com.azuredevid.cassy.core.hardware.EscPosReceiptBuilder
+import com.azuredevid.cassy.core.hardware.repeatCopies
 import com.azuredevid.cassy.core.hardware.KdsTicketRouter
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.core.security.SessionManager
@@ -995,7 +996,7 @@ class PosViewModel(
             state.copy(
                 pendingOrder = closed.order,
                 pendingSplitId = closed.splits.firstOrNull { !it.isPaid }?.id,
-                tabSplits = closed.splits,
+                tabSplits = closed.splits.withLineNames(state.cart.flatMap { it.sentLines }.associate { it.id to it.snapshotName }),
                 cart = state.cart.map { it.copy(sentLines = emptyList()) }
             )
         }
@@ -1054,6 +1055,7 @@ class PosViewModel(
             shareNumber = share.number,
             shareCount = state.tabSplits.size,
             shareTotalIdr = share.totalAmount,
+            lines = share.items.map { EscPosReceiptBuilder.ShareReceiptLine(it.name.ifBlank { "Item" }, it.quantity, it.amount) },
             paymentMethod = paymentLabel,
             cashTenderedIdr = cashTenderedIdr,
             changeIdr = changeIdr ?: cashTenderedIdr?.let { (it - share.totalAmount).coerceAtLeast(0L) }
@@ -1148,22 +1150,20 @@ class PosViewModel(
         val fallback = config.cashierPrinterIp.takeIf { it.isNotBlank() }
         val list = mutableListOf<KdsTicketRouter.StationPrinterConfig>()
         if (config.barPrinterIp.isNotBlank()) {
-            list.add(KdsTicketRouter.StationPrinterConfig("bar", "BARISTA", config.barPrinterIp, fallback, config.barPrinterPort))
+            list.add(KdsTicketRouter.StationPrinterConfig("bar", "BARISTA", config.barPrinterIp, fallback, config.barPrinterPort, config.barCopies))
         }
         if (config.kitchenPrinterIp.isNotBlank()) {
-            list.add(KdsTicketRouter.StationPrinterConfig("kitchen", "DAPUR PANAS", config.kitchenPrinterIp, fallback, config.kitchenPrinterPort))
+            list.add(KdsTicketRouter.StationPrinterConfig("kitchen", "DAPUR PANAS", config.kitchenPrinterIp, fallback, config.kitchenPrinterPort, config.kitchenCopies))
         }
         if (config.expediterPrinterIp.isNotBlank()) {
-            list.add(KdsTicketRouter.StationPrinterConfig("runner", "RUNNER / EXPO", config.expediterPrinterIp, fallback, config.expediterPrinterPort))
+            list.add(KdsTicketRouter.StationPrinterConfig("runner", "RUNNER / EXPO", config.expediterPrinterIp, fallback, config.expediterPrinterPort, config.expediterCopies))
         }
         return list
     }
 
-    /** Each receipt ends with its own cut, so back-to-back copies print as separate slips. */
-    private fun ByteArray.repeatCopies(copies: Int): ByteArray {
-        val n = copies.coerceIn(1, 5)
-        return if (n == 1) this else ByteArray(size * n) { this[it % size] }
-    }
+    /** The cart still holds the sent lines' names here; the closed order may come back without items. */
+    private fun List<TabSplit>.withLineNames(names: Map<String, String>) =
+        map { s -> s.copy(items = s.items.map { it.copy(name = names[it.orderItemId].orEmpty()) }) }
 
     private fun resolveTableLabel(state: PosUiState): String {
         return if (state.orderType == "TAKEAWAY") {

@@ -65,6 +65,9 @@ fun List<StorePrinter>.toPrinterConfig(): PrinterConfig {
         expediterPrinterPort = checker?.port ?: StorePrinter.DEFAULT_PORT,
         paperWidthMm = receipt?.paperWidthMm ?: 80,
         receiptCopies = (receipt?.copies ?: 1).coerceIn(1, 5),
+        barCopies = (bar?.copies ?: 1).coerceIn(1, 5),
+        kitchenCopies = (kitchen?.copies ?: 1).coerceIn(1, 5),
+        expediterCopies = (checker?.copies ?: 1).coerceIn(1, 5),
         receiptFooter = receipt?.footer.orEmpty()
     )
 }

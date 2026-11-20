@@ -22,11 +22,15 @@ data class TabSplit(
     val number: Int,
     val totalAmount: Long,
     val paidAmount: Long = 0L,
-    val status: String = "unpaid"
+    val status: String = "unpaid",
+    /** Units this share pays for; only a `by_item` split has them. [ShareLine.name] is filled by the POS. */
+    val items: List<ShareLine> = emptyList()
 ) {
     val isPaid: Boolean get() = status == "paid"
     val remainingAmount: Long get() = totalAmount - paidAmount
 }
+
+data class ShareLine(val orderItemId: String, val quantity: Int, val amount: Long, val name: String = "")
 
 /** A closed tab ready to pay: the order plus one share (single payer) or 2 to 20 equal shares. */
 data class ClosedTab(val order: PosOrder, val splits: List<TabSplit>)
