@@ -132,5 +132,16 @@ class PrinterSettingsViewModelTest {
         assertEquals("192.168.1.62", config.expediterPrinterIp)
         assertEquals("", config.kitchenPrinterIp)
         assertEquals("", config.cashierPrinterIp)
+        assertEquals(1, config.receiptCopies)
+    }
+
+    @Test
+    fun receiptPrinterCarriesCopiesAndFooter() {
+        val config = listOf(
+            StorePrinter("r", "Kasir", "receipt", "192.168.1.70:9100", copies = 9, footer = "Sampai jumpa")
+        ).toPrinterConfig()
+
+        assertEquals(5, config.receiptCopies)
+        assertEquals("Sampai jumpa", config.receiptFooter)
     }
 }

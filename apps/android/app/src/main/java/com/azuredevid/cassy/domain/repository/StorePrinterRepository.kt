@@ -10,7 +10,9 @@ data class StorePrinter(
     val station: String,
     val lanAddress: String? = null,
     val paperWidthMm: Int = 58,
-    val isActive: Boolean = true
+    val isActive: Boolean = true,
+    val copies: Int = 1,
+    val footer: String = ""
 ) {
     val host: String get() = lanAddress?.substringBeforeLast(':').orEmpty()
     val port: Int get() = lanAddress?.substringAfterLast(':', "")?.toIntOrNull() ?: DEFAULT_PORT
@@ -61,6 +63,8 @@ fun List<StorePrinter>.toPrinterConfig(): PrinterConfig {
         kitchenPrinterPort = kitchen?.port ?: StorePrinter.DEFAULT_PORT,
         expediterPrinterIp = checker?.host.orEmpty(),
         expediterPrinterPort = checker?.port ?: StorePrinter.DEFAULT_PORT,
-        paperWidthMm = receipt?.paperWidthMm ?: 80
+        paperWidthMm = receipt?.paperWidthMm ?: 80,
+        receiptCopies = (receipt?.copies ?: 1).coerceIn(1, 5),
+        receiptFooter = receipt?.footer.orEmpty()
     )
 }

@@ -201,7 +201,7 @@ class EscPosReceiptBuilder(
         paymentMethod: String,
         cashTenderedIdr: Long? = null,
         changeIdr: Long? = null,
-        footerNotes: String = "Terima kasih atas kunjungan Anda!",
+        footerNotes: String = DEFAULT_RECEIPT_FOOTER,
         serviceChargeIdr: Long = 0L,
         discountIdr: Long = 0L,
         roundingIdr: Long = 0L,
@@ -309,3 +309,6 @@ class EscPosReceiptBuilder(
         val priceIdr: Long
     )
 }
+
+/** Receipt footer used when the owner has not set one on the receipt printer. */
+const val DEFAULT_RECEIPT_FOOTER = "Terima kasih atas kunjungan Anda!"

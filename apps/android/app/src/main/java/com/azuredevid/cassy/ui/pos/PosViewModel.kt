@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azuredevid.cassy.core.audio.CassyAudioCue
 import com.azuredevid.cassy.core.audio.CassySoundPlayer
+import com.azuredevid.cassy.core.hardware.DEFAULT_RECEIPT_FOOTER
 import com.azuredevid.cassy.core.hardware.EscPosReceiptBuilder
 import com.azuredevid.cassy.core.hardware.KdsTicketRouter
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
@@ -1056,7 +1057,7 @@ class PosViewModel(
             paymentMethod = paymentLabel,
             cashTenderedIdr = cashTenderedIdr,
             changeIdr = changeIdr ?: cashTenderedIdr?.let { (it - share.totalAmount).coerceAtLeast(0L) }
-        )
+        ).repeatCopies(config.receiptCopies)
         // A failed print must not undo a recorded payment; the cashier can reprint from the final receipt.
         printerManager.printRawBytes(config.cashierPrinterIp, bytes, config.cashierPrinterPort)
     }
@@ -1111,8 +1112,9 @@ class PosViewModel(
                 changeIdr = changeIdr,
                 serviceChargeIdr = order.serviceChargeAmount,
                 discountIdr = order.discountAmount,
-                roundingIdr = roundingIdr
-            )
+                roundingIdr = roundingIdr,
+                footerNotes = config.receiptFooter.ifBlank { DEFAULT_RECEIPT_FOOTER }
+            ).repeatCopies(config.receiptCopies)
         } else {
             null
         }
@@ -1155,6 +1157,12 @@ class PosViewModel(
             list.add(KdsTicketRouter.StationPrinterConfig("runner", "RUNNER / EXPO", config.expediterPrinterIp, fallback, config.expediterPrinterPort))
         }
         return list
+    }
+
+    /** Each receipt ends with its own cut, so back-to-back copies print as separate slips. */
+    private fun ByteArray.repeatCopies(copies: Int): ByteArray {
+        val n = copies.coerceIn(1, 5)
+        return if (n == 1) this else ByteArray(size * n) { this[it % size] }
     }
 
     private fun resolveTableLabel(state: PosUiState): String {
