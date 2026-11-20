@@ -66,4 +66,20 @@ class DeviceRoleViewModelTest {
         dispatcher.scheduler.advanceUntilIdle()
         assertEquals(DeviceRoleUiState(), unpaired.uiState.value)
     }
+
+    @Test
+    fun splitBillFollowsTheOwnerFlagAndDefaultsOn() = runTest {
+        val off = object : DeviceProfileRepository {
+            override suspend fun profile() = Result.success(DeviceProfile("pos", mapOf("split_bill" to false)))
+        }
+        val vm = DeviceRoleViewModel(off, { false }, { 0 })
+        vm.refresh()
+        dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(false, vm.uiState.value.splitBillEnabled)
+
+        val unset = DeviceRoleViewModel(profiles("pos"), { false }, { 0 })
+        unset.refresh()
+        dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(true, unset.uiState.value.splitBillEnabled)
+    }
 }

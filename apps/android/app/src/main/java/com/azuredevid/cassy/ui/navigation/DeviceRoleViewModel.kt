@@ -14,10 +14,15 @@ import kotlinx.coroutines.launch
 /**
  * [home] is the screen this tablet should open: KDS for a `kds` device, the cashier for every other role
  * until the backoffice screens exist. [held] keeps a cashier tablet on the cashier while its shift is
- * open or offline orders wait to sync, because the server cannot see either.
+ * open or offline orders wait to sync, because the server cannot see either. [splitBillEnabled] is the
+ * owner's `split_bill` flag; it stays on until the server says otherwise.
  */
 @Immutable
-data class DeviceRoleUiState(val home: DeviceHome = DeviceHome.POS, val held: Boolean = false)
+data class DeviceRoleUiState(
+    val home: DeviceHome = DeviceHome.POS,
+    val held: Boolean = false,
+    val splitBillEnabled: Boolean = true
+)
 
 enum class DeviceHome { POS, KDS }
 
@@ -40,13 +45,14 @@ class DeviceRoleViewModel(
         job = viewModelScope.launch {
             while (true) {
                 // Unpaired or unreachable: stay where the tablet already is.
-                val role = profiles.profile().getOrNull()?.role ?: return@launch
-                if (role != ROLE_KDS) {
-                    _uiState.value = DeviceRoleUiState(DeviceHome.POS)
+                val profile = profiles.profile().getOrNull() ?: return@launch
+                val splitBill = profile.features[FEATURE_SPLIT_BILL] ?: true
+                if (profile.role != ROLE_KDS) {
+                    _uiState.value = DeviceRoleUiState(DeviceHome.POS, splitBillEnabled = splitBill)
                     return@launch
                 }
                 val held = hasOpenShift() || pendingOfflineOrders() > 0
-                _uiState.value = DeviceRoleUiState(DeviceHome.KDS, held)
+                _uiState.value = DeviceRoleUiState(DeviceHome.KDS, held, splitBill)
                 if (!held) return@launch
                 delay(recheckMs)
             }
@@ -55,5 +61,6 @@ class DeviceRoleViewModel(
 
     private companion object {
         const val ROLE_KDS = "kds"
+        const val FEATURE_SPLIT_BILL = "split_bill"
     }
 }

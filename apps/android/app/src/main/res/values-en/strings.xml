@@ -791,4 +791,5 @@
     <string name="display_msg_revoke_failed">The screen could not be revoked. Try again.</string>
     <string name="display_msg_load_failed">The screen list could not load.</string>
     <string name="device_role_held_banner">The owner changed this device role. Close the shift and sync orders to switch.</string>
+    <string name="pos_more_menu">More menu</string>
 </resources>

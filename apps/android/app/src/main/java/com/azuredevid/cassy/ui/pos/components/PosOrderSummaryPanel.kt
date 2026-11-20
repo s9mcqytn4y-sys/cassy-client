@@ -108,7 +108,9 @@ fun PosOrderSummaryPanel(
     selectedTableId: String? = null,
     onOpenTableBoard: () -> Unit = {},
     onTableSelected: (PosTable) -> Unit = {},
-    splitSection: @Composable () -> Unit = {}
+    splitSection: @Composable () -> Unit = {},
+    /** Owner flag `split_bill`; off hides new splits but keeps bills already split payable. */
+    splitBillEnabled: Boolean = true
 ) {
     var showTableDialog by remember { mutableStateOf(false) }
 
@@ -470,7 +472,7 @@ fun PosOrderSummaryPanel(
                     horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
                 ) {
                     // A table bill is divided in splitSection when it closes; this split serves pay-first orders.
-                    if (selectedTableId == null) {
+                    if (selectedTableId == null && splitBillEnabled) {
                         CassyTonalButton(
                             text = stringResource(R.string.split_btn_split_bill),
                             onClick = onOpenSplitBill,
