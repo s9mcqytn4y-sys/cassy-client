@@ -112,7 +112,7 @@ dependencies {
     // Security & Persistence: Google Tink AEAD (Android Keystore) + Jetpack DataStore
     implementation("androidx.datastore:datastore:1.1.1")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
-    implementation("com.google.crypto.tink:tink-android:1.15.0")
+    implementation("com.google.crypto.tink:tink-android:1.24.0")
 
     // Image Loading for WebP Menu Catalog from Cloudflare R2 CDN
     implementation("io.coil-kt:coil-compose:2.7.0")
