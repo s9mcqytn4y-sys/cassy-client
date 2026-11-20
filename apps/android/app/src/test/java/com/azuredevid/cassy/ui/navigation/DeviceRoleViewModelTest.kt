@@ -46,12 +46,15 @@ class DeviceRoleViewModelTest {
 
     @Test
     fun unsyncedOfflineOrdersAlsoHoldTheSwitch() = runTest {
-        val vm = DeviceRoleViewModel(profiles("kds"), { false }, { 2 }, recheckMs = 1_000_000)
+        var pending = 2
+        val vm = DeviceRoleViewModel(profiles("kds"), { false }, { pending }, recheckMs = 1_000)
         vm.refresh()
         dispatcher.scheduler.runCurrent()
         assertEquals(true, vm.uiState.value.held)
-        vm.refresh() // cancels the recheck loop so runTest can finish
-        dispatcher.scheduler.runCurrent()
+        // A held device rechecks forever; clearing the queue ends the loop so runTest can finish.
+        pending = 0
+        dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(false, vm.uiState.value.held)
     }
 
     @Test
