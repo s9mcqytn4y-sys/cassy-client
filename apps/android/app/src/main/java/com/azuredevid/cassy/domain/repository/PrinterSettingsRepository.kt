@@ -14,7 +14,11 @@ data class PrinterConfig(
     val kitchenPrinterPort: Int = 9100,
     val expediterPrinterIp: String = "",
     val expediterPrinterPort: Int = 9100,
-    val paperWidthMm: Int = 80
+    val paperWidthMm: Int = 80,
+    /** Customer receipts printed per payment (server `copies`, 1-5). */
+    val receiptCopies: Int = 1,
+    /** Receipt footer set by the owner; blank keeps the default thank-you line. */
+    val receiptFooter: String = ""
 ) {
     val hasCashierPrinter: Boolean
         get() = cashierPrinterIp.isNotBlank()

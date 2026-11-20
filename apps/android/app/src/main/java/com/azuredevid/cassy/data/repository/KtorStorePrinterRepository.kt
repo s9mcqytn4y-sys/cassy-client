@@ -28,9 +28,11 @@ private data class PrinterDto(
     val station: String = "",
     @SerialName("lan_address") val lanAddress: String? = null,
     @SerialName("paper_width_mm") val paperWidthMm: Int = 58,
-    @SerialName("is_active") val isActive: Boolean = true
+    @SerialName("is_active") val isActive: Boolean = true,
+    val copies: Int = 1,
+    val footer: String = ""
 ) {
-    fun toDomain() = StorePrinter(id, name, station, lanAddress, paperWidthMm, isActive)
+    fun toDomain() = StorePrinter(id, name, station, lanAddress, paperWidthMm, isActive, copies, footer)
 }
 
 @Serializable
