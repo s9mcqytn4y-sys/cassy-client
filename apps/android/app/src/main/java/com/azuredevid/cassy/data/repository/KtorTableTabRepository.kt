@@ -7,6 +7,7 @@ import com.azuredevid.cassy.data.network.HttpErrorMapper
 import com.azuredevid.cassy.domain.model.CreatePosOrderItemInput
 import com.azuredevid.cassy.domain.model.PosOrder
 import com.azuredevid.cassy.domain.repository.ClosedTab
+import com.azuredevid.cassy.domain.repository.ShareLine
 import com.azuredevid.cassy.domain.repository.TabSplit
 import com.azuredevid.cassy.domain.repository.PosTable
 import com.azuredevid.cassy.domain.repository.TabItemVoidInput
@@ -98,7 +99,15 @@ private data class PaymentSplitDto(
     @SerialName("split_number") val number: Int = 1,
     @SerialName("total_amount") val totalAmount: Long = 0L,
     @SerialName("paid_amount") val paidAmount: Long = 0L,
-    val status: String = "unpaid"
+    val status: String = "unpaid",
+    val items: List<PaymentSplitItemDto> = emptyList()
+)
+
+@Serializable
+private data class PaymentSplitItemDto(
+    @SerialName("order_item_id") val orderItemId: String,
+    val quantity: Int = 0,
+    @SerialName("allocated_amount") val allocatedAmount: Long = 0L
 )
 
 @Serializable
@@ -236,7 +245,12 @@ class KtorTableTabRepository(
                 return@withContext Result.failure(IllegalStateException("Tagihan meja tidak punya split pembayaran."))
             }
             val splits = body.splits.sortedBy { it.number }
-                .map { TabSplit(it.id, it.number, it.totalAmount, it.paidAmount, it.status) }
+                .map { s ->
+                    TabSplit(
+                        s.id, s.number, s.totalAmount, s.paidAmount, s.status,
+                        s.items.map { ShareLine(it.orderItemId, it.quantity, it.allocatedAmount) }
+                    )
+                }
             Result.success(ClosedTab(body.order.toDomain(), splits))
         } catch (t: Throwable) {
             Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal menutup tagihan meja."))

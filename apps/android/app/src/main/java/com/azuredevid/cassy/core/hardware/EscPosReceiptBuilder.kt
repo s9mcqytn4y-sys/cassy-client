@@ -275,6 +275,7 @@ class EscPosReceiptBuilder(
         shareCount: Int,
         shareTotalIdr: Long,
         paymentMethod: String,
+        lines: List<ShareReceiptLine> = emptyList(),
         cashTenderedIdr: Long? = null,
         changeIdr: Long? = null
     ): ByteArray {
@@ -286,6 +287,11 @@ class EscPosReceiptBuilder(
         row("Kasir:", cashierName)
         row("Waktu:", dateFormat.format(Date()))
         doubleSeparator()
+        lines.forEach { line ->
+            writeLine(line.name)
+            row("  ${line.qty}x", "Rp " + rupiahFormat.format(line.amountIdr))
+        }
+        if (lines.isNotEmpty()) separator()
         bold(true)
         row("BAGIAN $shareNumber DARI $shareCount:", "Rp " + rupiahFormat.format(shareTotalIdr))
         bold(false)
@@ -297,11 +303,14 @@ class EscPosReceiptBuilder(
         }
         separator()
         alignCenter()
-        text("Rincian pesanan ada di struk akhir.")
+        if (lines.isEmpty()) text("Rincian pesanan ada di struk akhir.")
         emptyLine(1)
         feedAndCut()
         return build()
     }
+
+    /** A share's slice of one order line; [amountIdr] is the server allocation, not qty times price. */
+    data class ShareReceiptLine(val name: String, val qty: Int, val amountIdr: Long)
 
     data class ReceiptItem(
         val name: String,
@@ -312,3 +321,9 @@ class EscPosReceiptBuilder(
 
 /** Receipt footer used when the owner has not set one on the receipt printer. */
 const val DEFAULT_RECEIPT_FOOTER = "Terima kasih atas kunjungan Anda!"
+
+/** Each slip ends with its own cut, so back-to-back copies print as separate slips. */
+fun ByteArray.repeatCopies(copies: Int): ByteArray {
+    val n = copies.coerceIn(1, 5)
+    return if (n == 1) this else ByteArray(size * n) { this[it % size] }
+}

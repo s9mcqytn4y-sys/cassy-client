@@ -138,10 +138,13 @@ class PrinterSettingsViewModelTest {
     @Test
     fun receiptPrinterCarriesCopiesAndFooter() {
         val config = listOf(
-            StorePrinter("r", "Kasir", "receipt", "192.168.1.70:9100", copies = 9, footer = "Sampai jumpa")
+            StorePrinter("r", "Kasir", "receipt", "192.168.1.70:9100", copies = 9, footer = "Sampai jumpa"),
+            StorePrinter("k", "Dapur", "kitchen", "192.168.1.71:9100", copies = 2)
         ).toPrinterConfig()
 
         assertEquals(5, config.receiptCopies)
         assertEquals("Sampai jumpa", config.receiptFooter)
+        assertEquals(2, config.kitchenCopies)
+        assertEquals(1, config.barCopies)
     }
 }

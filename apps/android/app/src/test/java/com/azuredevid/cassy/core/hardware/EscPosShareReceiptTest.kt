@@ -27,4 +27,24 @@ class EscPosShareReceiptTest {
         assertTrue(text.contains("Kembalian"))
         assertTrue(text.contains("struk akhir"))
     }
+
+    @Test
+    fun byItemShareListsItsOwnLines() {
+        val bytes = EscPosReceiptBuilder(EscPosReceiptBuilder.PaperWidth.WIDTH_80MM).buildShareReceipt(
+            storeName = "Kopi Pandan",
+            orderId = "ORD-20261120-0008",
+            tableName = "Meja 2",
+            cashierName = "Rina",
+            shareNumber = 2,
+            shareCount = 2,
+            shareTotalIdr = 6_667L,
+            paymentMethod = "QRIS",
+            lines = listOf(EscPosReceiptBuilder.ShareReceiptLine("Kopi promo", 2, 6_667L))
+        )
+        val text = String(bytes, Charset.forName("US-ASCII"))
+
+        assertTrue(text.contains("Kopi promo"))
+        assertTrue(text.contains("2x"))
+        assertTrue(!text.contains("struk akhir"))
+    }
 }

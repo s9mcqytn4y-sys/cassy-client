@@ -24,7 +24,8 @@ class KdsTicketRouter(
         val displayName: String,
         val primaryIp: String,
         val fallbackIp: String? = null,
-        val port: Int = 9100
+        val port: Int = 9100,
+        val copies: Int = 1
     )
 
     data class StationItem(
@@ -176,7 +177,7 @@ class KdsTicketRouter(
                 isRedirected = false
             )
 
-            val primaryResult = printerManager.printRawBytes(config.primaryIp, ticketBytes, config.port)
+            val primaryResult = printerManager.printRawBytes(config.primaryIp, ticketBytes.repeatCopies(config.copies), config.port)
             if (primaryResult.isSuccess) {
                 statuses.add(
                     StationPrintStatus(

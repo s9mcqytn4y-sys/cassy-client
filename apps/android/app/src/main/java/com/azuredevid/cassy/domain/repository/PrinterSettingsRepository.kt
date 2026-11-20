@@ -15,6 +15,10 @@ data class PrinterConfig(
     val expediterPrinterIp: String = "",
     val expediterPrinterPort: Int = 9100,
     val paperWidthMm: Int = 80,
+    /** Tickets per station print (server `copies`, 1-5). */
+    val barCopies: Int = 1,
+    val kitchenCopies: Int = 1,
+    val expediterCopies: Int = 1,
     /** Customer receipts printed per payment (server `copies`, 1-5). */
     val receiptCopies: Int = 1,
     /** Receipt footer set by the owner; blank keeps the default thank-you line. */
