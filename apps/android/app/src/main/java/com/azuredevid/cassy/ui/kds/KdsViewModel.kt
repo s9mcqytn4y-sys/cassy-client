@@ -177,6 +177,7 @@ class KdsViewModel(
             onSuccess = { tickets ->
                 // A reply for a station the user already left is discarded.
                 if (_uiState.value.station != station) return
+                logArrivalLatency(tickets)
                 _uiState.update {
                     it.copy(isLoading = false, loadError = null, tickets = sortOldestFirst(tickets.filter { t -> t.status.isOpen }))
                 }
@@ -185,6 +186,21 @@ class KdsViewModel(
                 _uiState.update { it.copy(isLoading = false, loadError = err.toKdsMessage(R.string.kds_error_load)) }
             }
         )
+    }
+
+    /**
+     * PRD A2 target: a ticket reaches the board within 2 s of the cashier sending it. Logs the age of
+     * each ticket the board shows for the first time, read with `adb logcat -s CassyKdsLatency`.
+     * The age uses the server clock against the tablet clock, so pair it with NTP-synced devices.
+     */
+    private fun logArrivalLatency(tickets: List<KdsTicket>) {
+        // The first load of a station shows tickets that were already waiting; only arrivals count.
+        if (_uiState.value.isLoading) return
+        val known = _uiState.value.tickets.mapTo(HashSet()) { it.id }
+        val now = System.currentTimeMillis()
+        tickets.filter { it.id !in known && it.status.isOpen }.forEach {
+            android.util.Log.i("CassyKdsLatency", "ticket=${it.orderNumber} ms=${now - it.createdAtMillis}")
+        }
     }
 
     private suspend fun loadServiceMode() {
