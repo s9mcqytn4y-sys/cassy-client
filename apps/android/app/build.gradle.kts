@@ -53,9 +53,11 @@ android {
             }
             if (targetFile != null && targetFile.exists()) {
                 storeFile = targetFile
-                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("ANDROID_KEY_ALIAS") ?: "cassy-upload"
-                keyPassword = System.getenv("ANDROID_KEY_PASSWORD") ?: System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")?.trim()
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")?.trim()?.ifEmpty { "cassy-upload" } ?: "cassy-upload"
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")?.trim()?.ifEmpty {
+                    System.getenv("ANDROID_KEYSTORE_PASSWORD")?.trim()
+                } ?: System.getenv("ANDROID_KEYSTORE_PASSWORD")?.trim()
             }
         }
     }
