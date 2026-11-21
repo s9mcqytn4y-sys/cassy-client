@@ -53,7 +53,7 @@ fun OpenShiftModal(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val rupiahFormatter = remember { NumberFormat.getIntegerInstance(Locale("id", "ID")) }
+    val rupiahFormatter = remember { NumberFormat.getIntegerInstance(Locale.forLanguageTag("id-ID")) }
     val currentAmount = openingFloatInput.toLongOrNull() ?: 0L
     val presets = remember { listOf(100_000L, 200_000L, 500_000L, 1_000_000L) }
 

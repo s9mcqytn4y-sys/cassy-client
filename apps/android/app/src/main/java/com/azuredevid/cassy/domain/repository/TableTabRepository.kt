@@ -76,4 +76,10 @@ interface TableTabRepository {
      * must cover every unit of every line exactly once, and the server prices each share.
      */
     suspend fun closeTabByItem(orderId: String, shares: List<Map<String, Int>>): Result<ClosedTab>
+
+    /**
+     * Unlocks a closed tab back to open status and cancels unpaid splits (`POST /api/v1/pos/tabs/{id}/reopen`).
+     */
+    suspend fun reopenTab(orderId: String): Result<PosOrder> =
+        Result.failure(UnsupportedOperationException("reopenTab not configured"))
 }

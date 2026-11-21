@@ -53,7 +53,7 @@
     <string name="input_cash_tendered_label">Nominal Tunai Diterima (Rp)</string>
     <string name="change_label">KEMBALIAN: %1$s</string>
     <string name="insufficient_cash">Uang diterima kurang %1$s</string>
-    <string name="btn_complete_and_print">Selesaikan &amp; Cetak Struk</string>
+    <string name="btn_complete_and_print">Selesaikan &amp; Cetak</string>
     <string name="btn_cancel">Batal</string>
 
     <!-- QRIS Modal -->
@@ -62,9 +62,9 @@
     <string name="qris_payment_instructions">Scan menggunakan BCA, GoPay, ShopeePay, OVO, Dana, LinkAja</string>
     <string name="qris_syncing_status">Memeriksa status pelunasan...</string>
     <string name="qris_waiting_status">Menunggu pembayaran pelanggan...</string>
-    <string name="btn_force_sync">Periksa Status Pembayaran</string>
+    <string name="btn_force_sync">Periksa Status</string>
     <string name="btn_confirm_paid">Konfirmasi Lunas</string>
-    <string name="btn_cancel_qris">Batal / Ubah Pesanan</string>
+    <string name="btn_cancel_qris">Ubah Pesanan</string>
     <string name="toast_qris_cancelled">Sesi QRIS dibatalkan. Keranjang terbuka kembali.</string>
     <string name="toast_qris_success">Pembayaran QRIS Terkonfirmasi Lunas!</string>
     <string name="toast_cash_success">Transaksi Tunai Selesai!</string>
@@ -786,4 +786,28 @@
     <string name="display_msg_load_failed">Daftar layar belum bisa dimuat.</string>
     <string name="device_role_held_banner">Peran perangkat diubah owner. Tutup shift dan sinkronkan order untuk beralih.</string>
     <string name="pos_more_menu">Menu lainnya</string>
+    <string name="pos_rail_cashier">Kasir</string>
+    <string name="pos_rail_tables">Meja</string>
+    <string name="pos_rail_kitchen">Dapur</string>
+    <string name="pos_rail_settings">Setelan</string>
+    <string name="pos_rail_pairing">Pasang</string>
+    <string name="pos_rail_printer_ok">Printer siap</string>
+    <string name="pos_rail_printer_off">Printer mati</string>
+    <string name="msg_generic_error">Permintaan gagal diproses. Coba lagi.</string>
+    <string name="pos_btn_reopen_tab">Buka kembali tagihan</string>
+    <string name="pos_btn_send_digital_receipt">Kirim struk digital</string>
+    <string name="pos_digital_receipt_title">Kirim struk digital</string>
+    <string name="pos_digital_receipt_subtitle">Kirim salinan struk resmi ke WhatsApp atau email tamu.</string>
+    <string name="pos_digital_receipt_channel_wa">WhatsApp</string>
+    <string name="pos_digital_receipt_channel_email">Email</string>
+    <string name="pos_digital_receipt_input_wa_label">Nomor WhatsApp</string>
+    <string name="pos_digital_receipt_input_wa_hint">Contoh: 081234567890</string>
+    <string name="pos_digital_receipt_input_email_label">Alamat email</string>
+    <string name="pos_digital_receipt_input_email_hint">Contoh: tamu@domain.id</string>
+    <string name="pos_digital_receipt_btn_send">Kirim struk</string>
+    <string name="pos_msg_digital_receipt_sent">Struk digital dikirim ke %1$s</string>
+    <string name="pos_msg_tab_reopened">Tagihan meja dibuka kembali.</string>
+    <string name="permission_camera_disclosure_title">Izin kamera untuk pemindaian QR</string>
+    <string name="permission_camera_disclosure_body">Cassy POS membutuhkan akses kamera hanya saat Anda memindai kode QR pairing dari dasbor pemilik gerai. Gambar kamera diproses langsung di perangkat dan tidak pernah disimpan atau dikirim ke server.</string>
+    <string name="permission_camera_disclosure_continue">Lanjutkan</string>
 </resources>

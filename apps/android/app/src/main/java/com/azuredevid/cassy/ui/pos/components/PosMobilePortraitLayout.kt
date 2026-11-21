@@ -119,6 +119,10 @@ fun PosMobilePortraitLayout(
     onNavigateToKds: () -> Unit = {},
     onNavigateToTables: () -> Unit = {},
     splitBillEnabled: Boolean = true,
+    canReopenClosedTab: Boolean = false,
+    hasLastSettledOrder: Boolean = false,
+    onReopenClosedTab: () -> Unit = {},
+    onOpenDigitalReceipt: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showMoreMenu by rememberSaveable { mutableStateOf(false) }
@@ -402,6 +406,16 @@ fun PosMobilePortraitLayout(
                     onTableSelected = onTableSelected,
                     splitSection = splitSection,
                     splitBillEnabled = splitBillEnabled,
+                    canReopenClosedTab = canReopenClosedTab,
+                    hasLastSettledOrder = hasLastSettledOrder,
+                    onReopenClosedTab = {
+                        showCartSheet = false
+                        onReopenClosedTab()
+                    },
+                    onOpenDigitalReceipt = {
+                        showCartSheet = false
+                        onOpenDigitalReceipt()
+                    },
                     onOpenSplitBill = {
                         showCartSheet = false
                         onOpenSplitBill()

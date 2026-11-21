@@ -21,8 +21,8 @@ class EscPosReceiptBuilder(
     }
 
     private val outputStream = ByteArrayOutputStream()
-    private val rupiahFormat = NumberFormat.getIntegerInstance(Locale("id", "ID"))
-    private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale("id", "ID"))
+    private val rupiahFormat = NumberFormat.getIntegerInstance(Locale.forLanguageTag("id-ID"))
+    private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.forLanguageTag("id-ID"))
 
     // ESC/POS Command Constants
     companion object {

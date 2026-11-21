@@ -1,4 +1,5 @@
 import { LocaleProvider } from "@/components/Providers";
+import { PwaUpdateBanner } from "@/components/PwaUpdateBanner";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SkipLink } from "@/components/SkipLink";
 import { siteUrl } from "@/lib/site";
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </main>
           <SiteFooter />
+          <PwaUpdateBanner />
         </LocaleProvider>
       </body>
     </html>

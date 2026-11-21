@@ -39,7 +39,7 @@ fun XReportModal(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val rupiahFormatter = remember { NumberFormat.getIntegerInstance(Locale("id", "ID")) }
+    val rupiahFormatter = remember { NumberFormat.getIntegerInstance(Locale.forLanguageTag("id-ID")) }
 
     CassyModalDialog(
         title = stringResource(R.string.shift_xreport_title),

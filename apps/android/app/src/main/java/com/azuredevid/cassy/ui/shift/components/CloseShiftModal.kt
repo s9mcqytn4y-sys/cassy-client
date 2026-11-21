@@ -67,7 +67,7 @@ fun CloseShiftModal(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val rupiahFormatter = remember { NumberFormat.getIntegerInstance(Locale("id", "ID")) }
+    val rupiahFormatter = remember { NumberFormat.getIntegerInstance(Locale.forLanguageTag("id-ID")) }
     val countedAmount = countedCashInput.toLongOrNull()
 
     CassyModalDialog(

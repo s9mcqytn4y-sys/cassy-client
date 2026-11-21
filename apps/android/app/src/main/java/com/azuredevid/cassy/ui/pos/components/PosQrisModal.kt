@@ -60,7 +60,7 @@ fun PosQrisModal(
     val qrBitmap = remember(payment.qrString) {
         QrBitmapGenerator.createQrBitmap(payment.qrString, width = 440, height = 440)
     }
-    val intFormat = remember { NumberFormat.getIntegerInstance(Locale("id", "ID")) }
+    val intFormat = remember { NumberFormat.getIntegerInstance(Locale.forLanguageTag("id-ID")) }
     val formattedAmount = stringResource(R.string.cash_chip_rp, intFormat.format(payment.amount))
     val expiresEpochMs = remember(payment.expiresAt) {
         payment.expiresAt?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrNull() }

@@ -1,26 +1,21 @@
 package com.azuredevid.cassy.ui.shift
 
-import com.azuredevid.cassy.ui.designsystem.toUiText
-import com.azuredevid.cassy.ui.designsystem.UiText
-import com.azuredevid.cassy.R
-import androidx.compose.runtime.Immutable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.azuredevid.cassy.R
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.core.hardware.ShiftReportThermalBuilder
 import com.azuredevid.cassy.core.security.SessionManager
 import com.azuredevid.cassy.domain.error.DomainError
 import com.azuredevid.cassy.domain.error.DomainException
-import com.azuredevid.cassy.domain.model.CashDrawer
 import com.azuredevid.cassy.domain.model.CashMovementType
-import com.azuredevid.cassy.domain.model.Shift
 import com.azuredevid.cassy.domain.model.ShiftStatus
-import com.azuredevid.cassy.domain.model.XReport
 import com.azuredevid.cassy.domain.model.ZReport
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
 import com.azuredevid.cassy.domain.repository.ShiftRepository
-import com.azuredevid.cassy.ui.designsystem.CassyToastTone
+import com.azuredevid.cassy.ui.designsystem.UiText
+import com.azuredevid.cassy.ui.designsystem.toUiText
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -31,60 +26,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
-@Immutable
-data class ShiftUiState(
-    val isLoading: Boolean = false,
-    val drawers: List<CashDrawer> = emptyList(),
-    val selectedDrawerId: String? = null,
-    val currentShift: Shift? = null,
-    val isShiftOpen: Boolean = false,
-    val errorMessage: UiText? = null,
-    val successMessage: UiText? = null,
-
-    // Modal controls
-    val showOpenShiftModal: Boolean = false,
-    val showCloseShiftModal: Boolean = false,
-    val showCashMovementModal: Boolean = false,
-    val showXReportModal: Boolean = false,
-
-    // Open shift form
-    val openingFloatInput: String = "200000",
-    val openShiftNotes: String = "",
-    val isOpeningShift: Boolean = false,
-
-    // Cash movement form
-    val movementType: CashMovementType = CashMovementType.PAID_OUT,
-    val movementAmountInput: String = "",
-    val movementReason: String = "",
-    val isRecordingMovement: Boolean = false,
-
-    // Close shift form
-    val countedCashInput: String = "",
-    val varianceReason: String = "",
-    val closeShiftNotes: String = "",
-    val supervisorPinInput: String = "",
-    val printReceiptOnClose: Boolean = true,
-    val calculatedVariance: Long? = null,
-    val isSupervisorAuthRequired: Boolean = false,
-    val isClosingShift: Boolean = false,
-
-    // Reports & Printing
-    val currentXReport: XReport? = null,
-    val isLoadingXReport: Boolean = false,
-    val isPrintingReport: Boolean = false,
-    val lastZReport: ZReport? = null
-)
-
-sealed interface ShiftUiEffect {
-    data class ShowToast(
-        val message: UiText,
-        val tone: CassyToastTone = CassyToastTone.INFO
-    ) : ShiftUiEffect
-    data object PromptOpenShift : ShiftUiEffect
-    data class ShiftOpenedSuccessfully(val shift: Shift) : ShiftUiEffect
-    data class ShiftClosedSuccessfully(val report: ZReport) : ShiftUiEffect
-}
-
 class ShiftViewModel(
     private val shiftRepository: ShiftRepository,
     private val printerSettings: PrinterSettingsRepository,
@@ -93,6 +34,13 @@ class ShiftViewModel(
     private val thermalBuilder: ShiftReportThermalBuilder = ShiftReportThermalBuilder(),
     private val savedStateHandle: SavedStateHandle = SavedStateHandle()
 ) : ViewModel() {
+
+    private val reportPrinter = ShiftReportPrinter(
+        printerSettings = printerSettings,
+        sessionManager = sessionManager,
+        printerManager = printerManager,
+        thermalBuilder = thermalBuilder
+    )
 
     private val _uiState = MutableStateFlow(
         ShiftUiState(selectedDrawerId = savedStateHandle.get<String>(KEY_SELECTED_DRAWER))
@@ -224,7 +172,7 @@ class ShiftViewModel(
                     )
                 }
                 if (result.openDrawer) {
-                    kickDrawerIfConfigured()
+                    reportPrinter.kickDrawerIfConfigured { _effects.emit(it) }
                 }
                 _effects.emit(ShiftUiEffect.ShiftOpenedSuccessfully(result.shift))
                 _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_opened_toast)))
@@ -309,7 +257,7 @@ class ShiftViewModel(
                     )
                 }
                 if (result.openDrawer) {
-                    kickDrawerIfConfigured()
+                    reportPrinter.kickDrawerIfConfigured { _effects.emit(it) }
                 }
                 _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_movement_saved)))
                 loadCurrentShift()
@@ -363,22 +311,11 @@ class ShiftViewModel(
     fun printCurrentXReport() {
         val report = _uiState.value.currentXReport ?: return
         viewModelScope.launch {
-            val config = printerSettings.getConfig()
-            if (!config.hasCashierPrinter) {
-                _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.msg_cashier_printer_missing)))
-                return@launch
-            }
-            _uiState.update { it.copy(isPrintingReport = true) }
-            val payload = thermalBuilder.buildXReportReceipt(resolveStoreName(), report)
-            printerManager.printRawBytes(config.cashierPrinterIp, payload, config.cashierPrinterPort)
-                .onSuccess {
-                    _uiState.update { it.copy(isPrintingReport = false) }
-                    _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_xreport_printed)))
-                }
-                .onFailure {
-                    _uiState.update { it.copy(isPrintingReport = false) }
-                    _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_xreport_print_failed)))
-                }
+            reportPrinter.printXReport(
+                report = report,
+                onPrintingStateChanged = { isPrinting -> _uiState.update { it.copy(isPrintingReport = isPrinting) } },
+                onEffect = { _effects.emit(it) }
+            )
         }
     }
 
@@ -491,7 +428,7 @@ class ShiftViewModel(
                     )
                 }
                 if (result.openDrawer) {
-                    kickDrawerIfConfigured()
+                    reportPrinter.kickDrawerIfConfigured { _effects.emit(it) }
                 }
                 _effects.emit(ShiftUiEffect.ShiftClosedSuccessfully(result.report))
                 _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_closed)))
@@ -515,41 +452,12 @@ class ShiftViewModel(
 
     fun printZReport(report: ZReport) {
         viewModelScope.launch {
-            val config = printerSettings.getConfig()
-            if (!config.hasCashierPrinter) {
-                _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.msg_cashier_printer_missing)))
-                return@launch
-            }
-            _uiState.update { it.copy(isPrintingReport = true) }
-            val payload = thermalBuilder.buildZReportReceipt(resolveStoreName(), report)
-            printerManager.printRawBytes(config.cashierPrinterIp, payload, config.cashierPrinterPort)
-                .onSuccess {
-                    _uiState.update { it.copy(isPrintingReport = false) }
-                    _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_zreport_printed)))
-                }
-                .onFailure {
-                    _uiState.update { it.copy(isPrintingReport = false) }
-                    _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_zreport_print_failed)))
-                }
+            reportPrinter.printZReport(
+                report = report,
+                onPrintingStateChanged = { isPrinting -> _uiState.update { it.copy(isPrintingReport = isPrinting) } },
+                onEffect = { _effects.emit(it) }
+            )
         }
-    }
-
-    private suspend fun kickDrawerIfConfigured() {
-        val config = printerSettings.getConfig()
-        if (!config.hasCashierPrinter) {
-            _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_drawer_no_ip)))
-            return
-        }
-        printerManager.openCashDrawer(config.cashierPrinterIp, config.cashierPrinterPort)
-            .onFailure {
-                _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_drawer_failed, config.cashierPrinterIp)))
-            }
-    }
-
-    private fun resolveStoreName(): String {
-        return sessionManager?.currentSession()?.staff?.storeName
-            ?.takeIf { it.isNotBlank() }
-            ?: "KASIR POS"
     }
 
     fun clearFeedback() {

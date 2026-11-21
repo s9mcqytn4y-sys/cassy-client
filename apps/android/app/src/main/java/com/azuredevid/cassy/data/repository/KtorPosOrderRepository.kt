@@ -15,7 +15,11 @@ import com.azuredevid.cassy.domain.model.PosOrder
 import com.azuredevid.cassy.domain.model.PosOrderDetail
 import com.azuredevid.cassy.domain.repository.DeviceOfflineOrderSyncItem
 import com.azuredevid.cassy.domain.repository.DeviceOfflineOrderSyncOutcome
+import com.azuredevid.cassy.domain.repository.PosCustomerStamps
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
+import com.azuredevid.cassy.domain.repository.PosSalesChannel
+import com.azuredevid.cassy.domain.repository.PosSalesChannelPrice
+import com.azuredevid.cassy.domain.repository.ReceiptSendResult
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -71,6 +75,62 @@ private data class OfflineSyncResultDto(
 @Serializable
 private data class OfflineSyncResponseDto(
     val results: List<OfflineSyncResultDto> = emptyList()
+)
+
+@Serializable
+private data class ReceiptSendRequestDto(
+    val channel: String,
+    val to: String
+)
+
+@Serializable
+private data class ReceiptSendResultDto(
+    val channel: String = "",
+    val recipient: String = "",
+    @SerialName("expires_at") val expiresAt: String = ""
+)
+
+@Serializable
+private data class SalesChannelPriceDto(
+    @SerialName("variant_id") val variantId: String,
+    val price: Long
+)
+
+@Serializable
+private data class SalesChannelDto(
+    val id: String,
+    val name: String,
+    @SerialName("commission_bps") val commissionBps: Long = 0L,
+    @SerialName("is_active") val isActive: Boolean = true,
+    val prices: List<SalesChannelPriceDto> = emptyList()
+)
+
+@Serializable
+private data class SalesChannelsResponseDto(
+    @SerialName("sales_channels") val salesChannels: List<SalesChannelDto> = emptyList()
+)
+
+@Serializable
+private data class CustomerLookupRequestDto(
+    val phone: String
+)
+
+@Serializable
+private data class CustomerDto(
+    val id: String,
+    val phone: String = "",
+    val name: String = ""
+)
+
+@Serializable
+private data class CustomerStampsDto(
+    val customer: CustomerDto,
+    val verified: Boolean = false,
+    @SerialName("program_active") val programActive: Boolean = false,
+    val stamps: Long = 0L,
+    @SerialName("stamps_required") val stampsRequired: Long = 0L,
+    @SerialName("reward_ready") val rewardReady: Boolean = false,
+    @SerialName("reward_product_ids") val rewardProductIds: List<String> = emptyList()
 )
 
 class KtorPosOrderRepository(
@@ -211,6 +271,92 @@ class KtorPosOrderRepository(
             Result.success(results)
         } catch (t: Throwable) {
             Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal menyinkronkan antrean pesanan offline."))
+        }
+    }
+
+    override suspend fun sendDigitalReceipt(
+        orderId: String,
+        channel: String,
+        to: String
+    ): Result<ReceiptSendResult> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.post("$baseUrl/api/v1/pos/orders/$orderId/receipt/send") {
+                contentType(ContentType.Application.Json)
+                setBody(ReceiptSendRequestDto(channel = channel.trim().lowercase(), to = to.trim()))
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(
+                    HttpErrorMapper.toDomainException(response, "Gagal mengirim struk digital.")
+                )
+            }
+            val dto = response.body<ReceiptSendResultDto>()
+            Result.success(
+                ReceiptSendResult(
+                    channel = dto.channel,
+                    recipientMasked = dto.recipient,
+                    expiresAtIso = dto.expiresAt
+                )
+            )
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal mengirim struk digital."))
+        }
+    }
+
+    override suspend fun listSalesChannels(): Result<List<PosSalesChannel>> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.get("$baseUrl/api/v1/pos/sales-channels")
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(
+                    HttpErrorMapper.toDomainException(response, "Gagal memuat daftar kanal penjualan.")
+                )
+            }
+            val channels = response.body<SalesChannelsResponseDto>().salesChannels.map { ch ->
+                PosSalesChannel(
+                    id = ch.id,
+                    name = ch.name,
+                    commissionBps = ch.commissionBps,
+                    isActive = ch.isActive,
+                    prices = ch.prices.map { p ->
+                        PosSalesChannelPrice(variantId = p.variantId, priceRupiah = p.price)
+                    }
+                )
+            }
+            Result.success(channels)
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal memuat daftar kanal penjualan."))
+        }
+    }
+
+    override suspend fun lookupCustomerByPhone(phone: String): Result<PosCustomerStamps> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.post("$baseUrl/api/v1/pos/customers/lookup") {
+                contentType(ContentType.Application.Json)
+                setBody(CustomerLookupRequestDto(phone = phone.trim()))
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(
+                    HttpErrorMapper.toDomainException(response, "Pelanggan tidak ditemukan.")
+                )
+            }
+            val dto = response.body<CustomerStampsDto>()
+            Result.success(
+                PosCustomerStamps(
+                    customerId = dto.customer.id,
+                    phone = dto.customer.phone,
+                    name = dto.customer.name,
+                    verified = dto.verified,
+                    programActive = dto.programActive,
+                    stamps = dto.stamps,
+                    stampsRequired = dto.stampsRequired,
+                    rewardReady = dto.rewardReady,
+                    rewardProductIds = dto.rewardProductIds
+                )
+            )
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Pelanggan tidak ditemukan."))
         }
     }
 }

@@ -46,7 +46,7 @@ fun ShiftStatusBanner(
     onCloseShiftClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val rupiahFormatter = NumberFormat.getIntegerInstance(Locale("id", "ID"))
+    val rupiahFormatter = NumberFormat.getIntegerInstance(Locale.forLanguageTag("id-ID"))
 
     if (isShiftOpen && currentShift != null) {
         val okFg = statusOkFg()

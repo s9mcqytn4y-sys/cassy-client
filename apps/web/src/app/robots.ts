@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { siteUrl } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
-  const disallow = ["/order/", "/receipts/", "/r/", "/bagian/", "/api/"];
+  const disallow = ["/order/", "/receipts/", "/r/", "/bagian/", "/antrean", "/api/"];
   return {
     rules: [
       { userAgent: "*", allow: "/", disallow },

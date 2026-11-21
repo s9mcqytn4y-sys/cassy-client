@@ -36,4 +36,11 @@ object CassyDimens {
     val ModalWidthWide = 660.dp
 
     val SplitPaneBreakpoint = 760.dp
+
+    /** Tablet cashier (UiSpecPosTablet): fixed columns so large screens add catalog space, not wider panels. */
+    val PosThreeColumnBreakpoint = 840.dp
+    val PosRailWidth = 88.dp
+    val PosOrderPanelWidth = 420.dp
+    val PosCatalogCardWidth = 184.dp
+    val SearchFieldMaxWidth = 360.dp
 }

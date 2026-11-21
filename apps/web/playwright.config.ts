@@ -13,7 +13,8 @@ export default defineConfig({
   reporter: "list",
   use: {
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || "http://127.0.0.1:3000",
-    trace: "on-first-retry"
+    trace: "on-first-retry",
+    serviceWorkers: "block"
   },
   projects: [
     {
