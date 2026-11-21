@@ -16,9 +16,15 @@ import com.azuredevid.cassy.domain.model.PosOrderDetail
 import com.azuredevid.cassy.domain.repository.DeviceOfflineOrderSyncItem
 import com.azuredevid.cassy.domain.repository.DeviceOfflineOrderSyncOutcome
 import com.azuredevid.cassy.domain.repository.PosCustomerStamps
+import com.azuredevid.cassy.domain.repository.PosCustomerVerificationStart
+import com.azuredevid.cassy.domain.repository.PosOrderDiscountInput
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
+import com.azuredevid.cassy.domain.repository.PosOrderVoidInput
+import com.azuredevid.cassy.domain.repository.PosReceiptLink
+import com.azuredevid.cassy.domain.repository.PosRefundPaymentInput
 import com.azuredevid.cassy.domain.repository.PosSalesChannel
 import com.azuredevid.cassy.domain.repository.PosSalesChannelPrice
+import com.azuredevid.cassy.domain.repository.PosStockOverrideResult
 import com.azuredevid.cassy.domain.repository.ReceiptSendResult
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -357,6 +363,217 @@ class KtorPosOrderRepository(
             )
         } catch (t: Throwable) {
             Result.failure(HttpErrorMapper.fromThrowable(t, "Pelanggan tidak ditemukan."))
+        }
+    }
+
+    override suspend fun applyOrderDiscount(orderId: String, input: PosOrderDiscountInput): Result<PosOrder> =
+        withContext(ioDispatcher) {
+            try {
+                val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+                val response = httpClient.post("$baseUrl/api/v1/pos/orders/$orderId/discount") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        ApplyDiscountRequestDto(
+                            discountAmount = input.discountAmount,
+                            discountBps = input.discountBps,
+                            reason = input.reason.trim(),
+                            ownerPin = input.ownerPin?.trim()?.ifBlank { null },
+                            approvalId = input.approvalId?.trim()?.ifBlank { null }
+                        )
+                    )
+                }
+                if (!response.status.isSuccess()) {
+                    return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal menerapkan diskon."))
+                }
+                Result.success(response.body<OrderActionResponseDto>().order.toDomain())
+            } catch (t: Throwable) {
+                Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal menerapkan diskon."))
+            }
+        }
+
+    override suspend fun voidOrder(orderId: String, input: PosOrderVoidInput): Result<PosOrder> =
+        withContext(ioDispatcher) {
+            try {
+                val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+                val response = httpClient.post("$baseUrl/api/v1/pos/orders/$orderId/void") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        VoidOrderRequestDto(
+                            reason = input.reason.trim(),
+                            pin = input.pin.trim(),
+                            ownerPin = input.ownerPin?.trim()?.ifBlank { null },
+                            approvalId = input.approvalId?.trim()?.ifBlank { null }
+                        )
+                    )
+                }
+                if (!response.status.isSuccess()) {
+                    return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal membatalkan pesanan."))
+                }
+                Result.success(response.body<OrderActionResponseDto>().order.toDomain())
+            } catch (t: Throwable) {
+                Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal membatalkan pesanan."))
+            }
+        }
+
+    override suspend fun refundPayment(
+        orderId: String,
+        paymentId: String,
+        input: PosRefundPaymentInput
+    ): Result<String> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.post("$baseUrl/api/v1/pos/orders/$orderId/payments/$paymentId/refund") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    RefundPaymentRequestDto(
+                        reason = input.reason.trim(),
+                        pin = input.pin.trim(),
+                        ownerPin = input.ownerPin?.trim()?.ifBlank { null },
+                        approvalId = input.approvalId?.trim()?.ifBlank { null },
+                        restoreStock = input.restoreStock,
+                        refundMethod = input.refundMethod.trim().lowercase(),
+                        bankName = input.bankName.trim(),
+                        accountLast4 = input.accountLast4.trim(),
+                        transferReference = input.transferReference.trim()
+                    )
+                )
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal memproses refund."))
+            }
+            val dto = response.body<RefundPaymentResponseDto>()
+            Result.success(dto.refundStatus.ifBlank { dto.message.ifBlank { "refunded" } })
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal memproses refund."))
+        }
+    }
+
+    override suspend fun reprintOrder(orderId: String, kind: String): Result<Int> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.post("$baseUrl/api/v1/pos/orders/$orderId/reprint") {
+                contentType(ContentType.Application.Json)
+                setBody(ReprintOrderRequestDto(kind = kind.trim().lowercase()))
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal mencetak ulang pesanan."))
+            }
+            Result.success(response.body<ReprintOrderResponseDto>().jobs)
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal mencetak ulang pesanan."))
+        }
+    }
+
+    override suspend fun issueReceiptLink(orderId: String): Result<PosReceiptLink> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.post("$baseUrl/api/v1/pos/orders/$orderId/receipt-link") {
+                contentType(ContentType.Application.Json)
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal membuat tautan struk."))
+            }
+            val dto = response.body<ReceiptLinkResponseDto>()
+            Result.success(PosReceiptLink(url = dto.url, shortCode = dto.shortCode, expiresAtIso = dto.expiresAt))
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal membuat tautan struk."))
+        }
+    }
+
+    override suspend fun overrideProductStock(
+        productId: String,
+        newQuantity: Int,
+        reason: String,
+        ownerPin: String,
+        enableTracking: Boolean,
+        approvalId: String?
+    ): Result<PosStockOverrideResult> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.post("$baseUrl/api/v1/pos/products/$productId/stock-override") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    StockOverrideRequestDto(
+                        newQuantity = newQuantity,
+                        reason = reason.trim(),
+                        ownerPin = ownerPin.trim(),
+                        approvalId = approvalId?.trim()?.ifBlank { null },
+                        enableTracking = enableTracking
+                    )
+                )
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal memperbarui stok produk."))
+            }
+            val dto = response.body<StockOverrideResponseDto>()
+            Result.success(
+                PosStockOverrideResult(
+                    productId = dto.productId,
+                    productName = dto.productName,
+                    previousQuantity = dto.previousQuantity,
+                    newQuantity = dto.newQuantity,
+                    delta = dto.delta
+                )
+            )
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal memperbarui stok produk."))
+        }
+    }
+
+    override suspend fun startCustomerVerification(
+        phone: String,
+        name: String
+    ): Result<PosCustomerVerificationStart> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.post("$baseUrl/api/v1/pos/customers/verify") {
+                contentType(ContentType.Application.Json)
+                setBody(StartCustomerVerificationRequestDto(phone = phone.trim(), name = name.trim()))
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal memulai verifikasi pelanggan."))
+            }
+            val dto = response.body<StartCustomerVerificationResponseDto>()
+            Result.success(
+                PosCustomerVerificationStart(
+                    verificationId = dto.verificationId.ifBlank { dto.id },
+                    expiresAtIso = dto.expiresAt
+                )
+            )
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal memulai verifikasi pelanggan."))
+        }
+    }
+
+    override suspend fun confirmCustomerVerification(
+        verificationId: String,
+        code: String
+    ): Result<PosCustomerStamps> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.post("$baseUrl/api/v1/pos/customers/verify/$verificationId/confirm") {
+                contentType(ContentType.Application.Json)
+                setBody(ConfirmCustomerVerificationRequestDto(code = code.trim()))
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Kode OTP pelanggan tidak valid."))
+            }
+            val dto = response.body<CustomerStampsDto>()
+            Result.success(
+                PosCustomerStamps(
+                    customerId = dto.customer.id,
+                    phone = dto.customer.phone,
+                    name = dto.customer.name,
+                    verified = dto.verified,
+                    programActive = dto.programActive,
+                    stamps = dto.stamps,
+                    stampsRequired = dto.stampsRequired,
+                    rewardReady = dto.rewardReady,
+                    rewardProductIds = dto.rewardProductIds
+                )
+            )
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Kode OTP pelanggan tidak valid."))
         }
     }
 }

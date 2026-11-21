@@ -17,7 +17,9 @@ import com.azuredevid.cassy.data.network.RealtimeEventEnvelope
 import com.azuredevid.cassy.domain.model.PosOrder
 import com.azuredevid.cassy.domain.repository.CatalogRepository
 import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
+import com.azuredevid.cassy.domain.repository.PosOrderDiscountInput
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
+import com.azuredevid.cassy.domain.repository.PosOrderVoidInput
 import com.azuredevid.cassy.domain.repository.PosTable
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
 import com.azuredevid.cassy.domain.repository.StorePrinterRepository
@@ -252,6 +254,73 @@ class PosViewModel(
                 }
                 .onFailure { err ->
                     _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.msg_generic_error), CassyToastTone.ERROR))
+                }
+        }
+    }
+
+    fun reprintLastSettledOrder(kind: String = "receipt") {
+        val orderId = _uiState.value.lastSettledOrderId ?: return
+        viewModelScope.launch {
+            posOrderRepository.reprintOrder(orderId, kind)
+                .onSuccess {
+                    _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.pos_msg_reprint_queued), CassyToastTone.SUCCESS))
+                }
+                .onFailure { err ->
+                    _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_reprint_failed), CassyToastTone.ERROR))
+                }
+        }
+    }
+
+    fun issueLastReceiptLink() {
+        val orderId = _uiState.value.lastSettledOrderId ?: return
+        viewModelScope.launch {
+            posOrderRepository.issueReceiptLink(orderId)
+                .onSuccess { link ->
+                    _effects.emit(
+                        PosUiEffect.ShowToast(
+                            UiText.res(R.string.pos_msg_receipt_link_created, link.url),
+                            CassyToastTone.SUCCESS
+                        )
+                    )
+                }
+                .onFailure { err ->
+                    _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_receipt_link_failed), CassyToastTone.ERROR))
+                }
+        }
+    }
+
+    fun applyDiscountToPendingOrder(input: PosOrderDiscountInput) {
+        val orderId = _uiState.value.pendingOrder?.id ?: return
+        viewModelScope.launch {
+            posOrderRepository.applyOrderDiscount(orderId, input)
+                .onSuccess { updated ->
+                    _uiState.update { it.copy(pendingOrder = updated) }
+                    _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.pos_msg_discount_applied), CassyToastTone.SUCCESS))
+                }
+                .onFailure { err ->
+                    _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_discount_failed), CassyToastTone.ERROR))
+                }
+        }
+    }
+
+    fun voidPendingOrder(input: PosOrderVoidInput) {
+        val orderId = _uiState.value.pendingOrder?.id ?: return
+        viewModelScope.launch {
+            posOrderRepository.voidOrder(orderId, input)
+                .onSuccess {
+                    _uiState.update {
+                        it.copy(
+                            pendingOrder = null,
+                            pendingOrderIdempotencyKey = null,
+                            activeQrisPayment = null,
+                            cart = emptyList(),
+                            quote = null
+                        )
+                    }
+                    _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.pos_msg_order_voided), CassyToastTone.SUCCESS))
+                }
+                .onFailure { err ->
+                    _effects.emit(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_order_void_failed), CassyToastTone.ERROR))
                 }
         }
     }

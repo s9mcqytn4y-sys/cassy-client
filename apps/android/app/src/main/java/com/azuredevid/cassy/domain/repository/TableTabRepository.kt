@@ -51,6 +51,13 @@ data class TabItemVoidInput(
  * Dine-in open bills (tabs) bound to a table. The server owns the bill: each kitchen send is a round,
  * and closing the tab freezes the total and creates the split the payment must name.
  */
+data class PosTableSessionSummary(
+    val id: String,
+    val tableId: String = "",
+    val status: String = "",
+    val expiresAt: String? = null
+)
+
 interface TableTabRepository {
     suspend fun listTables(): Result<List<PosTable>>
 
@@ -82,4 +89,24 @@ interface TableTabRepository {
      */
     suspend fun reopenTab(orderId: String): Result<PosOrder> =
         Result.failure(UnsupportedOperationException("reopenTab not configured"))
+
+    /** Closes an active table session (`POST /api/v1/pos/table-sessions/{id}/close`). */
+    suspend fun closeTableSession(sessionId: String): Result<PosTableSessionSummary> =
+        Result.failure(UnsupportedOperationException("closeTableSession not configured"))
+
+    /** Moves an active table session to another free table (`POST /api/v1/pos/table-sessions/{id}/move`). */
+    suspend fun moveTableSession(sessionId: String, toTableId: String): Result<PosTableSessionSummary> =
+        Result.failure(UnsupportedOperationException("moveTableSession not configured"))
+
+    /** Merges another active table session into this session (`POST /api/v1/pos/table-sessions/{id}/merge`). */
+    suspend fun mergeTableSession(sessionId: String, targetSessionId: String): Result<PosTableSessionSummary> =
+        Result.failure(UnsupportedOperationException("mergeTableSession not configured"))
+
+    /** Splits a merged table out of this session (`POST /api/v1/pos/table-sessions/{id}/split`). */
+    suspend fun splitTableSession(sessionId: String, tableId: String): Result<PosTableSessionSummary> =
+        Result.failure(UnsupportedOperationException("splitTableSession not configured"))
+
+    /** Extends the dwell timer for an active table session (`POST /api/v1/pos/table-sessions/{id}/extend`). */
+    suspend fun extendTableSession(sessionId: String, minutes: Int): Result<PosTableSessionSummary> =
+        Result.failure(UnsupportedOperationException("extendTableSession not configured"))
 }

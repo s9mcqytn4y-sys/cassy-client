@@ -7,6 +7,7 @@ import com.azuredevid.cassy.data.network.HttpErrorMapper
 import com.azuredevid.cassy.domain.model.CreatePosOrderItemInput
 import com.azuredevid.cassy.domain.model.PosOrder
 import com.azuredevid.cassy.domain.repository.ClosedTab
+import com.azuredevid.cassy.domain.repository.PosTableSessionSummary
 import com.azuredevid.cassy.domain.repository.ShareLine
 import com.azuredevid.cassy.domain.repository.TabSplit
 import com.azuredevid.cassy.domain.repository.PosTable
@@ -112,6 +113,28 @@ private data class PaymentSplitItemDto(
 
 @Serializable
 private data class CloseTabResponseDto(val order: PosOrderDto, val splits: List<PaymentSplitDto> = emptyList())
+
+@Serializable
+private data class TableSessionResponseDto(
+    val id: String,
+    @SerialName("table_id") val tableId: String = "",
+    val status: String = "",
+    @SerialName("expires_at") val expiresAt: String? = null
+) {
+    fun toDomain() = PosTableSessionSummary(id = id, tableId = tableId, status = status, expiresAt = expiresAt)
+}
+
+@Serializable
+private data class MoveSessionRequestDto(@SerialName("to_table_id") val toTableId: String)
+
+@Serializable
+private data class MergeSessionRequestDto(@SerialName("session_id") val sessionId: String)
+
+@Serializable
+private data class SplitTableRequestDto(@SerialName("table_id") val tableId: String)
+
+@Serializable
+private data class ExtendTimerRequestDto(val minutes: Int)
 
 /** Ktor client for `/api/v1/pos/tables` and `/api/v1/pos/tabs`. */
 class KtorTableTabRepository(
@@ -244,6 +267,43 @@ class KtorTableTabRepository(
             Result.success(response.body<TabOrderResponseDto>().order.toDomain())
         } catch (t: Throwable) {
             Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal membuka kembali tagihan meja."))
+        }
+    }
+
+    override suspend fun closeTableSession(sessionId: String): Result<PosTableSessionSummary> =
+        postTableSessionAction(sessionId, "close", null, "Gagal menutup sesi meja.")
+
+    override suspend fun moveTableSession(sessionId: String, toTableId: String): Result<PosTableSessionSummary> =
+        postTableSessionAction(sessionId, "move", MoveSessionRequestDto(toTableId), "Gagal memindahkan meja.")
+
+    override suspend fun mergeTableSession(sessionId: String, targetSessionId: String): Result<PosTableSessionSummary> =
+        postTableSessionAction(sessionId, "merge", MergeSessionRequestDto(targetSessionId), "Gagal menggabungkan meja.")
+
+    override suspend fun splitTableSession(sessionId: String, tableId: String): Result<PosTableSessionSummary> =
+        postTableSessionAction(sessionId, "split", SplitTableRequestDto(tableId), "Gagal memisahkan meja.")
+
+    override suspend fun extendTableSession(sessionId: String, minutes: Int): Result<PosTableSessionSummary> =
+        postTableSessionAction(sessionId, "extend", ExtendTimerRequestDto(minutes), "Gagal memperpanjang waktu meja.")
+
+    private suspend fun postTableSessionAction(
+        sessionId: String,
+        action: String,
+        body: Any?,
+        fallbackError: String
+    ): Result<PosTableSessionSummary> = withContext(ioDispatcher) {
+        try {
+            val response = httpClient.post("${baseUrl()}/api/v1/pos/table-sessions/$sessionId/$action") {
+                contentType(ContentType.Application.Json)
+                if (body != null) {
+                    setBody(body)
+                }
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(HttpErrorMapper.toDomainException(response, fallbackError))
+            }
+            Result.success(response.body<TableSessionResponseDto>().toDomain())
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, fallbackError))
         }
     }
 

@@ -62,6 +62,52 @@ data class PosCustomerStamps(
     val rewardProductIds: List<String> = emptyList()
 )
 
+data class PosReceiptLink(
+    val url: String,
+    val shortCode: String = "",
+    val expiresAtIso: String = ""
+)
+
+data class PosStockOverrideResult(
+    val productId: String,
+    val productName: String,
+    val previousQuantity: Int,
+    val newQuantity: Int,
+    val delta: Int
+)
+
+data class PosCustomerVerificationStart(
+    val verificationId: String,
+    val expiresAtIso: String = ""
+)
+
+data class PosOrderVoidInput(
+    val reason: String,
+    val pin: String,
+    val ownerPin: String? = null,
+    val approvalId: String? = null
+)
+
+data class PosOrderDiscountInput(
+    val discountAmount: Long? = null,
+    val discountBps: Long? = null,
+    val reason: String,
+    val ownerPin: String? = null,
+    val approvalId: String? = null
+)
+
+data class PosRefundPaymentInput(
+    val reason: String,
+    val pin: String,
+    val ownerPin: String? = null,
+    val approvalId: String? = null,
+    val restoreStock: Boolean,
+    val refundMethod: String = "cash",
+    val bankName: String = "",
+    val accountLast4: String = "",
+    val transferReference: String = ""
+)
+
 interface PosOrderRepository {
     suspend fun createOrder(input: CreatePosOrderInput): Result<PosOrder>
     suspend fun initiatePayment(input: InitiatePosPaymentInput): Result<InitiatePosPaymentResult>
@@ -82,4 +128,43 @@ interface PosOrderRepository {
     /** Looks up a customer by phone with live loyalty stamp count (`POST /api/v1/pos/customers/lookup`). */
     suspend fun lookupCustomerByPhone(phone: String): Result<PosCustomerStamps> =
         Result.failure(UnsupportedOperationException("lookupCustomerByPhone not configured"))
+
+    /** Applies a fixed rupiah or percentage (bps) discount (`POST /api/v1/pos/orders/{id}/discount`). */
+    suspend fun applyOrderDiscount(orderId: String, input: PosOrderDiscountInput): Result<PosOrder> =
+        Result.failure(UnsupportedOperationException("applyOrderDiscount not configured"))
+
+    /** Voids an unpaid order (`POST /api/v1/pos/orders/{id}/void`). */
+    suspend fun voidOrder(orderId: String, input: PosOrderVoidInput): Result<PosOrder> =
+        Result.failure(UnsupportedOperationException("voidOrder not configured"))
+
+    /** Refunds a settled payment (`POST /api/v1/pos/orders/{id}/payments/{payment_id}/refund`). */
+    suspend fun refundPayment(orderId: String, paymentId: String, input: PosRefundPaymentInput): Result<String> =
+        Result.failure(UnsupportedOperationException("refundPayment not configured"))
+
+    /** Enqueues station reprint jobs (`POST /api/v1/pos/orders/{id}/reprint`). */
+    suspend fun reprintOrder(orderId: String, kind: String = "ticket"): Result<Int> =
+        Result.failure(UnsupportedOperationException("reprintOrder not configured"))
+
+    /** Issues a shareable public digital receipt link (`POST /api/v1/pos/orders/{id}/receipt-link`). */
+    suspend fun issueReceiptLink(orderId: String): Result<PosReceiptLink> =
+        Result.failure(UnsupportedOperationException("issueReceiptLink not configured"))
+
+    /** Overrides tracked product stock quantity (`POST /api/v1/pos/products/{id}/stock-override`). */
+    suspend fun overrideProductStock(
+        productId: String,
+        newQuantity: Int,
+        reason: String,
+        ownerPin: String,
+        enableTracking: Boolean = false,
+        approvalId: String? = null
+    ): Result<PosStockOverrideResult> =
+        Result.failure(UnsupportedOperationException("overrideProductStock not configured"))
+
+    /** Starts SMS OTP verification for a customer phone (`POST /api/v1/pos/customers/verify`). */
+    suspend fun startCustomerVerification(phone: String, name: String = ""): Result<PosCustomerVerificationStart> =
+        Result.failure(UnsupportedOperationException("startCustomerVerification not configured"))
+
+    /** Confirms SMS OTP verification for a customer phone (`POST /api/v1/pos/customers/verify/{id}/confirm`). */
+    suspend fun confirmCustomerVerification(verificationId: String, code: String): Result<PosCustomerStamps> =
+        Result.failure(UnsupportedOperationException("confirmCustomerVerification not configured"))
 }
