@@ -11,11 +11,8 @@ COPY apps/web/package.json ./apps/web/
 COPY packages/design-tokens/package.json ./packages/design-tokens/
 RUN pnpm install --frozen-lockfile
 
-FROM base AS builder
+FROM dependencies AS builder
 WORKDIR /app
-COPY --from=dependencies /app/node_modules ./node_modules
-COPY --from=dependencies /app/apps/web/node_modules ./apps/web/node_modules
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY packages/design-tokens ./packages/design-tokens
 COPY apps/web ./apps/web
 
