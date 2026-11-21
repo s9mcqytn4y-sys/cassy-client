@@ -48,5 +48,16 @@ jobs:
           chmod +x gradlew
           ./gradlew testDevDebugUnitTest bundleDevDebug --max-workers=2 --no-daemon --stacktrace
 
+      - name: Decode Release Keystore
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > upload-keystore.jks
+
       - name: Run Lint & R8 Prod Release Bundle
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew lintDevDebug bundleProdRelease --max-workers=1 --no-daemon --stacktrace

@@ -42,10 +42,32 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            val envPath = System.getenv("ANDROID_KEYSTORE_PATH")
+            val targetFile = when {
+                !envPath.isNullOrBlank() -> file(envPath)
+                project.rootProject.file("upload-keystore.jks").exists() -> project.rootProject.file("upload-keystore.jks")
+                project.file("upload-keystore.jks").exists() -> project.file("upload-keystore.jks")
+                else -> null
+            }
+            if (targetFile != null && targetFile.exists()) {
+                storeFile = targetFile
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS") ?: "cassy-upload"
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD") ?: System.getenv("ANDROID_KEYSTORE_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            val releaseConfig = signingConfigs.findByName("release")
+            if (releaseConfig?.storeFile != null && releaseConfig.storeFile!!.exists()) {
+                signingConfig = releaseConfig
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

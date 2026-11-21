@@ -40,5 +40,8 @@ docs/android-adb/
 apps/android/docs/android-adb/
 tools/
 apps/android/tools/
+*.jks
+*.keystore
+upload-keystore.jks
 
 
