@@ -450,6 +450,44 @@ class ShiftViewModel(
         }
     }
 
+    fun forceCloseCurrentShift(reason: String, countedCash: Long? = null, notes: String? = null) {
+        val shift = _uiState.value.currentShift ?: return
+        val cleanReason = reason.trim()
+        if (cleanReason.isBlank()) {
+            _uiState.update { it.copy(errorMessage = UiText.res(R.string.shift_msg_variance_reason)) }
+            return
+        }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isClosingShift = true, errorMessage = null) }
+            shiftRepository.forceCloseShift(
+                shiftId = shift.id,
+                reason = cleanReason,
+                countedCash = countedCash,
+                notes = notes
+            ).onSuccess { report ->
+                _uiState.update {
+                    it.copy(
+                        isClosingShift = false,
+                        showCloseShiftModal = false,
+                        currentShift = null,
+                        isShiftOpen = false,
+                        lastZReport = report,
+                        successMessage = UiText.res(R.string.shift_msg_force_closed)
+                    )
+                }
+                _effects.emit(ShiftUiEffect.ShiftClosedSuccessfully(report))
+                _effects.emit(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_force_closed)))
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(
+                        isClosingShift = false,
+                        errorMessage = error.toUiText(R.string.shift_msg_force_close_failed)
+                    )
+                }
+            }
+        }
+    }
+
     fun printZReport(report: ZReport) {
         viewModelScope.launch {
             reportPrinter.printZReport(

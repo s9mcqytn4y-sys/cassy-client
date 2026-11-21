@@ -36,4 +36,19 @@ interface ShiftRepository {
 
     suspend fun getXReport(shiftId: String): Result<XReport>
     suspend fun getZReport(shiftId: String): Result<ZReport>
+
+    /** Force-closes an open shift with manager/owner permission (`POST /api/v1/pos/shifts/{id}/force-close`). */
+    suspend fun forceCloseShift(
+        shiftId: String,
+        reason: String,
+        countedCash: Long? = null,
+        notes: String? = null
+    ): Result<ZReport> = Result.failure(UnsupportedOperationException("forceCloseShift not configured"))
+
+    /** Updates cash drawer display name or active status (`PATCH /api/v1/pos/drawers/{id}`). */
+    suspend fun updateDrawer(
+        drawerId: String,
+        name: String,
+        isActive: Boolean? = null
+    ): Result<CashDrawer> = Result.failure(UnsupportedOperationException("updateDrawer not configured"))
 }

@@ -1,5 +1,6 @@
 package com.azuredevid.cassy.data.repository
 
+import com.azuredevid.cassy.data.model.CashDrawerDto
 import com.azuredevid.cassy.data.model.CashDrawersResponseDto
 import com.azuredevid.cassy.data.model.CashMovementRequestDto
 import com.azuredevid.cassy.data.model.CloseShiftRequestDto
@@ -24,6 +25,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -33,6 +35,21 @@ import io.ktor.http.isSuccess
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+private data class ForceCloseShiftRequestDto(
+    val reason: String,
+    @SerialName("counted_cash") val countedCash: Long? = null,
+    val notes: String? = null
+)
+
+@Serializable
+private data class UpdateDrawerRequestDto(
+    val name: String,
+    @SerialName("is_active") val isActive: Boolean? = null
+)
 
 class KtorShiftRepository(
     private val httpClient: HttpClient,
@@ -187,6 +204,53 @@ class KtorShiftRepository(
             Result.success(response.body<ZReportDto>().toDomain())
         } catch (t: Throwable) {
             Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal memuat Z-Report."))
+        }
+    }
+
+    override suspend fun forceCloseShift(
+        shiftId: String,
+        reason: String,
+        countedCash: Long?,
+        notes: String?
+    ): Result<ZReport> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.post("$baseUrl/api/v1/pos/shifts/$shiftId/force-close") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    ForceCloseShiftRequestDto(
+                        reason = reason.trim(),
+                        countedCash = countedCash,
+                        notes = notes?.trim()?.ifBlank { null }
+                    )
+                )
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal menutup paksa shift."))
+            }
+            Result.success(response.body<ZReportDto>().toDomain())
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal menutup paksa shift."))
+        }
+    }
+
+    override suspend fun updateDrawer(
+        drawerId: String,
+        name: String,
+        isActive: Boolean?
+    ): Result<CashDrawer> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.patch("$baseUrl/api/v1/pos/drawers/$drawerId") {
+                contentType(ContentType.Application.Json)
+                setBody(UpdateDrawerRequestDto(name = name.trim(), isActive = isActive))
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal memperbarui laci kasir."))
+            }
+            Result.success(response.body<CashDrawerDto>().toDomain())
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal memperbarui laci kasir."))
         }
     }
 }

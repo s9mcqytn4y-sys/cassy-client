@@ -9,6 +9,7 @@ import com.azuredevid.cassy.domain.model.StaffIdentity
 import com.azuredevid.cassy.domain.repository.AuthLoginResult
 import com.azuredevid.cassy.domain.repository.AuthRepository
 import com.azuredevid.cassy.domain.repository.MobileBootstrapData
+import com.azuredevid.cassy.domain.repository.PinSetupResult
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -60,6 +61,50 @@ private data class StaffMeResponseDto(
     val permissions: List<String> = emptyList(),
     @SerialName("session_expires_at") val sessionExpiresAt: String = "",
     @SerialName("pin_change_required") val pinChangeRequired: Boolean = false
+)
+
+@Serializable
+private data class ChangePinRequestDto(
+    @SerialName("current_pin") val currentPin: String,
+    @SerialName("new_pin") val newPin: String
+)
+
+@Serializable
+private data class ForgotPinEmailRequestDto(
+    @SerialName("store_slug") val storeSlug: String,
+    val email: String
+)
+
+@Serializable
+private data class ForgotPinSmsRequestDto(
+    @SerialName("store_slug") val storeSlug: String,
+    val phone: String
+)
+
+@Serializable
+private data class ResetPinSmsRequestDto(
+    @SerialName("store_slug") val storeSlug: String,
+    val phone: String,
+    val code: String,
+    val pin: String
+)
+
+@Serializable
+private data class SetupPinRequestDto(
+    val token: String,
+    val pin: String
+)
+
+@Serializable
+private data class MessageResponseDto(
+    val message: String = ""
+)
+
+@Serializable
+private data class PinSetupResponseDto(
+    val message: String = "",
+    @SerialName("store_slug") val storeSlug: String = "",
+    val email: String = ""
 )
 
 class KtorAuthRepository(
@@ -199,6 +244,100 @@ class KtorAuthRepository(
         } catch (t: Throwable) {
             sessionManager.clearSession(preserveDeviceBinding = true)
             Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal keluar dari sesi."))
+        }
+    }
+
+    override suspend fun changePin(currentPin: String, newPin: String): Result<Unit> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.post("$baseUrl/api/v1/auth/staff/pin/change") {
+                contentType(ContentType.Application.Json)
+                setBody(ChangePinRequestDto(currentPin = currentPin.trim(), newPin = newPin.trim()))
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal mengubah PIN staf."))
+            }
+            Result.success(Unit)
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal mengubah PIN staf."))
+        }
+    }
+
+    override suspend fun forgotPinByEmail(storeSlug: String, email: String): Result<String> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.post("$baseUrl/api/v1/auth/staff/pin/forgot") {
+                contentType(ContentType.Application.Json)
+                setBody(ForgotPinEmailRequestDto(storeSlug = storeSlug.trim().lowercase(), email = email.trim()))
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal mengirim tautan reset PIN."))
+            }
+            Result.success(response.body<MessageResponseDto>().message)
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal mengirim tautan reset PIN."))
+        }
+    }
+
+    override suspend fun forgotPinBySms(storeSlug: String, phone: String): Result<String> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.post("$baseUrl/api/v1/auth/staff/pin/forgot-sms") {
+                contentType(ContentType.Application.Json)
+                setBody(ForgotPinSmsRequestDto(storeSlug = storeSlug.trim().lowercase(), phone = phone.trim()))
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal mengirim OTP reset PIN."))
+            }
+            Result.success(response.body<MessageResponseDto>().message)
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal mengirim OTP reset PIN."))
+        }
+    }
+
+    override suspend fun resetPinWithSms(
+        storeSlug: String,
+        phone: String,
+        code: String,
+        newPin: String
+    ): Result<PinSetupResult> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.post("$baseUrl/api/v1/auth/staff/pin/reset-sms") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    ResetPinSmsRequestDto(
+                        storeSlug = storeSlug.trim().lowercase(),
+                        phone = phone.trim(),
+                        code = code.trim(),
+                        pin = newPin.trim()
+                    )
+                )
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal mereset PIN lewat SMS."))
+            }
+            val dto = response.body<PinSetupResponseDto>()
+            Result.success(PinSetupResult(storeSlug = dto.storeSlug, email = dto.email, message = dto.message))
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal mereset PIN lewat SMS."))
+        }
+    }
+
+    override suspend fun setupPinWithToken(token: String, newPin: String): Result<PinSetupResult> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response = httpClient.post("$baseUrl/api/v1/auth/staff/pin/setup") {
+                contentType(ContentType.Application.Json)
+                setBody(SetupPinRequestDto(token = token.trim(), pin = newPin.trim()))
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(HttpErrorMapper.toDomainException(response, "Gagal mengatur PIN baru."))
+            }
+            val dto = response.body<PinSetupResponseDto>()
+            Result.success(PinSetupResult(storeSlug = dto.storeSlug, email = dto.email, message = dto.message))
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal mengatur PIN baru."))
         }
     }
 }

@@ -816,4 +816,14 @@
     <string name="permission_camera_disclosure_title">Camera permission for QR pairing</string>
     <string name="permission_camera_disclosure_body">Cassy POS uses the camera only while you scan the outlet pairing QR code from the owner dashboard. Camera frames are processed on the device and are never stored or uploaded.</string>
     <string name="permission_camera_disclosure_continue">Continue</string>
+    <string name="shift_msg_force_closed">Shift force-closed by supervisor.</string>
+    <string name="shift_msg_force_close_failed">Failed to force-close shift.</string>
+    <string name="pos_msg_reprint_queued">Reprint request queued for printer.</string>
+    <string name="pos_msg_reprint_failed">Failed to queue reprint request.</string>
+    <string name="pos_msg_receipt_link_created">Digital receipt link ready: %1$s</string>
+    <string name="pos_msg_receipt_link_failed">Failed to generate digital receipt link.</string>
+    <string name="pos_msg_discount_applied">Discount applied to order.</string>
+    <string name="pos_msg_discount_failed">Failed to apply order discount.</string>
+    <string name="pos_msg_order_voided">Order voided.</string>
+    <string name="pos_msg_order_void_failed">Failed to void order.</string>
 </resources>

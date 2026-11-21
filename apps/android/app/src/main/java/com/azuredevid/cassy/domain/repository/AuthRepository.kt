@@ -43,6 +43,12 @@ data class AuthLoginResult(
     val offlinePinVerifier: OfflinePinVerifier?
 )
 
+data class PinSetupResult(
+    val storeSlug: String,
+    val email: String,
+    val message: String
+)
+
 interface AuthRepository {
     suspend fun login(
         storeSlug: String,
@@ -57,4 +63,24 @@ interface AuthRepository {
     suspend fun fetchMe(): Result<StaffIdentity>
 
     suspend fun logout(): Result<Unit>
+
+    /** Changes the currently signed-in staff member's PIN (`POST /api/v1/auth/staff/pin/change`). */
+    suspend fun changePin(currentPin: String, newPin: String): Result<Unit> =
+        Result.failure(UnsupportedOperationException("changePin not configured"))
+
+    /** Requests a PIN reset link via email (`POST /api/v1/auth/staff/pin/forgot`). */
+    suspend fun forgotPinByEmail(storeSlug: String, email: String): Result<String> =
+        Result.failure(UnsupportedOperationException("forgotPinByEmail not configured"))
+
+    /** Requests a PIN reset OTP via SMS (`POST /api/v1/auth/staff/pin/forgot-sms`). */
+    suspend fun forgotPinBySms(storeSlug: String, phone: String): Result<String> =
+        Result.failure(UnsupportedOperationException("forgotPinBySms not configured"))
+
+    /** Completes SMS OTP PIN reset (`POST /api/v1/auth/staff/pin/reset-sms`). */
+    suspend fun resetPinWithSms(storeSlug: String, phone: String, code: String, newPin: String): Result<PinSetupResult> =
+        Result.failure(UnsupportedOperationException("resetPinWithSms not configured"))
+
+    /** Sets initial/reset PIN using an activation token (`POST /api/v1/auth/staff/pin/setup`). */
+    suspend fun setupPinWithToken(token: String, newPin: String): Result<PinSetupResult> =
+        Result.failure(UnsupportedOperationException("setupPinWithToken not configured"))
 }

@@ -810,4 +810,14 @@
     <string name="permission_camera_disclosure_title">Izin kamera untuk pemindaian QR</string>
     <string name="permission_camera_disclosure_body">Cassy POS membutuhkan akses kamera hanya saat Anda memindai kode QR pairing dari dasbor pemilik gerai. Gambar kamera diproses langsung di perangkat dan tidak pernah disimpan atau dikirim ke server.</string>
     <string name="permission_camera_disclosure_continue">Lanjutkan</string>
+    <string name="shift_msg_force_closed">Shift ditutup paksa oleh supervisor.</string>
+    <string name="shift_msg_force_close_failed">Gagal menutup paksa shift.</string>
+    <string name="pos_msg_reprint_queued">Permintaan cetak ulang dikirim ke printer.</string>
+    <string name="pos_msg_reprint_failed">Gagal mengirim permintaan cetak ulang.</string>
+    <string name="pos_msg_receipt_link_created">Tautan struk digital siap: %1$s</string>
+    <string name="pos_msg_receipt_link_failed">Gagal membuat tautan struk digital.</string>
+    <string name="pos_msg_discount_applied">Diskon berhasil diterapkan ke pesanan.</string>
+    <string name="pos_msg_discount_failed">Gagal menerapkan diskon pesanan.</string>
+    <string name="pos_msg_order_voided">Pesanan berhasil dibatalkan.</string>
+    <string name="pos_msg_order_void_failed">Gagal membatalkan pesanan.</string>
 </resources>
