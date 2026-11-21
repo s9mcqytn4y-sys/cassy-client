@@ -65,7 +65,7 @@ fun CatalogProductManagementRow(
         contentPadding = CassyDimens.SpaceMd
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-            val isCompact = maxWidth < 560.dp
+            val isCompact = maxWidth < 720.dp
             if (isCompact) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),

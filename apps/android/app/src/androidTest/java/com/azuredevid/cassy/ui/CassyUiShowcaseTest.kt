@@ -125,10 +125,24 @@ import com.azuredevid.cassy.ui.shift.components.CashMovementModal
 import com.azuredevid.cassy.ui.shift.components.CloseShiftModal
 import com.azuredevid.cassy.ui.shift.components.OpenShiftModal
 import com.azuredevid.cassy.ui.shift.components.XReportModal
+import com.azuredevid.cassy.data.network.RealtimeConnectionState
+import com.azuredevid.cassy.data.network.RealtimeEventEnvelope
+import com.azuredevid.cassy.domain.model.KdsStation
+import com.azuredevid.cassy.domain.model.KdsTicket
+import com.azuredevid.cassy.domain.model.KdsTicketLine
+import com.azuredevid.cassy.domain.model.KdsTicketStatus
+import com.azuredevid.cassy.domain.repository.KdsRepository
+import com.azuredevid.cassy.domain.repository.RealtimeEventSource
+import com.azuredevid.cassy.ui.kds.KdsScreen
+import com.azuredevid.cassy.ui.kds.KdsViewModel
 import com.azuredevid.cassy.ui.theme.CassyTheme
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOf
 import android.view.accessibility.AccessibilityNodeInfo
 import org.junit.Rule
 import org.junit.Test
@@ -1075,5 +1089,110 @@ class CassyUiShowcaseTest {
             composeRule.onAllNodesWithText(context.getString(titleRes))[0].assertIsDisplayed()
             captureScreen(path, preferFullDisplay = true)
         }
+    }
+
+    @Test
+    fun kdsDisplayLifecycleRendersTicketsWarningAndOfflineBanner() {
+        val nowMillis = 1_795_200_000_000L
+        val connectionFlow = MutableStateFlow(RealtimeConnectionState.CONNECTED)
+        val eventsFlow = MutableSharedFlow<RealtimeEventEnvelope>(extraBufferCapacity = 4)
+        val kdsSession = ownerSession().copy(
+            permissions = ownerSession().permissions + listOf(
+                KdsStation.KITCHEN.readPermission,
+                KdsStation.KITCHEN.updatePermission,
+                KdsStation.BAR.readPermission,
+                KdsStation.BAR.updatePermission
+            )
+        )
+        val initialTickets = mutableListOf(
+            KdsTicket(
+                id = "tkt-q1",
+                orderId = "ord-101",
+                orderNumber = "ORD-101",
+                queueNumber = "A-041",
+                tableNumber = "M-04",
+                roundNumber = 1,
+                station = KdsStation.KITCHEN,
+                status = KdsTicketStatus.QUEUED,
+                latePayment = false,
+                createdAtMillis = nowMillis - 2 * 60_000L,
+                lines = listOf(KdsTicketLine("Nasi Goreng Kampung", "Pedas", 2, listOf("Telur Mata Sapi"), "Tanpa acar"))
+            ),
+            KdsTicket(
+                id = "tkt-p1",
+                orderId = "ord-102",
+                orderNumber = "ORD-102",
+                queueNumber = "A-042",
+                tableNumber = "M-07",
+                roundNumber = 1,
+                station = KdsStation.KITCHEN,
+                status = KdsTicketStatus.PREPARING,
+                latePayment = false,
+                createdAtMillis = nowMillis - 12 * 60_000L,
+                lines = listOf(KdsTicketLine("Ayam Bakar Madu", "Reguler", 1, listOf("Sambal Terasi"), ""))
+            ),
+            KdsTicket(
+                id = "tkt-r1",
+                orderId = "ord-103",
+                orderNumber = "ORD-103",
+                queueNumber = "A-040",
+                tableNumber = "M-02",
+                roundNumber = 1,
+                station = KdsStation.KITCHEN,
+                status = KdsTicketStatus.READY,
+                latePayment = false,
+                createdAtMillis = nowMillis - 7 * 60_000L,
+                lines = listOf(KdsTicketLine("Pisang Goreng Keju", "Reguler", 1, emptyList(), ""))
+            )
+        )
+        val fakeKdsRepo = object : KdsRepository {
+            override suspend fun listTickets(station: KdsStation): Result<List<KdsTicket>> =
+                Result.success(initialTickets.filter { it.station == station })
+
+            override suspend fun transition(
+                ticketId: String,
+                to: KdsTicketStatus,
+                expected: KdsTicketStatus
+            ): Result<KdsTicket> {
+                val idx = initialTickets.indexOfFirst { it.id == ticketId }
+                val updated = initialTickets[idx].copy(status = to)
+                initialTickets[idx] = updated
+                return Result.success(updated)
+            }
+        }
+        val fakeRealtime = object : RealtimeEventSource {
+            override val connectionState: StateFlow<RealtimeConnectionState> = connectionFlow
+            override val events: SharedFlow<RealtimeEventEnvelope> = eventsFlow
+            override fun start(scope: CoroutineScope) = Unit
+        }
+        val kdsVm = KdsViewModel(
+            repository = fakeKdsRepo,
+            sessionManager = ShowcaseSessionManager(kdsSession),
+            realtime = fakeRealtime,
+            storeSettings = ShowcaseGovernanceRepo(),
+            clock = flowOf(nowMillis)
+        ).apply {
+            selectStation(KdsStation.KITCHEN)
+        }
+
+        composeRule.setContent {
+            CassyTheme(darkTheme = false) {
+                KdsScreen(onNavigateBack = {}, viewModel = kdsVm)
+            }
+        }
+
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText("A-041", substring = true).assertIsDisplayed()
+        captureScreen("KdsDisplay/QueuedPreparingReady")
+
+        composeRule.onNodeWithText("A-042", substring = true).assertIsDisplayed()
+        captureScreen("KdsDisplay/LateTicketWarning")
+
+        composeRule.runOnIdle {
+            connectionFlow.value = RealtimeConnectionState.RECONNECTING
+            kdsVm.recall("tkt-r1")
+        }
+        composeRule.waitForIdle()
+        captureScreen("KdsDisplay/RecallAndOfflineBanner")
     }
 }

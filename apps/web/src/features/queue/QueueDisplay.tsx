@@ -14,7 +14,37 @@ interface QueueEntry {
 
 interface QueueView {
   store_name: string;
+  store_timezone?: string;
   orders: QueueEntry[];
+}
+
+function resolveTimezoneLabel(tz: string): string {
+  switch (tz) {
+    case "Asia/Makassar":
+    case "WITA":
+      return "WITA";
+    case "Asia/Jayapura":
+    case "WIT":
+      return "WIT";
+    case "Asia/Jakarta":
+    case "Asia/Pontianak":
+    case "WIB":
+      return "WIB";
+    default:
+      return tz;
+  }
+}
+
+function resolveIanaTimezone(tz?: string): string {
+  if (tz && tz.includes("/")) return tz;
+  if (tz === "WITA") return "Asia/Makassar";
+  if (tz === "WIT") return "Asia/Jayapura";
+  if (tz === "WIB") return "Asia/Jakarta";
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Jakarta";
+  } catch {
+    return "Asia/Jakarta";
+  }
 }
 
 const TOKEN_KEY = "cassy.displayToken";
@@ -61,16 +91,18 @@ export function QueueDisplay() {
   const pollRef = useRef<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
+    const tz = resolveIanaTimezone(view?.store_timezone);
+    const tzLabel = resolveTimezoneLabel(view?.store_timezone || tz);
     const formatClock = () =>
       new Intl.DateTimeFormat("id-ID", {
         hour: "2-digit",
         minute: "2-digit",
-        timeZone: "Asia/Jakarta"
-      }).format(new Date()) + " WIB";
+        timeZone: tz
+      }).format(new Date()) + ` ${tzLabel}`;
     setClockLabel(formatClock());
     const id = setInterval(() => setClockLabel(formatClock()), 30_000);
     return () => clearInterval(id);
-  }, []);
+  }, [view?.store_timezone]);
 
   useEffect(() => {
     const fromHash = takeTokenFromHash();
