@@ -1,16 +1,20 @@
-const CACHE_NAME = "cassy-guest-shell-v1";
+const CACHE_NAME = "cassy-guest-shell-v2";
 const STATIC_SHELL_ASSETS = [
   "/manifest.webmanifest",
-  "/brand/cassy/cassy-icon-192.png",
-  "/brand/cassy/cassy-icon-512.png",
-  "/brand/cassy/cassy-monogram.svg"
+  "/AndroidChrome192.png",
+  "/AndroidChrome512.png"
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_SHELL_ASSETS))
   );
-  self.skipWaiting();
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("activate", (event) => {
@@ -43,8 +47,21 @@ self.addEventListener("fetch", (event) => {
     url.pathname.startsWith("/brand/") ||
     url.pathname === "/manifest.webmanifest"
   ) {
+    // Stale-While-Revalidate so updated brand logos/illustrations refresh without stale lock-in.
     event.respondWith(
-      caches.match(request).then((cached) => cached || fetch(request))
+      caches.open(CACHE_NAME).then((cache) =>
+        cache.match(request).then((cached) => {
+          const networkFetch = fetch(request)
+            .then((response) => {
+              if (response && response.ok) {
+                cache.put(request, response.clone());
+              }
+              return response;
+            })
+            .catch(() => cached);
+          return cached || networkFetch;
+        })
+      )
     );
   }
 });

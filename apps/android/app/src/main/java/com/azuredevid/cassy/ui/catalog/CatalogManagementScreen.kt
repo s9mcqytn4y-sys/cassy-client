@@ -75,7 +75,7 @@ fun CatalogManagementScreen(
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
-    val rupiahFormat = remember { NumberFormat.getIntegerInstance(Locale("in", "ID")) }
+    val rupiahFormat = remember { NumberFormat.getIntegerInstance(Locale.forLanguageTag("id-ID")) }
 
     var showCategoryDialog by remember { mutableStateOf(false) }
     var editingCategory by remember { mutableStateOf<CatalogCategory?>(null) }

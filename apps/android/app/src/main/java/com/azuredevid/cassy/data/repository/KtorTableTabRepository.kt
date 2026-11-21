@@ -231,6 +231,22 @@ class KtorTableTabRepository(
     override suspend fun closeTabByItem(orderId: String, shares: List<Map<String, Int>>): Result<ClosedTab> =
         close(orderId, CloseTabRequestDto("by_item", splits = shares.map { share -> SplitShareDto(share.map { SplitItemDto(it.key, it.value) }) }))
 
+    override suspend fun reopenTab(orderId: String): Result<PosOrder> = withContext(ioDispatcher) {
+        try {
+            val response = httpClient.post("${baseUrl()}/api/v1/pos/tabs/$orderId/reopen") {
+                contentType(ContentType.Application.Json)
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(
+                    HttpErrorMapper.toDomainException(response, "Gagal membuka kembali tagihan meja.")
+                )
+            }
+            Result.success(response.body<TabOrderResponseDto>().order.toDomain())
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal membuka kembali tagihan meja."))
+        }
+    }
+
     private suspend fun close(orderId: String, request: CloseTabRequestDto): Result<ClosedTab> = withContext(ioDispatcher) {
         try {
             val response = httpClient.post("${baseUrl()}/api/v1/pos/tabs/$orderId/close") {

@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import AxeBuilder from "@axe-core/playwright";
@@ -39,7 +40,7 @@ async function mockLegalDocs(page: Page) {
     title,
     version: "1.0.0",
     effective_at: "2026-11-10T00:00:00Z",
-    content_sha256: "b".repeat(64),
+    content_sha256: crypto.createHash("sha256").update(content_markdown).digest("hex"),
     content_markdown
   });
   await page.route("**/api/v1/public/legal*", (r) =>

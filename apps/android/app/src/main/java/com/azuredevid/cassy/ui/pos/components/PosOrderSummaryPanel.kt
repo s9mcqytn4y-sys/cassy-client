@@ -5,37 +5,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.CallSplit
-import androidx.compose.material.icons.automirrored.rounded.ReceiptLong
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Payments
-import androidx.compose.material.icons.rounded.PointOfSale
-import androidx.compose.material.icons.rounded.QrCode2
-import androidx.compose.material.icons.rounded.Remove
-import androidx.compose.material.icons.rounded.Restaurant
-import androidx.compose.material.icons.rounded.ShoppingBag
-import androidx.compose.material.icons.rounded.TableRestaurant
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,28 +25,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.azuredevid.cassy.R
 import com.azuredevid.cassy.data.model.OrderQuote
 import com.azuredevid.cassy.domain.repository.PosTable
-import com.azuredevid.cassy.ui.designsystem.CassyCard
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
-import com.azuredevid.cassy.ui.designsystem.CassyEmptyState
 import com.azuredevid.cassy.ui.designsystem.CassyErrorBanner
-import com.azuredevid.cassy.ui.designsystem.CassyModalDialog
-import com.azuredevid.cassy.ui.designsystem.CassyPrimaryButton
-import com.azuredevid.cassy.ui.designsystem.CassySecondaryButton
-import com.azuredevid.cassy.ui.designsystem.CassyStatusBadge
 import com.azuredevid.cassy.ui.designsystem.CassyTextActionButton
-import com.azuredevid.cassy.ui.designsystem.CassyTextField
 import com.azuredevid.cassy.ui.designsystem.CassyToastTone
-import com.azuredevid.cassy.ui.designsystem.CassyTonalButton
 import com.azuredevid.cassy.ui.pos.CartItem
 import com.azuredevid.cassy.ui.theme.statusErrBg
 import com.azuredevid.cassy.ui.theme.statusErrFg
@@ -110,7 +78,11 @@ fun PosOrderSummaryPanel(
     onTableSelected: (PosTable) -> Unit = {},
     splitSection: @Composable () -> Unit = {},
     /** Owner flag `split_bill`; off hides new splits but keeps bills already split payable. */
-    splitBillEnabled: Boolean = true
+    splitBillEnabled: Boolean = true,
+    canReopenClosedTab: Boolean = false,
+    hasLastSettledOrder: Boolean = false,
+    onReopenClosedTab: () -> Unit = {},
+    onOpenDigitalReceipt: () -> Unit = {}
 ) {
     var showTableDialog by remember { mutableStateOf(false) }
 
@@ -251,119 +223,14 @@ fun PosOrderSummaryPanel(
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outline)
 
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            ) {
-                if (cart.isEmpty()) {
-                    CassyEmptyState(
-                        icon = Icons.Rounded.ShoppingBag,
-                        title = stringResource(R.string.cart_empty_title),
-                        subtitle = stringResource(R.string.cart_empty_subtitle),
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
-                    ) {
-                        items(cart, key = { "${it.product.id}-${it.isSentToKitchen}" }) { item ->
-                            val decreaseDesc = stringResource(R.string.a11y_decrease_qty, item.product.name)
-                            val increaseDesc = stringResource(R.string.a11y_increase_qty, item.product.name)
-                            val lineTotal = item.product.basePriceIdr * item.quantity
-
-                            CassyCard(contentPadding = CassyDimens.SpaceMd) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(end = CassyDimens.SpaceSm)
-                                    ) {
-                                        Text(
-                                            text = item.product.name,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                        Text(
-                                            text = stringResource(
-                                                R.string.cash_chip_rp,
-                                                rupiahFormat.format(lineTotal)
-                                            ),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                        if (item.isSentToKitchen) {
-                                            Text(
-                                                text = stringResource(R.string.cart_line_sent),
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
-
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)
-                                    ) {
-                                        OutlinedButton(
-                                            onClick = { onDecreaseQuantity(item) },
-                                            // A sent line can only be taken back as a void of a server tab line.
-                                            enabled = !isCartLocked && (!item.isSentToKitchen || item.sentLines.isNotEmpty()),
-                                            shape = RoundedCornerShape(CassyDimens.RadiusButton),
-                                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                                            contentPadding = PaddingValues(0.dp),
-                                            modifier = Modifier
-                                                .size(CassyDimens.TouchTargetMin)
-                                                .semantics { contentDescription = decreaseDesc }
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Rounded.Remove,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurface
-                                            )
-                                        }
-
-                                        Text(
-                                            text = "${item.quantity}",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            modifier = Modifier.widthIn(min = 28.dp),
-                                            textAlign = TextAlign.Center
-                                        )
-
-                                        OutlinedButton(
-                                            onClick = { onIncreaseQuantity(item) },
-                                            enabled = !isCartLocked,
-                                            shape = RoundedCornerShape(CassyDimens.RadiusButton),
-                                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                                            contentPadding = PaddingValues(0.dp),
-                                            modifier = Modifier
-                                                .size(CassyDimens.TouchTargetMin)
-                                                .semantics { contentDescription = increaseDesc }
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Rounded.Add,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            PosCartItemsList(
+                cart = cart,
+                isCartLocked = isCartLocked,
+                rupiahFormat = rupiahFormat,
+                onIncreaseQuantity = onIncreaseQuantity,
+                onDecreaseQuantity = onDecreaseQuantity,
+                modifier = Modifier.weight(1f)
+            )
 
             Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)) {
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline)
@@ -420,125 +287,41 @@ fun PosOrderSummaryPanel(
 
                 splitSection()
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
-                ) {
-                    CassySecondaryButton(
-                        text = stringResource(R.string.btn_kick_drawer),
-                        onClick = onOpenDrawerKick,
-                        icon = Icons.Rounded.PointOfSale,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    if (orderType == "DINE-IN") {
-                        CassyTonalButton(
-                            text = stringResource(R.string.btn_send_to_kitchen),
-                            onClick = onSendToKitchen,
-                            enabled = cart.isNotEmpty() && !isCartLocked,
-                            icon = Icons.Rounded.Restaurant,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
-                ) {
-                    CassyPrimaryButton(
-                        text = stringResource(R.string.btn_pay_cash),
-                        onClick = onOpenCashModal,
-                        enabled = quote != null && cart.isNotEmpty() && !isCartLocked,
-                        icon = Icons.Rounded.Payments,
-                        height = CassyDimens.ButtonHeightTall,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    CassyPrimaryButton(
-                        text = stringResource(R.string.btn_pay_qris),
-                        onClick = onOpenQrisModal,
-                        enabled = isShiftOpen && quote != null && cart.isNotEmpty() && !isCartLocked && !isSubmittingOrder,
-                        icon = Icons.Rounded.QrCode2,
-                        height = CassyDimens.ButtonHeightTall,
-                        containerColor = MaterialTheme.colorScheme.tertiary,
-                        contentColor = MaterialTheme.colorScheme.onTertiary,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
-                ) {
-                    // A table bill is divided in splitSection when it closes; this split serves pay-first orders.
-                    if (selectedTableId == null && splitBillEnabled) {
-                        CassyTonalButton(
-                            text = stringResource(R.string.split_btn_split_bill),
-                            onClick = onOpenSplitBill,
-                            enabled = isShiftOpen && quote != null && cart.isNotEmpty() && !isCartLocked && !isSubmittingOrder,
-                            icon = Icons.AutoMirrored.Rounded.CallSplit,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                    CassySecondaryButton(
-                        text = stringResource(R.string.split_btn_open_bills),
-                        onClick = onOpenOpenBills,
-                        icon = Icons.AutoMirrored.Rounded.ReceiptLong,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+                PosOrderActionButtons(
+                    orderType = orderType,
+                    cart = cart,
+                    quote = quote,
+                    isCartLocked = isCartLocked,
+                    isShiftOpen = isShiftOpen,
+                    isSubmittingOrder = isSubmittingOrder,
+                    selectedTableId = selectedTableId,
+                    splitBillEnabled = splitBillEnabled,
+                    canReopenClosedTab = canReopenClosedTab,
+                    hasLastSettledOrder = hasLastSettledOrder,
+                    onOpenDrawerKick = onOpenDrawerKick,
+                    onSendToKitchen = onSendToKitchen,
+                    onOpenCashModal = onOpenCashModal,
+                    onOpenQrisModal = onOpenQrisModal,
+                    onOpenSplitBill = onOpenSplitBill,
+                    onOpenOpenBills = onOpenOpenBills,
+                    onReopenClosedTab = onReopenClosedTab,
+                    onOpenDigitalReceipt = onOpenDigitalReceipt
+                )
             }
         }
     }
 
     if (showTableDialog) {
-        var draft by remember(tableName) { mutableStateOf(tableName) }
-        CassyModalDialog(
-            title = stringResource(R.string.order_table_dialog_title),
-            icon = Icons.Rounded.TableRestaurant,
-            maxWidth = CassyDimens.ModalWidthStandard,
-            onDismissRequest = { showTableDialog = false },
-            footer = {
-                CassySecondaryButton(
-                    text = stringResource(R.string.btn_cancel),
-                    onClick = { showTableDialog = false },
-                    modifier = Modifier.weight(1f)
-                )
-                CassyPrimaryButton(
-                    text = stringResource(R.string.btn_apply),
-                    onClick = {
-                        onTableNameChanged(draft)
-                        showTableDialog = false
-                    },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        ) {
-            if (tables.isNotEmpty() || isLoadingTables) {
-                PosTableBoard(
-                    tables = tables,
-                    isLoading = isLoadingTables,
-                    selectedTableId = selectedTableId,
-                    rupiahFormat = rupiahFormat,
-                    onTableSelected = {
-                        onTableSelected(it)
-                        showTableDialog = false
-                    }
-                )
-                Text(
-                    text = stringResource(R.string.order_table_free_text),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            CassyTextField(
-                value = draft,
-                onValueChange = { draft = it },
-                label = stringResource(R.string.order_table_input_label),
-                placeholder = stringResource(R.string.order_table_input_hint)
-            )
-        }
+        PosTableSelectionDialog(
+            tableName = tableName,
+            tables = tables,
+            isLoadingTables = isLoadingTables,
+            selectedTableId = selectedTableId,
+            rupiahFormat = rupiahFormat,
+            onTableNameChanged = onTableNameChanged,
+            onTableSelected = onTableSelected,
+            onDismiss = { showTableDialog = false }
+        )
     }
 }
 

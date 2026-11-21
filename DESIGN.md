@@ -9,7 +9,9 @@ Reading this as: halaman pesan dari meja untuk tamu kafe di ponsel, memakai bran
 - **Gerai (tenant)** tampil paling depan: nama, logo, foto, dan satu warna aksen dari `/public/stores/:slug/cms`.
 - **Cassy** hanya teks kecil di footer. Tenant paket white-label bisa menyembunyikannya lewat `hide_powered_by_badge`.
 - **AzureDevID** muncul di halaman legal saja.
-- Package ID: `com.azuredevid.cassy`.
+- Package ID Operasional (`Cassy POS`): `com.azuredevid.cassy`.
+- Package ID Eksekutif & Back-Office (`Cassy Manager`): `com.azuredevid.cassy.manager` (100% Native Android & Native iOS/iPadOS, responsif untuk HP, Tablet, & iPad — tanpa web back-office terpisah).
+- **Pemisahan SCAMPER Operasional vs Management:** `Cassy POS` memakai kanvas terang hangat Putih Tulang (`#F7F5F0`) anti-silau untuk lantai kasir/dapur, sedangkan `Cassy Manager` memakai dial `cassyManagerExecutive` (header Deep Tinta `#17211E` + Pandan `#1F5F52` + Kunyit `#E9A23B`) untuk KPI, Menu Engineering Matrix BI, HPP Resep, BYOK Midtrans, dan Remote Approval Void/Refund.
 
 ## 2. Token warna (PRD v4: Pandan & Kunyit, sumber `packages/design-tokens/tokens.json`)
 

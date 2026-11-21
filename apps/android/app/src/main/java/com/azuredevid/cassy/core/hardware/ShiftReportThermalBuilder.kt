@@ -14,7 +14,7 @@ import kotlin.math.abs
 class ShiftReportThermalBuilder(
     private val paperWidth: EscPosReceiptBuilder.PaperWidth = EscPosReceiptBuilder.PaperWidth.WIDTH_80MM
 ) {
-    private val rupiahFormat = NumberFormat.getIntegerInstance(Locale("id", "ID"))
+    private val rupiahFormat = NumberFormat.getIntegerInstance(Locale.forLanguageTag("id-ID"))
 
     private fun formatRupiah(amount: Long): String {
         return "Rp " + rupiahFormat.format(amount)

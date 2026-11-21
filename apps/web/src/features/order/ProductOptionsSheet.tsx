@@ -179,17 +179,17 @@ export function ProductOptionsSheet({
         aria-describedby="line-notes-hint"
         className="input-field mt-1 w-full"
       />
-      <p id="line-notes-hint" className="mt-1 text-xs text-subink">
+      <p id="line-notes-hint" className="mb-4 mt-1 text-xs text-subink">
         {t.notesHint}
       </p>
 
       {showError && incomplete ? (
-        <p role="alert" className="mt-4 text-sm font-semibold text-[var(--state-err-fg)]">
+        <p role="alert" className="mb-4 mt-2 text-sm font-semibold text-[var(--state-err-fg)]">
           {t.needChoice}
         </p>
       ) : null}
 
-      <div className="sticky bottom-0 -mx-5 mt-6 flex items-center gap-3 border-t border-subtle bg-surface px-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+      <div className="sticky bottom-0 z-10 -mx-5 mt-6 flex items-center gap-3 border-t border-subtle bg-surface px-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3.5 shadow-[0_-4px_12px_rgba(23,33,30,0.06)]">
         <div role="group" aria-label={t.quantity} className="flex items-center gap-1 rounded-full bg-muted p-1">
           <button
             type="button"

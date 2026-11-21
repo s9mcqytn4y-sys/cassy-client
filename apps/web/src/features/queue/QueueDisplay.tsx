@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { Bell, Clock, Wifi, WifiOff } from "lucide-react";
 import { useLocale } from "@/components/Providers";
 import { DataStateBox } from "@/components/Shell";
 import { ApiError, apiFetch } from "@/lib/api";
@@ -54,8 +55,22 @@ export function QueueDisplay() {
   const [ready, setReady] = useState(false);
   const [view, setView] = useState<QueueView | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [wsLive, setWsLive] = useState(false);
+  const [clockLabel, setClockLabel] = useState("");
   const [draft, setDraft] = useState("");
   const pollRef = useRef<(() => Promise<void>) | null>(null);
+
+  useEffect(() => {
+    const formatClock = () =>
+      new Intl.DateTimeFormat("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Asia/Jakarta"
+      }).format(new Date()) + " WIB";
+    setClockLabel(formatClock());
+    const id = setInterval(() => setClockLabel(formatClock()), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const fromHash = takeTokenFromHash();
@@ -103,9 +118,13 @@ export function QueueDisplay() {
         socket = new WebSocket(`${scheme}//${window.location.host}/ws?ticket=${encodeURIComponent(ticket)}`);
         socket.onopen = () => {
           attempt = 0;
+          setWsLive(true);
         };
         socket.onmessage = () => void poll();
-        socket.onclose = reconnectLater;
+        socket.onclose = () => {
+          setWsLive(false);
+          reconnectLater();
+        };
       } catch {
         reconnectLater();
       }
@@ -208,20 +227,66 @@ export function QueueDisplay() {
 
   const preparing = view.orders.filter((o) => o.status !== "ready");
   const readyOrders = view.orders.filter((o) => o.status === "ready");
+  const spotlight = readyOrders[0] ?? null;
+  const remainingReady = readyOrders.slice(1);
 
   return (
     <div className="flex min-h-dvh flex-col gap-6 bg-canvas p-4 ipad:p-8">
-      <header className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="font-display text-2xl font-bold tracking-tight text-ink ipad:text-4xl">{view.store_name}</h1>
-        {error ? (
-          <p role="status" className="rounded-full bg-[var(--state-warn-bg)] px-3 py-1 text-sm font-semibold text-[var(--state-warn-fg)]">
-            {error}
-          </p>
-        ) : null}
+      <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-subtle bg-surface px-5 py-3.5">
+        <div className="flex items-center gap-3">
+          <h1 className="font-display text-2xl font-bold tracking-tight text-ink ipad:text-4xl">{view.store_name}</h1>
+          <span className="hidden rounded-full bg-muted px-3 py-1 text-xs font-semibold text-subink sm:inline-flex">
+            {view.orders.length} antrean aktif
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2.5">
+          {clockLabel ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-sm font-semibold tabular-nums text-ink">
+              <Clock className="h-4 w-4 text-subink" aria-hidden="true" />
+              {clockLabel}
+            </span>
+          ) : null}
+          {error ? (
+            <p role="status" className="inline-flex items-center gap-1.5 rounded-full bg-[var(--state-warn-bg)] px-3 py-1 text-sm font-semibold text-[var(--state-warn-fg)]">
+              <WifiOff className="h-4 w-4" aria-hidden="true" />
+              {error}
+            </p>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--state-ok-bg)] px-3 py-1 text-sm font-semibold text-[var(--state-ok-fg)]">
+              <Wifi className="h-4 w-4" aria-hidden="true" />
+              {wsLive ? "Live Terhubung" : "Sinkronisasi"}
+            </span>
+          )}
+        </div>
       </header>
-      <div className="grid flex-1 gap-4 md:grid-cols-2 ipad:gap-8">
-        <QueueColumn title={t.queuePreparing} numbers={preparing} emptyText={t.queueNonePreparing} tone="muted" />
-        <QueueColumn title={t.queueReady} numbers={readyOrders} emptyText={t.queueNoneReady} tone="ok" />
+      <div className="grid flex-1 gap-4 md:grid-cols-12 ipad:gap-8">
+        <div className="md:col-span-5">
+          <QueueColumn title={t.queuePreparing} numbers={preparing} emptyText={t.queueNonePreparing} tone="muted" />
+        </div>
+        <div className="flex flex-col gap-4 md:col-span-7">
+          {spotlight ? (
+            <section
+              aria-label="Baru dipanggil"
+              aria-live="assertive"
+              className="flex flex-col items-center justify-center gap-2 rounded-3xl border-2 border-[var(--brand-accent)] bg-[var(--brand-primary)] px-6 py-8 text-center text-[var(--brand-on-primary)]"
+            >
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1 text-xs font-bold uppercase tracking-wider">
+                <Bell className="h-4 w-4 text-[var(--brand-accent)]" aria-hidden="true" />
+                Siap Diambil Sekarang
+              </span>
+              <p className="font-display text-6xl font-extrabold tracking-tight tabular-nums ipad:text-8xl">
+                {spotlight.queue_number}
+              </p>
+              <p className="text-sm opacity-90 ipad:text-base">Silakan ambil pesanan Anda di meja pengambilan</p>
+            </section>
+          ) : null}
+          <QueueColumn
+            title={t.queueReady}
+            numbers={readyOrders}
+            emptyText={t.queueNoneReady}
+            tone="ok"
+          />
+        </div>
       </div>
     </div>
   );

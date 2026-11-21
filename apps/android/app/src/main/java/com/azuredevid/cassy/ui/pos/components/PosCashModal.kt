@@ -2,6 +2,7 @@ package com.azuredevid.cassy.ui.pos.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -89,23 +90,68 @@ fun PosCashModal(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)
-        ) {
-            CashChipButton(
-                label = stringResource(R.string.chip_exact_cash),
-                selected = tenderedLong == grandTotal,
-                onClick = { cashTenderedStr = grandTotal.toString() },
-                modifier = Modifier.weight(1f)
-            )
-            quickDenoms.forEach { preset ->
-                CashChipButton(
-                    label = stringResource(R.string.cash_chip_rp, rupiahFormat.format(preset)),
-                    selected = tenderedLong == preset,
-                    onClick = { cashTenderedStr = preset.toString() },
-                    modifier = Modifier.weight(1f)
-                )
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val isCompact = maxWidth < 420.dp
+            if (isCompact) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)
+                    ) {
+                        CashChipButton(
+                            label = stringResource(R.string.chip_exact_cash),
+                            selected = tenderedLong == grandTotal,
+                            onClick = { cashTenderedStr = grandTotal.toString() },
+                            modifier = Modifier.weight(1f)
+                        )
+                        CashChipButton(
+                            label = stringResource(R.string.cash_chip_rp, rupiahFormat.format(quickDenoms[0])),
+                            selected = tenderedLong == quickDenoms[0],
+                            onClick = { cashTenderedStr = quickDenoms[0].toString() },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)
+                    ) {
+                        CashChipButton(
+                            label = stringResource(R.string.cash_chip_rp, rupiahFormat.format(quickDenoms[1])),
+                            selected = tenderedLong == quickDenoms[1],
+                            onClick = { cashTenderedStr = quickDenoms[1].toString() },
+                            modifier = Modifier.weight(1f)
+                        )
+                        CashChipButton(
+                            label = stringResource(R.string.cash_chip_rp, rupiahFormat.format(quickDenoms[2])),
+                            selected = tenderedLong == quickDenoms[2],
+                            onClick = { cashTenderedStr = quickDenoms[2].toString() },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)
+                ) {
+                    CashChipButton(
+                        label = stringResource(R.string.chip_exact_cash),
+                        selected = tenderedLong == grandTotal,
+                        onClick = { cashTenderedStr = grandTotal.toString() },
+                        modifier = Modifier.weight(1f)
+                    )
+                    quickDenoms.forEach { preset ->
+                        CashChipButton(
+                            label = stringResource(R.string.cash_chip_rp, rupiahFormat.format(preset)),
+                            selected = tenderedLong == preset,
+                            onClick = { cashTenderedStr = preset.toString() },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
             }
         }
 

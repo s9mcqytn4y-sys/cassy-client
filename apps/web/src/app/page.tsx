@@ -43,7 +43,7 @@ const structuredData = [
     "@type": "SoftwareApplication",
     name: "Cassy POS & Guest QR Ordering",
     applicationCategory: "BusinessApplication",
-    operatingSystem: "Android, Web",
+    operatingSystem: "Android, iOS, iPadOS, Web",
     inLanguage: ["id", "en"],
     offers: {
       "@type": "Offer",
@@ -103,9 +103,6 @@ export default function HomePage() {
           <Link href="/legal/mitra" className="inline-flex min-h-[44px] items-center underline underline-offset-4 hover:text-ink">
             Dokumen Mitra
           </Link>
-          <a href="/llms.txt" className="inline-flex min-h-[44px] items-center underline underline-offset-4 hover:text-ink">
-            llms.txt
-          </a>
         </nav>
       </header>
 

@@ -14,6 +14,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -70,7 +74,11 @@ fun PosCatalogGrid(
     onRetryCatalog: () -> Unit = {},
     onProductSelected: (CatalogProduct) -> Unit,
     rupiahFormat: NumberFormat,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** Category chips above the grid; the phone layout draws its own and leaves this empty. */
+    categories: List<Pair<String, String>> = emptyList(),
+    selectedCategoryId: String = "",
+    onCategorySelected: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val clearSearchDesc = stringResource(R.string.a11y_clear_search)
@@ -100,6 +108,7 @@ fun PosCatalogGrid(
         }
 
         CassyTextField(
+            modifier = Modifier.widthIn(max = CassyDimens.SearchFieldMaxWidth),
             value = searchQuery,
             onValueChange = onSearchQueryChange,
             label = stringResource(R.string.search_placeholder),
@@ -128,10 +137,27 @@ fun PosCatalogGrid(
             }
         )
 
+        if (categories.isNotEmpty()) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(categories, key = { it.first }) { (catId, catName) ->
+                    FilterChip(
+                        selected = selectedCategoryId == catId,
+                        onClick = { onCategorySelected(catId) },
+                        label = { Text(catName) },
+                        modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
+                    )
+                }
+            }
+        }
+
         when {
             isLoadingCatalog -> {
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 148.dp),
+                    // Fixed card width: a wider screen gets more columns, never wider cards.
+                    columns = GridCells.FixedSize(CassyDimens.PosCatalogCardWidth),
                     horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd),
                     verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd),
                     modifier = Modifier.fillMaxSize()
@@ -186,7 +212,8 @@ fun PosCatalogGrid(
 
             else -> {
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 148.dp),
+                    // Fixed card width: a wider screen gets more columns, never wider cards.
+                    columns = GridCells.FixedSize(CassyDimens.PosCatalogCardWidth),
                     horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd),
                     verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd),
                     modifier = Modifier.fillMaxSize()

@@ -102,22 +102,45 @@ export function ReceiptView({ token, mode = "token" }: { token: string; mode?: "
   }
 
   const methods = [...new Set(receipt.payments.map((p) => METHOD[p.method] ?? p.method))];
+  const isPaid = receipt.payment_status?.toLowerCase() === "paid";
   return (
     <section className="mx-auto max-w-md px-5 py-8">
-      <p className="text-sm text-subink">{t.receiptTitle}</p>
-      <h1 className="text-2xl font-bold">{receipt.store.name}</h1>
-      <p className="mt-6 text-sm text-subink">
-        {t.orderNumber}
-        <span className="block text-4xl font-bold text-ink">{receipt.order_number}</span>
-      </p>
-      <p aria-live="polite" className="mt-4 text-base">
-        {t.statusLabel}: <strong>{statusText(t, receipt)}</strong>
-      </p>
-      <p className="mt-1 text-sm text-subink">
-        {new Date(receipt.issued_at).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" })}
-      </p>
+      <div className="rounded-3xl border border-subtle bg-surface p-6">
+        <div className="flex items-start justify-between gap-3 border-b border-subtle pb-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-subink">{t.receiptTitle}</p>
+            <h1 className="mt-0.5 text-2xl font-bold text-ink">{receipt.store.name}</h1>
+            {receipt.store.address ? (
+              <p className="mt-1 text-xs leading-relaxed text-subink">{receipt.store.address}</p>
+            ) : null}
+          </div>
+          <span
+            className={`inline-flex shrink-0 items-center rounded-full px-3 py-1 text-xs font-bold ${
+              isPaid
+                ? "bg-[var(--state-ok-bg)] text-[var(--state-ok-fg)]"
+                : "bg-[var(--state-warn-bg)] text-[var(--state-warn-fg)]"
+            }`}
+          >
+            {isPaid ? "LUNAS" : receipt.payment_status.toUpperCase()}
+          </span>
+        </div>
 
-      <ul className="mt-6 border-t border-subtle">
+        <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2">
+          <p className="text-sm text-subink">
+            {t.orderNumber}
+            <span className="block text-3xl font-extrabold tabular-nums text-ink">{receipt.order_number}</span>
+          </p>
+          <div className="text-right">
+            <p aria-live="polite" className="text-sm font-semibold text-ink">
+              {t.statusLabel}: <strong>{statusText(t, receipt)}</strong>
+            </p>
+            <p className="mt-0.5 text-xs tabular-nums text-subink">
+              {new Date(receipt.issued_at).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" })}
+            </p>
+          </div>
+        </div>
+
+        <ul className="mt-5 border-t border-subtle">
         {receipt.lines.map((line, i) => {
           const details = [line.variant, ...(line.options ?? [])].filter(Boolean).join(", ");
           return (
@@ -166,6 +189,7 @@ export function ReceiptView({ token, mode = "token" }: { token: string; mode?: "
           <Printer className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span>{t.printReceipt}</span>
         </button>
+      </div>
       </div>
     </section>
   );

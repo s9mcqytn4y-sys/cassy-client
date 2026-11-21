@@ -52,7 +52,7 @@ fun CashMovementModal(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val rupiahFormatter = remember { NumberFormat.getIntegerInstance(Locale("id", "ID")) }
+    val rupiahFormatter = remember { NumberFormat.getIntegerInstance(Locale.forLanguageTag("id-ID")) }
     val currentAmount = amountInput.toLongOrNull() ?: 0L
     val presets = remember { listOf(10_000L, 20_000L, 50_000L, 100_000L) }
     val warnFg = statusWarnFg()

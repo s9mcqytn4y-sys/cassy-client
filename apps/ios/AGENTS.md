@@ -1,14 +1,10 @@
-# Cassy iOS printer bridge (`apps/ios`)
+# Cassy iOS / iPadOS POS (Swift 6 + SwiftUI 2026)
 
-Read the root `AGENTS.md` first.
+> Keputusan Arsitektur: `MyCaffeHardwareBridge` (Objective-C) telah dibatalkan dan digantikan oleh aplikasi native **iOS/iPadOS POS penuh** memakai **Swift 6**, **SwiftUI**, dan **iOS 18+**.
 
-Objective-C hardware bridge for serial, Bluetooth and network receipt printers. No UI. Class names keep the `MyCaffe` prefix as technical identifiers until the bridge ships as an SDK.
-
-## Rules
-- ARC only; bounds-checked buffers for ESC/POS byte streams.
-- No emoji in comments or logs.
-
-## Check
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/Verify-ObjCSyntax.ps1
-```
+## Aturan Non-Negosiasi iOS
+- **Swift 6 Strict Concurrency:** Gunakan `actor` untuk networking/Keychain, `@MainActor @Observable` untuk ViewModel, serta tipe model `Sendable`.
+- **Uang Integer (`Int64`):** Klien dilarang menghitung total atau pajak otoritatif; seluruh angka harga diformat dengan `monospacedDigit()` / `RupiahFormatter`.
+- **Design Tokens:** Warna wajib mengikuti `CassyTheme` yang disinkronkan dari `../../packages/design-tokens/tokens.json` (`Pandan #1F5F52`, `Kunyit #E9A23B`, `Putih Tulang #F7F5F0`, `Tinta #17211E`).
+- **Adaptive Form Factor:** iPadOS landscape menggunakan split-pane (`horizontalSizeClass == .regular`), iPhone portrait menggunakan bottom sheet keranjang dengan target sentuh >= `48pt`.
+- **Keamanan:** Token dan device binding hanya disimpan di Apple **Keychain Services** (`KeychainStore`), dilarang di `UserDefaults`.

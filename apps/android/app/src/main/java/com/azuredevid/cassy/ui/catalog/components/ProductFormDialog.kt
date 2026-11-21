@@ -151,8 +151,11 @@ fun ProductFormDialog(
                 text = stringResource(R.string.catalog_field_category),
                 style = MaterialTheme.typography.labelLarge
             )
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)) {
-                items(categories, key = { it.id }) { cat ->
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm),
+                verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
+            ) {
+                categories.forEach { cat ->
                     val isSelected = selectedCategoryId == cat.id
                     FilterChip(
                         selected = isSelected,

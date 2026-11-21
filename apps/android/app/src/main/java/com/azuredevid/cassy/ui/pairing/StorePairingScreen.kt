@@ -28,13 +28,17 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
+import com.azuredevid.cassy.ui.designsystem.CassyPermissionDisclosureDialog
 import com.azuredevid.cassy.ui.designsystem.CassySnackbarHost
 import com.azuredevid.cassy.ui.pairing.components.CameraPermissionDeniedDialog
 import com.azuredevid.cassy.ui.pairing.components.StorePairingBrandPane
@@ -55,6 +59,7 @@ fun StorePairingScreen(
     val connectivity by viewModel.connectivityState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    var showCameraDisclosure by rememberSaveable { mutableStateOf(false) }
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -113,6 +118,14 @@ fun StorePairingScreen(
             onUseHidScanner = { viewModel.onEvent(StorePairingUiEvent.OpenHidScanner(true)) },
             onDismiss = { viewModel.onEvent(StorePairingUiEvent.ClearCameraPermissionDenied) }
         )
+    } else if (showCameraDisclosure) {
+        CassyPermissionDisclosureDialog(
+            onConfirm = {
+                showCameraDisclosure = false
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            },
+            onDismiss = { showCameraDisclosure = false }
+        )
     }
 
     val openQrScanner: () -> Unit = {
@@ -123,7 +136,7 @@ fun StorePairingScreen(
         if (granted) {
             viewModel.onEvent(StorePairingUiEvent.ToggleCamera(true))
         } else {
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            showCameraDisclosure = true
         }
     }
 
