@@ -1,4 +1,4 @@
-name: iOS POS Hardware Bridge & Xcode Archive
+name: iOS POS Swift Package & Xcode Verify
 
 on:
   workflow_dispatch:
@@ -27,22 +27,18 @@ env:
 
 jobs:
   ios-xcode-verify:
-    name: Build & Verify Objective-C/Swift on macOS-15 Xcode (com.azuredevid.cassy)
+    name: Build & Verify Swift Package on macOS-15 Xcode (com.azuredevid.cassy)
     runs-on: macos-15
     steps:
       - name: Checkout client monorepo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v4
 
       - name: Select latest stable Xcode
         run: |
           sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
           xcodebuild -version
 
-      - name: Compile & test Objective-C Apple Foundation Hardware Bridge
+      - name: Build CassyPOS Swift Package for iOS Simulator
+        working-directory: apps/ios
         run: |
-          clang -fobjc-arc \
-            -Wall -Wextra -Werror -Wno-unused-command-line-argument \
-            -Iapps/ios/Sources \
-            -c apps/ios/Sources/MyCaffeHardwareBridge.m \
-            -o /tmp/MyCaffeHardwareBridge.o
-          echo "Compiled Mach-O arm64/x86_64 Objective-C object cleanly for ${PRODUCT_BUNDLE_IDENTIFIER}."
+          xcodebuild -scheme CassyPOS -destination 'generic/platform=iOS Simulator' -configuration Debug build CODE_SIGNING_ALLOWED=NO

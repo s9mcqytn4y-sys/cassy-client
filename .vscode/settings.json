@@ -22,6 +22,12 @@
     "editor.insertSpaces": true,
     "files.eol": "\n"
   },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "dotenv.enableAutocloaking": true,
   "workbench.colorTheme": "Dracula Theme Soft",
   "markdownlint.config": {
@@ -38,6 +44,9 @@
   "tailwindCSS.experimental.classRegex": [
     ["clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
   ],
+  "java.jdt.ls.java.home": "C:/Program Files/Java/jdk-17",
+  "java.autobuild.enabled": false,
+  "java.project.importOnFirstTimeStartup": "disabled",
   "java.import.gradle.java.home": "C:/Program Files/Java/jdk-17",
   "java.configuration.runtimes": [
     {
@@ -58,7 +67,7 @@
     "**/build/**"
   ],
   "kotlin.java.home": "C:/Program Files/Java/jdk-17",
-  "kotlin.languageServer.enabled": true,
+  "kotlin.languageServer.enabled": false,
   "kotlin.compiler.jvm.target": "17",
   "android.sdkPath": "C:/Users/Acer/AppData/Local/Android/Sdk",
   "search.exclude": {
