@@ -1171,7 +1171,9 @@ class CassyUiShowcaseTest {
             realtime = fakeRealtime,
             storeSettings = ShowcaseGovernanceRepo(),
             clock = flowOf(nowMillis)
-        )
+        ).apply {
+            selectStation(KdsStation.KITCHEN)
+        }
 
         composeRule.setContent {
             CassyTheme(darkTheme = false) {
