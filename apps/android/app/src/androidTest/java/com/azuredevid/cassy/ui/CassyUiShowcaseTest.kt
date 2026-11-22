@@ -3,7 +3,6 @@ package com.azuredevid.cassy.ui
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.os.Build
 import android.os.SystemClock
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -174,10 +173,7 @@ class CassyUiShowcaseTest {
         composeRule.waitForIdle()
         if (preferFullDisplay) dismissSystemAnrDialog()
         runCatching {
-            val fullDisplayBitmap = if (
-                preferFullDisplay &&
-                Build.VERSION.SDK_INT <= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
-            ) {
+            val fullDisplayBitmap = if (preferFullDisplay) {
                 SystemClock.sleep(500L)
                 InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
             } else {
@@ -726,10 +722,10 @@ class CassyUiShowcaseTest {
             .fetchSemanticsNodes().isNotEmpty()
         if (hasTabletPayCash) {
             composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
-            captureScreen("PosLandscape/PosMain")
+            captureScreen("PosLandscape/PosMain", preferFullDisplay = true)
         } else {
             composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart)).assertIsDisplayed()
-            captureScreen("PosLandscape/PosMain")
+            captureScreen("PosLandscape/PosMain", preferFullDisplay = true)
             composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart)).performClick()
             composeRule.waitForIdle()
             composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
