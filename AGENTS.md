@@ -18,7 +18,7 @@ Sibling folders inside `C:\Projects\CassyWorkspace`:
 - Docker (`Docker`, repo `s9mcqytn4y-sys/cassy-docker`): Standalone Compose, Nginx, Monitoring, and VPS Gateway definitions.
 - Business Vault (`C:\Users\Acer\OneDrive\Documents\AzureDevId`): Brand, legal, payment, and recovery docs (readable by authorized workspace config; never print, copy, or commit secret values).
 
-Source of Truth docs: `docs/PrdCassyV4.md`, `docs/ProjectManagement/README.md`, `docs/TechDebt.md`, `apps/android/docs/ReleaseOnePlan.md`, plus workspace UI/UX specs `../Docs/UiUxHandoffSpec.md`, `../Docs/PwaUiUxDissection.md`, `../Docs/BackendUiUxProposals.md`, and `apps/web/.stitch/SITE.md` (active live demo domain: `https://pos.abbdullaziz.online` & `https://api.abbdullaziz.online`; `pos.abbdullaziz.online` is retired).
+Source of Truth docs: `docs/PrdCassyV4.md`, `docs/ProjectManagement/README.md`, `docs/TechDebt.md`, `apps/android/docs/ReleaseOnePlan.md`, plus workspace UI/UX specs `../Docs/UiUxHandoffSpec.md`, `../Docs/PwaUiUxDissection.md`, `../Docs/BackendUiUxProposals.md`, and `apps/web/.stitch/SITE.md` (active live demo domain: `https://pos.abbdullaziz.online` & `https://api.abbdullaziz.online`; `demo.abbdullaziz.online` is retired).
 
 ## Non-Negotiable Client Rules
 
@@ -29,6 +29,7 @@ Source of Truth docs: `docs/PrdCassyV4.md`, `docs/ProjectManagement/README.md`, 
 - **Visual tokens (PRD v4)**: Pandan `#1F5F52`, Kunyit `#E9A23B`, Putih Tulang `#F7F5F0`, Tinta `#17211E` (from `packages/design-tokens/tokens.json`). No Espresso/brown tones. Outlets without custom color fall back to neutral ink.
 - **Icons & Copy**: Web uses `lucide-react`; Android uses Material Symbols. No emoji in code, UI copy, logs, or commits. UI copy is polite, clear Bahasa Indonesia with English parity (`values-en` / `messages.ts`).
 - **Evidence Screenshots**: Android saves local evidence under `apps/android/screenshots/ui-v2.4.0/...`; PWA saves Desktop/Mobile evidence under `apps/web/screenshots/ui-v2.5.0/<PageGroup>/<StatePascalCase>.png` (gitignored locally, inspectable before PR).
+- **Pre-Push Secret Hygiene (`gitleaks`)**: Never commit high-entropy mock tokens (e.g. `tk-xxx-yyyy`) in Stitch HTML files (`apps/web/.stitch/designs/*.html`), fixtures, or docs. Use semantic placeholders such as `demo-order-14`.
 
 ## Branches & Verification Gates
 

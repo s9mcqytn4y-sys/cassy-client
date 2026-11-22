@@ -77,6 +77,7 @@ export const en: Messages = {
   paidTitle: "Payment received",
   orderNumber: "Order number",
   statusLabel: "Status",
+  estimatedPrepMinutes: "Estimated ready in ~{minutes} min",
   statusPreparing: "Being prepared",
   statusReady: "Ready at the bar",
   statusServed: "Done",

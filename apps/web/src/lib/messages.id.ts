@@ -75,6 +75,7 @@ export const id = {
   paidTitle: "Pembayaran diterima",
   orderNumber: "Nomor pesanan",
   statusLabel: "Status",
+  estimatedPrepMinutes: "Estimasi siap sekitar {minutes} menit",
   statusPreparing: "Sedang disiapkan",
   statusReady: "Siap diambil di bar",
   statusServed: "Selesai",

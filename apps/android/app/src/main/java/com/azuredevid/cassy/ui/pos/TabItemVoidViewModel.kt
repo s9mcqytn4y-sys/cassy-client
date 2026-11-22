@@ -8,7 +8,10 @@ import com.azuredevid.cassy.domain.error.DomainError
 import com.azuredevid.cassy.domain.error.DomainException
 import com.azuredevid.cassy.domain.model.PosOrder
 import com.azuredevid.cassy.domain.model.PosOrderItem
+import com.azuredevid.cassy.data.network.RealtimeConnectionState
+import com.azuredevid.cassy.data.network.RealtimeEventEnvelope
 import com.azuredevid.cassy.domain.repository.ApprovalRepository
+import com.azuredevid.cassy.domain.repository.RealtimeEventSource
 import com.azuredevid.cassy.domain.repository.TabItemVoidInput
 import com.azuredevid.cassy.domain.repository.TableTabRepository
 import com.azuredevid.cassy.ui.designsystem.UiText
@@ -63,6 +66,7 @@ data class TabItemVoidUiState(
 class TabItemVoidViewModel(
     private val tabs: TableTabRepository,
     private val approvals: ApprovalRepository,
+    private val realtime: RealtimeEventSource? = null,
     private val pollIntervalMs: Long = 3_000L
 ) : ViewModel() {
 
@@ -118,25 +122,57 @@ class TabItemVoidViewModel(
         }
     }
 
-    // shortcut: polls instead of listening for approval.decided on the socket; about 40 small GETs per request.
     private fun waitForOwner(approvalId: String) {
         pollJob?.cancel()
         pollJob = viewModelScope.launch {
-            // The owner has 2 minutes to decide; past that, an offline tablet must not spin forever.
-            repeat((OWNER_DECISION_WINDOW_MS / pollIntervalMs).toInt() + 1) {
-                delay(pollIntervalMs)
-                val status = approvals.get(approvalId).getOrNull()?.status ?: return@repeat
-                when (status) {
-                    "pending" -> Unit
-                    "approved" -> {
-                        void(ownerPin = null, approvalId = approvalId)
-                        return@launch
+            val socketJob = realtime?.let { source ->
+                launch {
+                    source.events.collect { event ->
+                        val relevant = event.type == "approval.decided" ||
+                            event.type == RealtimeEventEnvelope.TYPE_RESYNC_REQUIRED
+                        if (!relevant) return@collect
+                        val targetId = event.payloadString("approval_id") ?: event.payloadString("id")
+                        if (targetId != null && targetId != approvalId) return@collect
+                        if (checkApprovalDecision(approvalId)) {
+                            pollJob?.cancel()
+                        }
                     }
-                    "rejected" -> return@launch backToOwner(R.string.tab_void_msg_rejected)
-                    else -> return@launch backToOwner(R.string.tab_void_msg_expired)
                 }
             }
-            backToOwner(R.string.tab_void_msg_expired)
+            try {
+                // The owner has 2 minutes to decide; while the socket is connected we stay event-driven
+                // and only poll as a fallback when the socket is down or absent.
+                repeat((OWNER_DECISION_WINDOW_MS / pollIntervalMs).toInt() + 1) {
+                    delay(pollIntervalMs)
+                    val socketConnected = realtime?.connectionState?.value == RealtimeConnectionState.CONNECTED
+                    if (socketConnected) return@repeat
+                    if (checkApprovalDecision(approvalId)) return@launch
+                }
+                if (_uiState.value.step == TabVoidStep.WAITING) {
+                    backToOwner(R.string.tab_void_msg_expired)
+                }
+            } finally {
+                socketJob?.cancel()
+            }
+        }
+    }
+
+    private suspend fun checkApprovalDecision(approvalId: String): Boolean {
+        val status = approvals.get(approvalId).getOrNull()?.status ?: return false
+        return when (status) {
+            "pending" -> false
+            "approved" -> {
+                void(ownerPin = null, approvalId = approvalId)
+                true
+            }
+            "rejected" -> {
+                backToOwner(R.string.tab_void_msg_rejected)
+                true
+            }
+            else -> {
+                backToOwner(R.string.tab_void_msg_expired)
+                true
+            }
         }
     }
 

@@ -117,6 +117,7 @@ interface Tracked {
   payment_status?: string;
   order_number?: string;
   expires_at?: string;
+  estimated_prep_minutes?: number;
 }
 
 const POLL_MS = 10_000;

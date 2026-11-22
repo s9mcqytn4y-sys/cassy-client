@@ -54,7 +54,7 @@ Aplikasi klien resmi untuk **Cassy by AzureDevID** (usaha perorangan AzureDevID,
 - Node.js >= 22.0.0 and `pnpm` 12.18.0
 - Java JDK 17 (Eclipse Temurin or OpenJDK)
 - Android SDK 34/35/36 with Android Build Tools
-- Go 1.27 (untuk menjalankan `CassyBackend` saat E2E live)
+- Go 1.27.4 (untuk menjalankan `CassyBackend` saat E2E live)
 
 ### Commands
 

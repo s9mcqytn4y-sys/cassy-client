@@ -77,6 +77,11 @@ export function ProductCard({ product, canOrder, onOpen, onQuickAdd, eager = fal
             <UtensilsCrossed size={40} strokeWidth={1.5} />
           </span>
         )}
+        {product.badge_label && !item.soldOut ? (
+          <span className="absolute left-2.5 top-2.5 rounded-full bg-brand px-2.5 py-0.5 text-[11px] font-bold tracking-tight text-brand-ink shadow-sm">
+            {product.badge_label}
+          </span>
+        ) : null}
       </button>
       <div className="flex flex-1 flex-col gap-1.5 p-3.5">
         <h3 className="line-clamp-2 min-h-[2.5rem] text-[0.9375rem] font-semibold leading-snug text-ink">{product.name}</h3>
@@ -98,7 +103,14 @@ export function ProductRow({ product, canOrder, onOpen, onQuickAdd }: ItemProps)
   return (
     <li className="flex items-center gap-3 py-3">
       <button type="button" aria-label={`${t.details} ${product.name}`} onClick={onOpen} className="min-w-0 flex-1 text-left">
-        <span className="block text-[0.9375rem] font-semibold leading-snug">{product.name}</span>
+        <span className="flex flex-wrap items-center gap-1.5 text-[0.9375rem] font-semibold leading-snug">
+          <span>{product.name}</span>
+          {product.badge_label && !item.soldOut ? (
+            <span className="rounded-full bg-brand px-2 py-0.5 text-[11px] font-bold text-brand-ink">
+              {product.badge_label}
+            </span>
+          ) : null}
+        </span>
         {product.description ? <span className="mt-0.5 line-clamp-2 block text-sm text-subink">{product.description}</span> : null}
         <span className="mt-1 flex items-center gap-2">
           <span className="text-base font-bold tabular-nums">{item.variant ? formatIdr(item.variant.price) : ""}</span>

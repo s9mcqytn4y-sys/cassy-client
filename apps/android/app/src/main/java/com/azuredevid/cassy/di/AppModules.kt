@@ -235,19 +235,32 @@ val repositoryModule = module {
             serverSettings = get()
         )
     }
+
+    single<com.azuredevid.cassy.domain.repository.PublicQueueRepository> {
+        com.azuredevid.cassy.data.repository.KtorPublicQueueRepository(
+            httpClient = get(),
+            serverSettings = get()
+        )
+    }
 }
 
 val viewModelModule = module {
     viewModel {
         TabItemVoidViewModel(
             tabs = get(),
-            approvals = get()
+            approvals = get(),
+            realtime = get()
         )
     }
     viewModel {
         ServiceRequestViewModel(
             repository = get(),
             realtimeClient = get()
+        )
+    }
+    viewModel {
+        com.azuredevid.cassy.ui.queue.TvQueueDisplayViewModel(
+            repository = get()
         )
     }
     viewModel {

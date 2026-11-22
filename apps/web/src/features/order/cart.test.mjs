@@ -177,4 +177,12 @@ assert.deepEqual(
   ["p1", "p4"],
   "skips in-cart, modifiers, and sold-out; picks complementary categories first"
 );
+const catalogWithServerRecs = catalog.map((p) =>
+  p.id === "c1" ? { ...p, recommended_product_ids: ["p4", "p3", "c2"] } : p
+);
+assert.deepEqual(
+  pickSmartPairings(catalogWithServerRecs, [{ key: "k", productId: "c1", name: "Latte", options: [], quantity: 1, notes: "" }], 2).map((p) => p.id),
+  ["p4", "c2"],
+  "prefers server recommended_product_ids in order and skips unavailable recommended items"
+);
 assert.deepEqual(pickSmartPairings(catalog, [], 2), [], "empty cart returns no pairings");

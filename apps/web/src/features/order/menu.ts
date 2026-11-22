@@ -19,7 +19,10 @@ function defaultAvailableVariant(product: CatalogProduct): CatalogVariant | unde
   return product.variants.find((v) => v.is_default && v.available) ?? product.variants.find((v) => v.available);
 }
 
-/** Up to `max` available simple products (1-tap add) not yet in cart, preferring complementary categories. */
+/**
+ * Up to `max` available simple products (1-tap add) not yet in cart.
+ * Prefers server-configured `recommended_product_ids` for items in cart, then complementary categories.
+ */
 export function pickSmartPairings(products: CatalogProduct[], lines: CartLine[], max = 2): CatalogProduct[] {
   if (lines.length === 0 || max <= 0) return [];
   const inCartIds = new Set(lines.map((l) => l.productId));
@@ -35,7 +38,26 @@ export function pickSmartPairings(products: CatalogProduct[], lines: CartLine[],
       !(p.bundle_slots?.length ?? 0) &&
       !!defaultAvailableVariant(p)
   );
-  const complementary = simpleAvailable.filter((p) => p.category_id && !inCartCategories.has(p.category_id));
-  const sameCategory = simpleAvailable.filter((p) => !p.category_id || inCartCategories.has(p.category_id));
-  return [...complementary, ...sameCategory].slice(0, max);
+  const simpleById = new Map(simpleAvailable.map((p) => [p.id, p]));
+  const picked: CatalogProduct[] = [];
+  const pickedIds = new Set<string>();
+  const addCandidate = (p: CatalogProduct | undefined) => {
+    if (!p || pickedIds.has(p.id) || picked.length >= max) return;
+    pickedIds.add(p.id);
+    picked.push(p);
+  };
+
+  for (const product of products) {
+    if (!inCartIds.has(product.id) || !product.recommended_product_ids?.length) continue;
+    for (const recId of product.recommended_product_ids) {
+      addCandidate(simpleById.get(recId));
+    }
+  }
+  for (const p of simpleAvailable) {
+    if (p.category_id && !inCartCategories.has(p.category_id)) addCandidate(p);
+  }
+  for (const p of simpleAvailable) {
+    addCandidate(p);
+  }
+  return picked;
 }

@@ -822,4 +822,14 @@
     <string name="pos_msg_discount_failed">Gagal menerapkan diskon pesanan.</string>
     <string name="pos_msg_order_voided">Pesanan berhasil dibatalkan.</string>
     <string name="pos_msg_order_void_failed">Gagal membatalkan pesanan.</string>
+    <string name="tv_queue_title">Layar Antrean TV</string>
+    <string name="tv_queue_back">Kembali</string>
+    <string name="tv_queue_refresh">Muat ulang antrean</string>
+    <string name="tv_queue_preparing">Sedang Disiapkan</string>
+    <string name="tv_queue_ready">Siap Diambil</string>
+    <string name="tv_queue_empty">Belum ada pesanan</string>
+    <string name="tv_queue_pair_heading">Hubungkan Layar Antrean TV</string>
+    <string name="tv_queue_token_label">Token Layar Antrean</string>
+    <string name="tv_queue_connect">Hubungkan Layar</string>
+    <string name="tv_queue_load_failed">Gagal memuat antrean TV.</string>
 </resources>

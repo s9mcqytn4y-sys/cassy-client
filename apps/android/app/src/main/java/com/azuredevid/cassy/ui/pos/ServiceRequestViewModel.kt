@@ -4,17 +4,22 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azuredevid.cassy.R
-import com.azuredevid.cassy.data.network.CassyRealtimeClient
+import com.azuredevid.cassy.data.network.RealtimeConnectionState
+import com.azuredevid.cassy.data.network.RealtimeEventEnvelope
+import com.azuredevid.cassy.domain.repository.RealtimeEventSource
 import com.azuredevid.cassy.domain.repository.ServiceRequest
 import com.azuredevid.cassy.domain.repository.ServiceRequestRepository
 import com.azuredevid.cassy.ui.designsystem.UiText
 import com.azuredevid.cassy.ui.designsystem.toUiText
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @Immutable
@@ -26,11 +31,12 @@ data class ServiceRequestUiState(
 
 /**
  * Guest "Panggil Pelayan" queue for the cashier. The list reloads on every `service_request.*`
- * realtime event, so another device taking a request removes it here too.
+ * realtime event and falls back to periodic polling while the socket is disconnected.
  */
 class ServiceRequestViewModel(
     private val repository: ServiceRequestRepository,
-    private val realtimeClient: CassyRealtimeClient? = null
+    private val realtimeClient: RealtimeEventSource? = null,
+    private val fallbackPollIntervalMs: Long = 15_000L
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ServiceRequestUiState())
@@ -39,16 +45,36 @@ class ServiceRequestViewModel(
     private val _errors = Channel<UiText>(Channel.BUFFERED)
     val errors = _errors.receiveAsFlow()
 
+    private var fallbackPollJob: Job? = null
+
     init {
         refresh()
         realtimeClient?.let { client ->
             viewModelScope.launch {
-                client.events.collect { if (it.type.startsWith("service_request")) refresh() }
+                client.events.collect {
+                    if (it.type.startsWith("service_request") || it.type == RealtimeEventEnvelope.TYPE_RESYNC_REQUIRED) {
+                        refresh()
+                    }
+                }
+            }
+            viewModelScope.launch {
+                client.connectionState.collect { state ->
+                    if (state == RealtimeConnectionState.CONNECTED) {
+                        fallbackPollJob?.cancel()
+                        fallbackPollJob = null
+                    } else if (fallbackPollJob == null || fallbackPollJob?.isActive != true) {
+                        fallbackPollJob = launch {
+                            while (isActive) {
+                                delay(fallbackPollIntervalMs)
+                                refresh()
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
-    // shortcut: no polling while the socket is down; opening the panel reloads, add a poll if missed calls show up in the pilot.
     fun refresh() {
         viewModelScope.launch {
             repository.listActive()

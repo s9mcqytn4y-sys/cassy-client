@@ -47,6 +47,9 @@ export interface CatalogProduct {
   category_id: string | null;
   name: string;
   description?: string;
+  badge_label?: string | null;
+  prep_minutes?: number | null;
+  recommended_product_ids?: string[];
   image_url?: string | null;
   available: boolean;
   sold_out_reason?: string | null;
