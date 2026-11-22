@@ -20,4 +20,6 @@ interface ServiceRequestRepository {
     suspend fun acknowledge(id: String): Result<ServiceRequest>
 
     suspend fun markDone(id: String): Result<ServiceRequest>
+
+    suspend fun cancelAndMute(id: String): Result<ServiceRequest>
 }

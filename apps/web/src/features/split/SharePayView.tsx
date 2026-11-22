@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CircleCheck } from "lucide-react";
 import { useLocale } from "@/components/Providers";
 import { QrCodeSvg } from "@/components/QrCodeSvg";
+import { DataStateBox } from "@/components/Shell";
 import { MidtransTrustFooter, PaymentChannelLogo } from "@/features/order/PaymentMethodPicker";
 import { ApiError, apiFetch, isMaintenance } from "@/lib/api";
 import { formatIdr } from "@/lib/format";
@@ -77,74 +78,84 @@ export function SharePayView({ token }: { token: string }) {
     }
   };
 
-  if (state === "loading") return <p className="mx-auto max-w-md px-5 py-10 text-subink">{t.loadingTitle}</p>;
-  if (state !== "ready" || !share) {
-    const [title, body] =
-      state === "missing"
-        ? [t.shareMissingTitle, t.shareMissingBody]
-        : state === "maintenance"
-          ? [t.maintenanceTitle, t.maintenanceBody]
-          : [t.loadFailedTitle, t.loadFailedBody];
+  if (state === "loading") {
     return (
-      <section className="mx-auto max-w-md px-5 py-10">
-        <h1 className="text-2xl font-bold">{title}</h1>
-        <p className="mt-2 text-base">{body}</p>
-        {state !== "missing" ? (
-          <button type="button" onClick={() => void load()} className="btn-primary mt-6 min-h-[48px] px-6 font-bold">
-            {t.retry}
-          </button>
-        ) : null}
-      </section>
+      <div className="mx-auto max-w-md px-5 py-10 md:max-w-lg">
+        <DataStateBox state="loading" title={t.loadingTitle} description={t.sharePageTitle} />
+      </div>
+    );
+  }
+  if (state !== "ready" || !share) {
+    const [title, body, illustration] =
+      state === "missing"
+        ? [t.shareMissingTitle, t.shareMissingBody, "notFound" as const]
+        : state === "maintenance"
+          ? [t.maintenanceTitle, t.maintenanceBody, "maintenance" as const]
+          : [t.loadFailedTitle, t.loadFailedBody, "offline" as const];
+    return (
+      <div className="mx-auto max-w-md px-5 py-10 md:max-w-lg">
+        <DataStateBox
+          state="error"
+          illustration={illustration}
+          title={title}
+          description={body}
+          onRetry={state !== "missing" ? () => void load() : undefined}
+        />
+      </div>
     );
   }
 
   if (paid) {
     return (
-      <section className="mx-auto max-w-md px-5 py-10">
-        <span className="inline-block text-[var(--state-ok-fg)] motion-safe:animate-pop">
-          <CircleCheck size={56} />
-        </span>
-        <h1 className="mt-3 text-2xl font-bold">{t.sharePaidTitle}</h1>
-        <p className="mt-2 text-base">{t.sharePaidBody}</p>
+      <section className="mx-auto max-w-md px-5 py-10 md:max-w-lg">
+        <div className="flex flex-col items-center rounded-3xl border border-subtle bg-surface p-6 text-center shadow-sm md:p-8">
+          <span className="inline-block text-[var(--state-ok-fg)] motion-safe:animate-pop">
+            <CircleCheck size={56} />
+          </span>
+          <h1 className="mt-3 text-2xl font-bold text-ink">{t.sharePaidTitle}</h1>
+          <p className="mt-2 text-base text-subink">{t.sharePaidBody}</p>
+        </div>
       </section>
     );
   }
 
   return (
-    <section className="mx-auto flex max-w-md flex-col items-center px-5 py-8 text-center">
-      <p className="text-sm text-subink">{share.store_name}</p>
-      <h1 className="text-2xl font-bold">{t.sharePageTitle}</h1>
-      <p className="mt-5 text-3xl font-bold">{formatIdr(share.amount)}</p>
+    <section className="mx-auto max-w-md px-5 py-8 md:max-w-lg">
+      <div className="flex flex-col items-center rounded-3xl border border-subtle bg-surface p-6 text-center shadow-sm md:p-8">
+        <p className="text-xs font-semibold uppercase tracking-wider text-subink">{share.store_name}</p>
+        <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-ink">{t.sharePageTitle}</h1>
+        <p className="mt-4 text-3xl font-extrabold tabular-nums tracking-tight text-ink">{formatIdr(share.amount)}</p>
 
-      {!charge ? (
-        <button type="button" disabled={paying} onClick={() => void pay(false)} className="btn-primary mt-6 inline-flex min-h-[56px] w-full items-center justify-center gap-2 text-base font-bold motion-safe:transition-transform motion-safe:active:scale-[0.98]">
-          <PaymentChannelLogo method="qris" className="h-4 w-auto" />
-          <span>{paying ? t.placing : t.sharePayCta}</span>
-        </button>
-      ) : expired ? (
-        <div role="alert" className="mt-6 flex flex-col items-center">
-          <p className="font-semibold">{t.expired}</p>
-          <button type="button" disabled={paying} onClick={() => void pay(true)} className="btn-primary mt-3 min-h-[56px] px-6 font-bold motion-safe:transition-transform motion-safe:active:scale-[0.98]">
-            {t.newQr}
+        {!charge ? (
+          <button type="button" disabled={paying} onClick={() => void pay(false)} className="btn-primary mt-6 inline-flex min-h-[56px] w-full cursor-pointer items-center justify-center gap-2 rounded-xl text-base font-bold motion-safe:transition-transform motion-safe:active:scale-[0.98]">
+            <PaymentChannelLogo method="qris" className="h-4 w-auto" />
+            <span>{paying ? t.placing : t.sharePayCta}</span>
           </button>
-        </div>
-      ) : (
-        <>
-          <p className="mt-2 text-sm text-subink">{t.scanHint}</p>
-          <div className="mt-4 rounded-xl bg-white p-4">
-            <QrCodeSvg value={charge.qr_string} size={240} />
+        ) : expired ? (
+          <div role="alert" className="mt-6 flex flex-col items-center">
+            <p className="font-semibold">{t.expired}</p>
+            <button type="button" disabled={paying} onClick={() => void pay(true)} className="btn-primary mt-3 min-h-[56px] cursor-pointer rounded-xl px-6 font-bold motion-safe:transition-transform motion-safe:active:scale-[0.98]">
+              {t.newQr}
+            </button>
           </div>
-          {charge.expires_at ? (
-            <p className="mt-4 text-sm">
-              {t.payBefore}{" "}
-              <strong>{new Date(charge.expires_at).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}</strong>
-            </p>
-          ) : null}
-          <p aria-live="polite" className="mt-2 text-sm text-subink">{t.waiting}</p>
-        </>
-      )}
-      {error ? <p role="alert" className="mt-4 text-sm font-semibold text-[var(--state-err-fg)]">{error}</p> : null}
-      <MidtransTrustFooter />
+        ) : (
+          <>
+            <p className="mt-2 text-sm text-subink">{t.scanHint}</p>
+            <div className="mt-4 rounded-xl border border-subtle bg-white p-4">
+              <QrCodeSvg value={charge.qr_string} size={240} />
+            </div>
+            {charge.expires_at ? (
+              <p className="mt-4 text-sm">
+                {t.payBefore}{" "}
+                <strong>{new Date(charge.expires_at).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}</strong>
+              </p>
+            ) : null}
+            <p aria-live="polite" className="mt-2 text-sm text-subink">{t.waiting}</p>
+          </>
+        )}
+        {error ? <p role="alert" className="mt-4 text-sm font-semibold text-[var(--state-err-fg)]">{error}</p> : null}
+        <MidtransTrustFooter />
+      </div>
     </section>
   );
 }

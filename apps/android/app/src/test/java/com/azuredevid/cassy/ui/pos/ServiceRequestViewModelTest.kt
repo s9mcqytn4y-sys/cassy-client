@@ -39,6 +39,8 @@ class ServiceRequestViewModelTest {
 
         override suspend fun markDone(id: String) = move(id, "done")
 
+        override suspend fun cancelAndMute(id: String) = move(id, "cancelled")
+
         private fun move(id: String, status: String): Result<ServiceRequest> {
             if (failNext) {
                 failNext = false
@@ -47,7 +49,7 @@ class ServiceRequestViewModelTest {
             }
             val updated = queue.first { it.id == id }.copy(status = status)
             queue.replaceAll { if (it.id == id) updated else it }
-            if (status == "done") queue.removeAll { it.id == id }
+            if (status == "done" || status == "cancelled") queue.removeAll { it.id == id }
             return Result.success(updated)
         }
     }
@@ -70,6 +72,10 @@ class ServiceRequestViewModelTest {
         dispatcher.scheduler.advanceUntilIdle()
         assertEquals(listOf("2"), vm.uiState.value.requests.map { it.id })
         assertNull(vm.uiState.value.busyRequestId)
+
+        vm.cancelAndMute("2")
+        dispatcher.scheduler.advanceUntilIdle()
+        assertTrue(vm.uiState.value.requests.isEmpty())
     }
 
     @Test

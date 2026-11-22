@@ -95,24 +95,24 @@ export function StoreClosedBanner({
       className="rounded-2xl border border-[var(--state-warn-fg)]/25 bg-[var(--state-warn-bg)] p-4 text-ink"
     >
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface text-[var(--state-warn-fg)]">
+        <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-surface text-[var(--state-warn-fg)] ring-1 ring-[var(--state-warn-fg)]/15">
           <Icon size={20} aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-base font-bold text-ink">{title}</h2>
-          <p className="mt-1 text-sm leading-relaxed text-subink">{body}</p>
+          <h2 className="text-base font-extrabold leading-snug tracking-tight text-ink">{title}</h2>
+          <p className="mt-1 text-sm leading-relaxed text-ink/80">{body}</p>
 
           {todayFormatted ? (
-            <p className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-xs font-bold text-ink">
+            <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[var(--state-warn-fg)]/20 bg-surface px-3 py-1 text-xs font-bold text-ink">
               <Clock size={13} aria-hidden="true" className="text-[var(--state-warn-fg)]" />
-              <span>{t.todayHoursLabel}: {todayFormatted}</span>
+              <span className="tabular-nums">{t.todayHoursLabel}: {todayFormatted}</span>
             </p>
           ) : null}
 
           {dayRows.length > 0 ? (
-            <details className="mt-2.5 rounded-xl bg-surface/85 px-3 py-2 text-xs">
-              <summary className="cursor-pointer font-semibold text-ink">{t.operatingHoursLabel}</summary>
-              <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-subink">
+            <details className="mt-3 rounded-xl border border-[var(--state-warn-fg)]/15 bg-surface px-3.5 text-xs">
+              <summary className="flex min-h-[44px] cursor-pointer items-center font-semibold text-ink">{t.operatingHoursLabel}</summary>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 border-t border-subtle pb-3 pt-2.5 text-subink">
                 {dayRows.map((row) => (
                   <React.Fragment key={row.day}>
                     <dt className={row.day === todayKey ? "font-bold text-ink" : ""}>{row.label}</dt>

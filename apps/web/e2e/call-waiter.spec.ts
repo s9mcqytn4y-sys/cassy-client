@@ -44,16 +44,26 @@ test("tamu memanggil pelayan dengan sekali ketuk", async ({ page }) => {
   await sheet.getByRole("button", { name: "Minta tisu" }).click();
   await expect(page.getByText("Permintaan terkirim. Staf segera datang.")).toBeVisible();
   expect(sent).toEqual({ template_id: "t-tisu", note: "dua lembar" });
+  await expect(page.getByTestId("call-waiter-timer")).toBeVisible();
+  await page.getByRole("button", { name: "Panggil pelayan" }).click();
+  await expect(page.getByTestId("call-waiter-cooldown")).toContainText("jeda 60 detik");
+  await expect(page.getByRole("dialog", { name: "Butuh bantuan?" }).getByRole("button", { name: "Minta tisu" })).toBeDisabled();
 });
 
 test("batas permintaan menampilkan pesan server", async ({ page }) => {
   await mockStore(page, { call_waiter_enabled: true });
   await mockRequests(page, () => ({
     status: 429,
-    body: { code: "TOO_MANY_REQUESTS", error: "Permintaan terlalu sering. Tunggu sebentar, staf sedang menuju meja Anda." }
+    body: {
+      code: "TOO_MANY_REQUESTS",
+      error: "Permintaan terlalu sering. Tunggu 60 detik sebelum memanggil pelayan kembali.",
+      retry_after_seconds: 42
+    }
   }));
   await page.goto("/order/T1");
   await page.getByRole("button", { name: "Panggil pelayan" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Minta air putih" }).click();
   await expect(page.getByRole("dialog").getByRole("alert")).toContainText("Permintaan terlalu sering");
+  await expect(page.getByTestId("call-waiter-cooldown")).toBeVisible();
+  await expect(page.getByTestId("call-waiter-cooldown")).toContainText("00:4");
 });

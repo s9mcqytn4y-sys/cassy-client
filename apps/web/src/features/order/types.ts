@@ -23,6 +23,25 @@ export interface CatalogVariant {
   available: boolean;
 }
 
+export interface BundleSlot {
+  id: string;
+  name: string;
+  quantity: number;
+  display_order: number;
+  product_ids: string[];
+}
+
+export interface GuestOrderSummary {
+  id: string;
+  order_number: string;
+  queue_number: string;
+  status: string;
+  payment_status: string;
+  total_amount: number;
+  expires_at?: string;
+  created_at: string;
+}
+
 export interface CatalogProduct {
   id: string;
   category_id: string | null;
@@ -33,7 +52,7 @@ export interface CatalogProduct {
   sold_out_reason?: string | null;
   variants: CatalogVariant[];
   modifier_groups: CatalogGroup[];
-  bundle_slots?: unknown[];
+  bundle_slots?: BundleSlot[];
 }
 
 export interface CatalogCategory {

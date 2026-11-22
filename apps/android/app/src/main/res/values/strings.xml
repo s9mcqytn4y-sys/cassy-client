@@ -554,6 +554,8 @@
     <string name="service_row_taken">Sedang ditangani, dipanggil %1$s</string>
     <string name="service_btn_take">Ambil</string>
     <string name="service_btn_done">Selesai</string>
+    <string name="service_btn_mute">Redam 15m</string>
+    <string name="service_cooldown_hint">Meja yang diredam tidak dapat memanggil pelayan selama 15 menit. Jeda antar panggilan: 60 detik.</string>
     <plurals name="service_pill_count">
         <item quantity="other">%d tamu memanggil</item>
     </plurals>

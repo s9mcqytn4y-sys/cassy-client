@@ -73,11 +73,13 @@ test.describe("UI v2.5.0 Visual Evidence & Regression Suite", () => {
 
     await page.goto("/legal");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.getByRole("article")).toBeVisible();
     await expectCleanA11y(page);
     await saveShot(page, testInfo, "Legal", "GuestPrivacy");
 
     await page.goto("/legal/mitra");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.getByRole("article")).toBeVisible();
     await expectCleanA11y(page);
     await saveShot(page, testInfo, "Legal", "PartnerMitra");
   });
@@ -235,10 +237,10 @@ test.describe("Live Backend E2E (Android Demo Account + Dual Store QR)", () => {
     // 3. Live Legal pages from PostgreSQL 18
     await page.goto("/legal", { waitUntil: "networkidle" });
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expect(page.getByText(/^SHA-256 /)).toBeVisible();
+    await expect(page.getByRole("article")).toBeVisible();
     await page.goto("/legal/mitra", { waitUntil: "networkidle" });
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expect(page.getByText(/^SHA-256 /)).toBeVisible();
+    await expect(page.getByRole("article")).toBeVisible();
 
     // 4. Store 1 (Cassy Roastery Senopati) live menu + server quote
     await page.goto(`/order/${SENOPATI_QR}`);

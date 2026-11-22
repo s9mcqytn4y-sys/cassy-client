@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, apiFetch, isMaintenance } from "@/lib/api";
 import { toOrderItems, type CartLine } from "./cart";
 import { isFinal, readActiveOrder, reconnectDelay, writeActiveOrder, type ActiveOrder } from "./status";
-import type { CatalogCategory, CatalogProduct, Quote, StoreCms, TableInfo } from "./types";
+import type { CatalogCategory, CatalogProduct, GuestOrderSummary, Quote, StoreCms, TableInfo } from "./types";
 
 export type LoadState = "loading" | "ready" | "missing" | "maintenance" | "failed";
 
@@ -14,6 +14,7 @@ export interface OrderData {
   categories: CatalogCategory[];
   products: CatalogProduct[];
   resume: ActiveOrder | null;
+  orders: GuestOrderSummary[];
 }
 
 /** Loads table info, public menu catalog, CMS metadata, and active guest session/order state for a QR token. */
@@ -33,16 +34,18 @@ export function useOrderData(token: string) {
         apiFetch<{ categories?: CatalogCategory[]; products?: CatalogProduct[] }>(`/api/v1/public/stores/${slug}/catalog`),
         apiFetch<{ cms?: StoreCms }>(`/api/v1/public/stores/${slug}/cms`).catch(() => ({ cms: {} })),
         resume
-          ? apiFetch<{ orders?: { id: string }[] }>("/api/v1/public/guest/orders").catch(() => null)
+          ? apiFetch<{ orders?: GuestOrderSummary[] }>("/api/v1/public/guest/orders").catch(() => null)
           : Promise.resolve(null),
         shouldStartSession
           ? apiFetch(`/api/v1/public/qr/${path}/session`, { method: "POST", body: {} })
           : Promise.resolve(null)
       ]);
+      let orders = owned?.orders ?? [];
       // A new session would orphan the saved order, so keep the cookie while this device still owns it.
-      if (resume && !owned?.orders?.some((o) => o.id === resume?.order.id)) {
+      if (resume && !orders.some((o) => o.id === resume?.order.id)) {
         writeActiveOrder(token, null);
         resume = null;
+        orders = [];
         if (table.ordering_open) {
           await apiFetch(`/api/v1/public/qr/${path}/session`, { method: "POST", body: {} });
         }
@@ -52,7 +55,8 @@ export function useOrderData(token: string) {
         cms: cmsResponse.cms ?? {},
         categories: catalog.categories ?? [],
         products: catalog.products ?? [],
-        resume
+        resume,
+        orders
       });
       setState("ready");
     } catch (err) {

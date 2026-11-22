@@ -7,8 +7,10 @@ import { Sheet } from "@/components/Sheet";
 import { formatIdr } from "@/lib/format";
 import { isValidGuestName, stripControlChars } from "@/lib/sanitize";
 import { optionNames, type CartAction, type CartLine } from "./cart";
+import { pickSmartPairings } from "./menu";
+import { defaultVariant } from "./MenuItems";
 import { BankPicker, METHOD_LABEL, PaymentMethodPicker } from "./PaymentMethodPicker";
-import type { BankCode, PayMethod, Quote } from "./types";
+import type { BankCode, CatalogProduct, PayMethod, Quote } from "./types";
 
 export { METHOD_LABEL };
 
@@ -42,6 +44,8 @@ export function CartSheet({
   splitEnabled,
   splitCount,
   onSplitCount,
+  catalogProducts = [],
+  onQuickAddPairing,
   onPay,
   onClose
 }: {
@@ -66,11 +70,14 @@ export function CartSheet({
   // null pays the whole bill alone; 2 to 20 splits it equally (W13).
   splitCount: number | null;
   onSplitCount: (count: number | null) => void;
+  catalogProducts?: CatalogProduct[];
+  onQuickAddPairing?: (product: CatalogProduct) => void;
   onPay: () => void;
   onClose: () => void;
 }) {
   const { t } = useLocale();
   const invalidName = !isValidGuestName(guestName);
+  const pairings = canOrder && onQuickAddPairing ? pickSmartPairings(catalogProducts, lines, 2) : [];
 
   return (
     <Sheet title={t.cart} onClose={onClose}>
@@ -118,6 +125,39 @@ export function CartSheet({
 
       {lines.length > 0 ? (
         <>
+          {pairings.length > 0 ? (
+            <section aria-label={t.pairingTitle} className="mt-4">
+              <h3 className="text-sm font-bold text-ink">{t.pairingTitle}</h3>
+              <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {pairings.map((item) => {
+                  const variant = defaultVariant(item);
+                  return (
+                    <li
+                      key={item.id}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-subtle bg-canvas px-3 py-2.5"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-ink">{item.name}</p>
+                        {variant ? (
+                          <p className="text-xs font-medium tabular-nums text-subink">{formatIdr(variant.price)}</p>
+                        ) : null}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onQuickAddPairing?.(item)}
+                        aria-label={`${t.pairingAdd} ${item.name}`}
+                        className="btn-secondary inline-flex min-h-[44px] shrink-0 cursor-pointer items-center gap-1 rounded-full px-3 text-xs font-bold"
+                      >
+                        <Plus size={14} aria-hidden="true" />
+                        <span>{t.pairingAdd}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ) : null}
+
           <h3 className="mt-4 text-base font-bold">{t.orderSummary}</h3>
           <div aria-live="polite" className="mt-2 rounded-2xl bg-muted px-4 py-3">
             {quote ? (
@@ -220,24 +260,29 @@ export function CartSheet({
             </p>
           ) : null}
 
-          {canOrder ? (
-            <div className="sticky bottom-0 -mx-5 mt-6 border-t border-subtle bg-surface px-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+          <div className="sticky bottom-0 -mx-5 mt-6 border-t border-subtle bg-surface px-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
+            {!canOrder ? (
+              <p role="status" className="mb-2 text-center text-xs font-semibold text-subink">
+                {t.closedTitle}
+              </p>
+            ) : null}
             <button
               type="button"
-              disabled={!quote || quoteLoading || placing || invalidName}
+              disabled={!canOrder || !quote || quoteLoading || placing || invalidName}
               onClick={onPay}
-              className="btn-primary min-h-[56px] w-full rounded-xl text-base font-bold"
+              className="btn-primary min-h-[56px] w-full cursor-pointer rounded-xl text-base font-bold disabled:cursor-not-allowed"
             >
-              {placing
-                ? t.placing
-                : !quote
-                  ? t.calculating
-                  : splitCount !== null
-                    ? `${t.splitPay} ${formatIdr(quote.total_amount)}`
-                    : `${t.pay} ${formatIdr(quote.total_amount)}`}
+              {!canOrder
+                ? t.closedTitle
+                : placing
+                  ? t.placing
+                  : !quote
+                    ? t.calculating
+                    : splitCount !== null
+                      ? `${t.splitPay} ${formatIdr(quote.total_amount)}`
+                      : `${t.pay} ${formatIdr(quote.total_amount)}`}
             </button>
-            </div>
-          ) : null}
+          </div>
         </>
       ) : null}
     </Sheet>

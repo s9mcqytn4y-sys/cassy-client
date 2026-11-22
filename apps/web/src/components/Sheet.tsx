@@ -1,25 +1,58 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useId, useRef } from "react";
 import { X } from "lucide-react";
 import { useLocale } from "./Providers";
 
-/** Bottom sheet on a native dialog: focus trap and Escape come from the browser, and Back closes it. */
+/** Bottom sheet on a native dialog: focus trap and Escape come from the browser, and Back/backdrop closes it. */
 export function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   const { t } = useLocale();
+  const titleId = useId();
   const ref = useRef<HTMLDialogElement>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
   useEffect(() => {
     const dialog = ref.current;
-    dialog?.showModal();
+    if (!dialog) return;
+    let mounted = true;
+    dialog.showModal();
     window.history.pushState({ sheet: true }, "");
     const onPop = () => onCloseRef.current();
+    const onDialogClose = () => {
+      if (mounted) onCloseRef.current();
+    };
     window.addEventListener("popstate", onPop);
+    dialog.addEventListener("close", onDialogClose);
+
+    // Fallback light-dismiss for browsers without HTMLDialogElement closedby (e.g. Safari iOS).
+    let removeFallback: (() => void) | undefined;
+    if (!("closedBy" in HTMLDialogElement.prototype)) {
+      let pressedOutside = false;
+      const isOutside = (e: PointerEvent) => {
+        const r = dialog.getBoundingClientRect();
+        return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+      };
+      const onDown = (e: PointerEvent) => {
+        pressedOutside = isOutside(e);
+      };
+      const onUp = (e: PointerEvent) => {
+        if (pressedOutside && isOutside(e)) onCloseRef.current();
+      };
+      dialog.addEventListener("pointerdown", onDown);
+      dialog.addEventListener("pointerup", onUp);
+      removeFallback = () => {
+        dialog.removeEventListener("pointerdown", onDown);
+        dialog.removeEventListener("pointerup", onUp);
+      };
+    }
+
     return () => {
+      mounted = false;
+      removeFallback?.();
       window.removeEventListener("popstate", onPop);
-      dialog?.close();
+      dialog.removeEventListener("close", onDialogClose);
+      dialog.close();
       if (window.history.state?.sheet) window.history.back();
     };
   }, []);
@@ -27,18 +60,19 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
   return (
     <dialog
       ref={ref}
-      aria-label={title}
+      aria-labelledby={titleId}
+      {...({ closedby: "any" } as Record<string, string>)}
       onCancel={(e) => {
         e.preventDefault();
         onClose();
       }}
-      className="fixed inset-x-0 bottom-0 m-0 mx-auto max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-surface p-0 text-ink shadow-xl backdrop:bg-black/60"
+      className="fixed inset-x-0 bottom-0 m-0 mx-auto max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-surface p-0 text-ink shadow-xl backdrop:bg-black/60 md:inset-0 md:m-auto md:h-fit md:max-h-[85dvh] md:max-w-xl md:rounded-2xl"
     >
-      <div className="sticky top-0 z-10 bg-surface px-5 pb-3 pt-2">
-        <span aria-hidden="true" className="mx-auto mb-2 block h-1 w-10 rounded-full bg-[var(--border-strong)] opacity-40" />
+      <div className="sticky top-0 z-10 bg-surface px-5 pb-3 pt-2 md:pt-4">
+        <span aria-hidden="true" className="mx-auto mb-2 block h-1 w-10 rounded-full bg-[var(--border-strong)] opacity-40 md:hidden" />
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-extrabold leading-tight tracking-tight">{title}</h2>
-          <button type="button" aria-label={t.close} onClick={onClose} className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-muted">
+          <h2 id={titleId} className="text-xl font-extrabold leading-tight tracking-tight">{title}</h2>
+          <button type="button" aria-label={t.close} onClick={onClose} className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-full bg-muted">
             <X size={20} />
           </button>
         </div>

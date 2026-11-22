@@ -126,6 +126,7 @@ internal fun BoxScope.PosLandscapeModals(
             busyRequestId = serviceState.busyRequestId,
             onAcknowledge = { serviceRequestViewModel.acknowledge(it) },
             onDone = { serviceRequestViewModel.markDone(it) },
+            onCancelMute = { serviceRequestViewModel.cancelAndMute(it) },
             onDismiss = { serviceRequestViewModel.closePanel() }
         )
     }

@@ -68,6 +68,8 @@ class ServiceRequestViewModel(
 
     fun markDone(id: String) = transition(id) { repository.markDone(id) }
 
+    fun cancelAndMute(id: String) = transition(id) { repository.cancelAndMute(id) }
+
     private fun transition(id: String, call: suspend () -> Result<ServiceRequest>) {
         if (_uiState.value.busyRequestId != null) return
         viewModelScope.launch {

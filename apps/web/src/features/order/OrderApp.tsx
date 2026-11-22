@@ -7,16 +7,18 @@ import { MenuSkeleton } from "@/components/MenuSkeleton";
 import { Notices } from "@/components/Toast";
 import { useLocale } from "@/components/Providers";
 import { DataStateBox } from "@/components/Shell";
+import { apiFetch } from "@/lib/api";
 import { brandVariables } from "@/lib/brand";
 import { formatIdr } from "@/lib/format";
 import { CartSheet } from "./CartSheet";
 import { CategoryNav, sectionId } from "./CategoryNav";
+import { GuestOrdersSheet } from "./GuestOrdersSheet";
 import { menuSections } from "./menu";
 import { PaymentView } from "./PaymentView";
 import { defaultVariant, ProductCard, ProductRow } from "./MenuItems";
 import { ProductOptionsSheet } from "./ProductOptionsSheet";
 import { moneyTaken, orderPhase, writeActiveOrder } from "./status";
-import type { CatalogProduct, PayMethod, ServiceMode } from "./types";
+import type { CatalogProduct, GuestOrderSummary, PayMethod, ServiceMode } from "./types";
 import { SplitView } from "./SplitView";
 import { CallWaiter } from "./CallWaiter";
 import { StoreHeader } from "./StoreHeader";
@@ -27,13 +29,37 @@ import { useOrderCheckout } from "./useOrderCheckout";
 import { useOrderData, useOrderProgress, useQuote } from "./useOrderData";
 
 export function OrderApp({ token }: { token: string }) {
-  const { t, locale } = useLocale();
+  const { t, locale, setHidePoweredBy } = useLocale();
   const { state, data, reload } = useOrderData(token);
   const { lines, dispatch, attemptKey } = useCartPersistence(token);
   const [optionsFor, setOptionsFor] = useState<CatalogProduct | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [ordersOpen, setOrdersOpen] = useState(false);
+  const [guestOrders, setGuestOrders] = useState<GuestOrderSummary[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [guestName, setGuestName] = useState("");
   const [splitCount, setSplitCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (data?.orders) setGuestOrders(data.orders);
+  }, [data?.orders]);
+
+  const refreshGuestOrders = useCallback(async () => {
+    setOrdersLoading(true);
+    try {
+      const res = await apiFetch<{ orders?: GuestOrderSummary[] }>("/api/v1/public/guest/orders");
+      setGuestOrders(res.orders ?? []);
+    } catch {
+      // Keep the last known list when offline or session expired.
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, []);
+
+  const openGuestOrders = useCallback(() => {
+    setOrdersOpen(true);
+    void refreshGuestOrders();
+  }, [refreshGuestOrders]);
 
   const { quote, failed, loading, refresh } = useQuote(data?.table.store_slug, lines);
   const methods: PayMethod[] = data?.table.payment_methods?.length ? data.table.payment_methods : ["qris"];
@@ -118,7 +144,7 @@ export function OrderApp({ token }: { token: string }) {
 
   const { muted, toggleSound, toast } = useOrderBell(arrived, arrivedText, serviceMode);
   const online = useOnlineStatus(() => void refresh());
-  const notices = <Notices toast={cartOpen || optionsFor ? null : (actionToast ?? toast)} offline={!online} offlineText={t.offline} />;
+  const notices = <Notices toast={cartOpen || optionsFor || ordersOpen ? null : (actionToast ?? toast)} offline={!online} offlineText={t.offline} />;
 
   const sections = useMemo(() => menuSections(data?.categories ?? [], data?.products ?? [], t.otherMenu), [data, t.otherMenu]);
   // About the first screen at 360 to 390 px: two rows of the two-column grid.
@@ -137,6 +163,11 @@ export function OrderApp({ token }: { token: string }) {
       ease: "outQuad"
     });
   }, [itemCount]);
+
+  useEffect(() => {
+    setHidePoweredBy(Boolean(data?.cms.hide_powered_by_badge));
+    return () => setHidePoweredBy(false);
+  }, [data?.cms.hide_powered_by_badge, setHidePoweredBy]);
 
   if (state === "loading") {
     return (
@@ -201,7 +232,7 @@ export function OrderApp({ token }: { token: string }) {
   }
 
   return (
-    <div style={brand} className="mx-auto flex min-h-dvh max-w-lg flex-col md:max-w-3xl">
+    <div style={brand} className="mx-auto flex min-h-dvh max-w-lg flex-col md:max-w-3xl lg:max-w-4xl">
       {notices}
       {cms.hero_banner_url ? (
         <img
@@ -210,7 +241,7 @@ export function OrderApp({ token }: { token: string }) {
           width={1280}
           height={480}
           fetchPriority="high"
-          className="aspect-[8/3] w-full object-cover"
+          className="aspect-[8/3] w-full object-cover md:rounded-b-2xl"
         />
       ) : null}
       <StoreHeader
@@ -218,13 +249,10 @@ export function OrderApp({ token }: { token: string }) {
         tableLabel={table.label || `${t.table} ${table.table_number}`}
         tagline={tagline}
         announcement={announcement}
+        orderCount={Math.max(guestOrders.length, order ? 1 : 0)}
+        onOpenOrders={openGuestOrders}
+        actionSlot={table.call_waiter_enabled && table.ordering_open ? <CallWaiter onNotify={notify} /> : null}
       />
-
-      {table.call_waiter_enabled && table.ordering_open ? (
-        <div className="mt-3 px-5">
-          <CallWaiter onNotify={notify} />
-        </div>
-      ) : null}
 
       {order && !viewingPayment ? (
         <div className="mt-1">
@@ -238,30 +266,32 @@ export function OrderApp({ token }: { token: string }) {
             onOpenPayment={resumePayment}
             onRenewQr={() => void newAttempt(payment?.method ?? method)}
           />
-          {checkoutError ? <p role="alert" className="mt-2 px-5 text-sm font-semibold text-[var(--state-err-fg)]">{checkoutError}</p> : null}
+          {checkoutError ? <p role="alert" className="mt-2 px-5 text-sm font-semibold text-[var(--state-err-fg)] md:px-6">{checkoutError}</p> : null}
         </div>
       ) : null}
 
       {!table.ordering_open ? (
-        <div className="mt-4 px-5">
+        <div className="mt-4 px-5 md:px-6">
           <StoreClosedBanner closedReason={table.closed_reason} operatingHours={table.operating_hours} />
         </div>
       ) : null}
 
-      <div className="px-5 pb-8">
+      {sections.length > 1 ? <CategoryNav sections={sections} /> : null}
+
+      <div className={`px-5 md:px-6 ${itemCount > 0 ? "pb-24" : "pb-8"}`}>
         {sections.length === 0 ? (
           <div className="mt-4"><DataStateBox state="empty" illustration="empty" title={t.emptyTitle} description={t.emptyBody} /></div>
         ) : (
           sections.map((section) => (
             <section key={section.id} aria-labelledby={sectionId(section.id)} className="cassy-menu-section mt-7">
-              <h2 id={sectionId(section.id)} className="scroll-mt-4 text-xl font-extrabold tracking-tight">
+              <h2 id={sectionId(section.id)} className="scroll-mt-20 text-xl font-extrabold tracking-tight">
                 {section.name}
               </h2>
               {(() => {
                 const withPhotos = section.products.some((p) => p.image_url);
                 const Item = withPhotos ? ProductCard : ProductRow;
                 return (
-                  <ul className={withPhotos ? "mt-3 grid grid-cols-2 gap-3 md:grid-cols-3" : "mt-1 divide-y divide-[var(--border-subtle)]"}>
+                  <ul className={withPhotos ? "mt-3 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4" : "mt-1 divide-y divide-[var(--border-subtle)]"}>
                     {section.products.map((product) => (
                       <Item
                         key={product.id}
@@ -286,33 +316,41 @@ export function OrderApp({ token }: { token: string }) {
         )}
       </div>
 
-      {sections.length > 1 || itemCount > 0 ? (
-        // Bottom dock in thumb reach: categories like a native tab bar, the cart right under them.
-        <div data-cart-bar className="sticky bottom-0 z-20 mt-auto border-t border-subtle bg-surface/95 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur supports-[backdrop-filter]:bg-surface/85">
-          {sections.length > 1 ? <CategoryNav sections={sections} /> : null}
-          {itemCount > 0 ? (
-            <div className="px-3 pt-1">
-              <button type="button" data-cart-cta onClick={() => setCartOpen(true)} className="btn-primary flex min-h-[56px] w-full items-center justify-between rounded-xl px-5 text-base font-bold">
-                <span className="flex items-center gap-2.5">
-                  <ShoppingBag size={20} aria-hidden="true" />
-                  {t.viewCart} ({itemCount} {t.items})
-                </span>
-                <span className="tabular-nums">{quote ? formatIdr(quote.total_amount) : ""}</span>
-              </button>
-            </div>
-          ) : null}
+      {itemCount > 0 && !cartOpen && !optionsFor && !ordersOpen ? (
+        // Floating cart CTA dock in thumb reach; hidden while a modal sheet is open so it never peeks under the backdrop.
+        <div data-cart-bar className="sticky bottom-0 z-20 mt-auto border-t border-subtle bg-surface/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5 backdrop-blur supports-[backdrop-filter]:bg-surface/85 md:px-6">
+          <button type="button" data-cart-cta onClick={() => setCartOpen(true)} className="btn-primary mx-auto flex min-h-[56px] w-full cursor-pointer items-center justify-between rounded-xl px-5 text-base font-bold shadow-md md:max-w-md">
+            <span className="flex items-center gap-2.5">
+              <ShoppingBag size={20} aria-hidden="true" />
+              {t.viewCart} ({itemCount} {t.items})
+            </span>
+            <span className="tabular-nums">{quote ? formatIdr(quote.total_amount) : ""}</span>
+          </button>
         </div>
       ) : null}
 
       {optionsFor ? (
         <ProductOptionsSheet
           product={optionsFor}
+          canOrder={table.ordering_open}
+          catalogProducts={data.products}
           onClose={() => setOptionsFor(null)}
           onAdd={(line) => {
             dispatch({ type: "add", line });
             setOptionsFor(null);
             notify(t.addedToCart);
           }}
+        />
+      ) : null}
+
+      {ordersOpen ? (
+        <GuestOrdersSheet
+          orders={guestOrders}
+          activeOrderId={order?.id}
+          loading={ordersLoading}
+          onRefresh={() => void refreshGuestOrders()}
+          onOpenActive={resumePayment}
+          onClose={() => setOrdersOpen(false)}
         />
       ) : null}
 
@@ -339,6 +377,13 @@ export function OrderApp({ token }: { token: string }) {
           splitEnabled={table.split_enabled === true && methods.includes("qris")}
           splitCount={splitCount}
           onSplitCount={setSplitCount}
+          catalogProducts={data.products}
+          onQuickAddPairing={(product) => {
+            dispatch({
+              type: "add",
+              line: { productId: product.id, variantId: defaultVariant(product)?.id, name: product.name, options: [], quantity: 1, notes: "" }
+            });
+          }}
           onPay={checkout}
           onClose={() => setCartOpen(false)}
         />

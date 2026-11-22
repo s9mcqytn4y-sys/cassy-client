@@ -6,7 +6,7 @@ import { useLocale } from "@/components/Providers";
 import { QrCodeSvg } from "@/components/QrCodeSvg";
 import { StateIllustration } from "@/components/StateIllustration";
 import { formatIdr } from "@/lib/format";
-import { BankPicker, bankMeta, METHOD_LABEL, MidtransTrustFooter } from "./PaymentMethodPicker";
+import { BankPicker, bankMeta, METHOD_LABEL, MidtransTrustFooter, PaymentChannelLogo } from "./PaymentMethodPicker";
 import { PaymentCancelledOrRefundedSection, PaymentPaidSection } from "./PaymentSettledSections";
 import { PaymentSwitcherSheet } from "./PaymentSwitcherSheet";
 import { safeDeeplink, type OrderPhase } from "./status";
@@ -247,13 +247,22 @@ export function PaymentView({
               />
             </div>
           ) : wallet ? (
-            deeplink ? (
-              <a href={deeplink} className="btn-primary mt-6 inline-flex min-h-[56px] w-full items-center justify-center px-6 text-base font-bold">
-                {t.openWallet}
-              </a>
-            ) : (
-              <p role="alert" className="mt-6 text-sm font-semibold">{t.methodUnavailable}</p>
-            )
+            <div className="mt-5 w-full space-y-4 rounded-2xl border border-subtle bg-surface p-5 text-left">
+              <div className="flex items-center justify-between gap-3 border-b border-subtle pb-3.5">
+                <span className="inline-flex h-8 w-20 items-center justify-center rounded-lg bg-white px-2 ring-1 ring-black/10">
+                  <PaymentChannelLogo method={via} bare className="h-5 w-full max-w-[64px]" />
+                </span>
+                <span className="text-xs font-semibold text-subink">{METHOD_LABEL[via]}</span>
+              </div>
+              <p className="text-xs leading-relaxed text-subink">{t.walletHint}</p>
+              {deeplink ? (
+                <a href={deeplink} className="btn-primary inline-flex min-h-[56px] w-full items-center justify-center px-6 text-base font-bold">
+                  {t.openWallet}
+                </a>
+              ) : (
+                <p role="alert" className="text-sm font-semibold">{t.methodUnavailable}</p>
+              )}
+            </div>
           ) : (
             <div className="mt-5 w-full space-y-3 rounded-2xl border border-subtle bg-white p-5">
               {payment.qr_string ? (
