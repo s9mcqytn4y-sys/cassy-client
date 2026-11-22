@@ -216,5 +216,12 @@ class StoreSettingsViewModelTest {
         assertEquals("Kopi Mantap", repo.savedCMSInput?.heroTitleId)
         assertEquals("https://cdn.cassy.id/banner.webp", repo.savedCMSInput?.heroBannerUrl)
         assertTrue(repo.savedCMSInput?.hidePoweredByBadge == true)
+
+        vm.onEvent(StoreSettingsUiEvent.ToggleAudioCueMuted(true))
+        assertTrue(vm.uiState.value.audioCueMuted)
+
+        vm.onEvent(StoreSettingsUiEvent.ToggleFeatureFlag("guest_self_cancel_enabled", false))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(null, vm.uiState.value.updatingFeatureKey)
     }
 }

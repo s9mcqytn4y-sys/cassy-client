@@ -18,7 +18,8 @@ data class PaymentSplitDto(
     @SerialName("split_mode") val splitMode: String = "",
     @SerialName("total_amount") val totalAmount: Long = 0L,
     @SerialName("paid_amount") val paidAmount: Long = 0L,
-    @SerialName("status") val status: String = ""
+    @SerialName("status") val status: String = "",
+    @SerialName("cashier_requested_at") val cashierRequestedAt: String? = null
 ) {
     fun toDomain() = SplitShare(
         id = id,
@@ -27,7 +28,8 @@ data class PaymentSplitDto(
         mode = splitMode,
         totalAmount = totalAmount,
         paidAmount = paidAmount,
-        status = status
+        status = status,
+        cashierRequestedAt = cashierRequestedAt
     )
 }
 

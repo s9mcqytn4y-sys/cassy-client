@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.SharedPreferencesMigration
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -30,8 +31,13 @@ interface ServerSettingsRepository {
     val baseUrlFlow: Flow<String>
         get() = flowOf(getBaseUrl())
 
+    val audioCueMutedFlow: Flow<Boolean>
+        get() = flowOf(isAudioCueMuted())
+
     fun getBaseUrl(): String
     fun setBaseUrl(url: String)
+    fun isAudioCueMuted(): Boolean = false
+    fun setAudioCueMuted(muted: Boolean) {}
 }
 
 class DataStoreServerSettingsRepository(
@@ -46,6 +52,9 @@ class DataStoreServerSettingsRepository(
     private val _baseUrlFlow = MutableStateFlow(readInitialSeed(appContext))
     override val baseUrlFlow: StateFlow<String> = _baseUrlFlow.asStateFlow()
 
+    private val _audioCueMutedFlow = MutableStateFlow(false)
+    override val audioCueMutedFlow: StateFlow<Boolean> = _audioCueMutedFlow.asStateFlow()
+
     init {
         scope.launch {
             dataStore.data.collect { prefs ->
@@ -53,6 +62,7 @@ class DataStoreServerSettingsRepository(
                 if (!stored.isNullOrBlank()) {
                     _baseUrlFlow.value = normalizeBaseUrl(stored)
                 }
+                _audioCueMutedFlow.value = prefs[KEY_AUDIO_CUE_MUTED_PREF] ?: false
             }
         }
     }
@@ -71,10 +81,22 @@ class DataStoreServerSettingsRepository(
         }
     }
 
+    override fun isAudioCueMuted(): Boolean = _audioCueMutedFlow.value
+
+    override fun setAudioCueMuted(muted: Boolean) {
+        _audioCueMutedFlow.value = muted
+        scope.launch {
+            dataStore.edit { prefs ->
+                prefs[KEY_AUDIO_CUE_MUTED_PREF] = muted
+            }
+        }
+    }
+
     companion object {
         const val LEGACY_PREFS_NAME = "cassy_server_settings"
         private const val KEY_BASE_URL = "server_base_url"
         private val KEY_BASE_URL_PREF = stringPreferencesKey(KEY_BASE_URL)
+        private val KEY_AUDIO_CUE_MUTED_PREF = booleanPreferencesKey("audio_cue_muted")
 
         private fun readInitialSeed(context: Context): String {
             return runCatching {

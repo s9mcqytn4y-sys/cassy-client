@@ -64,7 +64,7 @@ import com.azuredevid.cassy.ui.theme.CassyPandan
 import org.koin.androidx.compose.koinViewModel
 
 private object ServerEndpointPresets {
-    private const val STAGING_HTTPS_URL = "https://demo.abbdullaziz.online"
+    private const val STAGING_HTTPS_URL = "https://api.abbdullaziz.online"
     const val LOCAL_STORE_LAN_HTTP_URL = "http://192.168.1.100:8080"
     const val LOCAL_STORE_LAN_TLS_URL = "https://pos-lokal.cassy.local"
     const val EMULATOR_LOCAL_URL = "http://10.0.2.2:8080"

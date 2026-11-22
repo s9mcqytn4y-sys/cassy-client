@@ -279,6 +279,22 @@ class KdsViewModelTest {
         realtime.events.emit(event(RealtimeEventEnvelope.TYPE_RESYNC_REQUIRED, 0, null))
         testDispatcher.scheduler.advanceUntilIdle()
         assertEquals(base + 2, kds.listCalls.size)
+
+        realtime.events.emit(event("order.cancelled", 8, null))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(base + 3, kds.listCalls.size)
+
+        realtime.events.emit(event("order.expired", 9, null))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(base + 4, kds.listCalls.size)
+
+        realtime.events.emit(event("order.item_voided", 10, null))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(base + 5, kds.listCalls.size)
+
+        realtime.events.emit(event("order.round_submitted", 11, null))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(base + 6, kds.listCalls.size)
     }
 
     @Test

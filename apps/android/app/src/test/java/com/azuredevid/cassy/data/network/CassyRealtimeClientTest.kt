@@ -44,7 +44,7 @@ class CassyRealtimeClientTest {
             }
     }
 
-    private fun settings(url: String = "https://demo.abbdullaziz.online") = object : ServerSettingsRepository {
+    private fun settings(url: String = "https://api.abbdullaziz.online") = object : ServerSettingsRepository {
         override fun getBaseUrl(): String = url
         override fun setBaseUrl(url: String) {}
     }
@@ -78,7 +78,7 @@ class CassyRealtimeClientTest {
         assertTrue(ticketRes.isSuccess)
         assertEquals("tk-abc-123", ticketRes.getOrThrow().ticket)
         assertEquals(
-            "wss://demo.abbdullaziz.online/ws?ticket=tk-abc-123",
+            "wss://api.abbdullaziz.online/ws?ticket=tk-abc-123",
             realtime.buildWebSocketUrl("tk-abc-123")
         )
     }

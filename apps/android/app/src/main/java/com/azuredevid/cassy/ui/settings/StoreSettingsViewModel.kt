@@ -8,6 +8,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azuredevid.cassy.core.security.SessionManager
+import com.azuredevid.cassy.data.repository.ServerSettingsRepository
+import com.azuredevid.cassy.domain.model.DayOperatingHours
 import com.azuredevid.cassy.domain.model.MidtransEnvironment
 import com.azuredevid.cassy.domain.model.PaymentCredentialInput
 import com.azuredevid.cassy.domain.model.QRServiceMode
@@ -55,6 +57,8 @@ data class StoreSettingsUiState(
     val primaryHex: String = "",
     val accentHex: String = "",
     val hidePoweredByBadge: Boolean = false,
+    val publicContactEmail: String = "",
+    val operatingHours: Map<String, DayOperatingHours> = defaultOperatingHours(),
     val isSavingCms: Boolean = false,
 
     // Service Mode & Operational Policies (US4)
@@ -65,7 +69,12 @@ data class StoreSettingsUiState(
     val enabledPaymentMethods: List<String> = emptyList(),
     // Last list the server confirmed; null until settings load.
     val savedPaymentMethods: List<String>? = null,
+    val audioCueMuted: Boolean = false,
     val isSavingSettings: Boolean = false,
+
+    // Owner Governance Feature Flags (P-08)
+    val featureFlags: Map<String, Boolean> = emptyMap(),
+    val updatingFeatureKey: String? = null,
 
 
     val errorMessage: UiText? = null,
@@ -106,6 +115,11 @@ data class StoreSettingsUiState(
             val clean = value.trim()
             return clean.isEmpty() || HEX_PATTERN.matches(clean)
         }
+
+        val OPERATING_DAY_KEYS = listOf("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+
+        fun defaultOperatingHours(): Map<String, DayOperatingHours> =
+            OPERATING_DAY_KEYS.associateWith { DayOperatingHours() }
     }
 }
 
@@ -135,14 +149,20 @@ sealed interface StoreSettingsUiEvent {
     data class UpdatePrimaryHex(val value: String) : StoreSettingsUiEvent
     data class UpdateAccentHex(val value: String) : StoreSettingsUiEvent
     data class ToggleWhiteLabel(val hideBadge: Boolean) : StoreSettingsUiEvent
+    data class UpdatePublicContactEmail(val value: String) : StoreSettingsUiEvent
+    data class UpdateOperatingDay(val dayKey: String, val hours: DayOperatingHours) : StoreSettingsUiEvent
     data object SaveStoreCms : StoreSettingsUiEvent
 
-    // Service Mode Events (US4)
+    // Service Mode & Operational Events (US4)
     data class SetServiceMode(val mode: QRServiceMode) : StoreSettingsUiEvent
     data class ToggleEmergencyQrPause(val paused: Boolean) : StoreSettingsUiEvent
     data class UpdateTableTimeLimit(val minutes: Int) : StoreSettingsUiEvent
     data class ToggleRemotePaymentMethod(val method: String, val enabled: Boolean) : StoreSettingsUiEvent
+    data class ToggleAudioCueMuted(val muted: Boolean) : StoreSettingsUiEvent
     data object SaveStoreSettings : StoreSettingsUiEvent
+
+    // Feature Flags Events (P-08)
+    data class ToggleFeatureFlag(val key: String, val enabled: Boolean) : StoreSettingsUiEvent
 
 
     data object DismissMessage : StoreSettingsUiEvent
@@ -151,12 +171,14 @@ sealed interface StoreSettingsUiEvent {
 class StoreSettingsViewModel(
     private val repository: StoreGovernanceRepository,
     private val sessionManager: SessionManager,
+    private val serverSettings: ServerSettingsRepository? = null,
     private val savedStateHandle: SavedStateHandle = SavedStateHandle()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
         StoreSettingsUiState(
-            selectedTabIndex = (savedStateHandle.get<Int>(KEY_SELECTED_TAB) ?: 0).coerceIn(0, 4)
+            selectedTabIndex = (savedStateHandle.get<Int>(KEY_SELECTED_TAB) ?: 0).coerceIn(0, 5),
+            audioCueMuted = serverSettings?.isAudioCueMuted() ?: false
         )
     )
     val uiState: StateFlow<StoreSettingsUiState> = _uiState.asStateFlow()
@@ -187,6 +209,20 @@ class StoreSettingsViewModel(
             }
 
             if (!canManage) {
+                if (session != null) {
+                    repository.getStoreSettings().onSuccess { settings ->
+                        _uiState.update { current ->
+                            current.copy(
+                                qrServiceMode = settings.qrServiceMode,
+                                qrOrderingPaused = settings.qrOrderingPaused,
+                                tableTimeLimitMinutes = settings.tableTimeLimitMinutes,
+                                tableTimerWarningMinutes = settings.tableTimerWarningMinutes,
+                                enabledPaymentMethods = settings.enabledPaymentMethods,
+                                savedPaymentMethods = settings.enabledPaymentMethods
+                            )
+                        }
+                    }
+                }
                 _uiState.update { it.copy(isLoading = false) }
                 return@launch
             }
@@ -215,9 +251,19 @@ class StoreSettingsViewModel(
                         heroBannerUrl = cms.heroBannerUrl,
                         primaryHex = cms.primaryHex,
                         accentHex = cms.accentHex,
-                        hidePoweredByBadge = cms.hidePoweredByBadge
+                        hidePoweredByBadge = cms.hidePoweredByBadge,
+                        publicContactEmail = cms.publicContactEmail,
+                        operatingHours = if (cms.operatingHours.isNotEmpty()) {
+                            StoreSettingsUiState.defaultOperatingHours() + cms.operatingHours
+                        } else {
+                            StoreSettingsUiState.defaultOperatingHours()
+                        }
                     )
                 }
+            }
+
+            repository.getStoreFeatures().onSuccess { flags ->
+                _uiState.update { current -> current.copy(featureFlags = flags) }
             }
 
             repository.getStoreSettings().onSuccess { settings ->
@@ -240,7 +286,7 @@ class StoreSettingsViewModel(
     fun onEvent(event: StoreSettingsUiEvent) {
         when (event) {
             is StoreSettingsUiEvent.SelectTab -> {
-                val bounded = event.tabIndex.coerceIn(0, 4)
+                val bounded = event.tabIndex.coerceIn(0, 5)
                 savedStateHandle[KEY_SELECTED_TAB] = bounded
                 _uiState.update { it.copy(selectedTabIndex = bounded) }
             }
@@ -264,11 +310,20 @@ class StoreSettingsViewModel(
             is StoreSettingsUiEvent.UpdatePrimaryHex -> _uiState.update { it.copy(primaryHex = event.value) }
             is StoreSettingsUiEvent.UpdateAccentHex -> _uiState.update { it.copy(accentHex = event.value) }
             is StoreSettingsUiEvent.ToggleWhiteLabel -> _uiState.update { it.copy(hidePoweredByBadge = event.hideBadge) }
+            is StoreSettingsUiEvent.UpdatePublicContactEmail -> _uiState.update { it.copy(publicContactEmail = event.value) }
+            is StoreSettingsUiEvent.UpdateOperatingDay -> _uiState.update { current ->
+                current.copy(operatingHours = current.operatingHours + (event.dayKey to event.hours))
+            }
             StoreSettingsUiEvent.SaveStoreCms -> saveCms()
 
             is StoreSettingsUiEvent.SetServiceMode -> _uiState.update { it.copy(qrServiceMode = event.mode) }
             is StoreSettingsUiEvent.ToggleEmergencyQrPause -> _uiState.update { it.copy(qrOrderingPaused = event.paused) }
             is StoreSettingsUiEvent.UpdateTableTimeLimit -> _uiState.update { it.copy(tableTimeLimitMinutes = event.minutes) }
+            is StoreSettingsUiEvent.ToggleAudioCueMuted -> {
+                serverSettings?.setAudioCueMuted(event.muted)
+                _uiState.update { it.copy(audioCueMuted = event.muted) }
+            }
+            is StoreSettingsUiEvent.ToggleFeatureFlag -> toggleFeatureFlag(event.key, event.enabled)
             is StoreSettingsUiEvent.ToggleRemotePaymentMethod -> {
                 _uiState.update { current ->
                     if (!current.validationStatus.equals("valid", ignoreCase = true) && event.enabled) {
@@ -399,7 +454,9 @@ class StoreSettingsViewModel(
                 heroBannerUrl = state.heroBannerUrl.trim(),
                 primaryHex = state.primaryHex.trim(),
                 accentHex = state.accentHex.trim(),
-                hidePoweredByBadge = state.hidePoweredByBadge
+                hidePoweredByBadge = state.hidePoweredByBadge,
+                publicContactEmail = state.publicContactEmail.trim(),
+                operatingHours = state.operatingHours
             )
 
             repository.saveStoreCMS(input)
@@ -457,6 +514,36 @@ class StoreSettingsViewModel(
                 .onFailure { error ->
                     val msg = error.toUiText(R.string.settings_msg_policy_save_failed)
                     _uiState.update { it.copy(isSavingSettings = false, errorMessage = msg) }
+                    _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg, isError = true))
+                }
+        }
+    }
+
+    private fun toggleFeatureFlag(key: String, enabled: Boolean) {
+        viewModelScope.launch {
+            val state = _uiState.value
+            if (!state.hasManageAccess) {
+                val denied = UiText.res(R.string.settings_msg_access_denied)
+                _uiState.update { it.copy(errorMessage = denied) }
+                _effects.emit(StoreSettingsUiEffect.ShowSnackbar(denied, isError = true))
+                return@launch
+            }
+            _uiState.update { it.copy(updatingFeatureKey = key, errorMessage = null) }
+            repository.setStoreFeature(key, enabled)
+                .onSuccess { updated ->
+                    val msg = UiText.res(R.string.settings_msg_feature_saved)
+                    _uiState.update {
+                        it.copy(
+                            updatingFeatureKey = null,
+                            featureFlags = updated,
+                            successMessage = msg
+                        )
+                    }
+                    _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg))
+                }
+                .onFailure { error ->
+                    val msg = error.toUiText(R.string.settings_msg_feature_save_failed)
+                    _uiState.update { it.copy(updatingFeatureKey = null, errorMessage = msg) }
                     _effects.emit(StoreSettingsUiEffect.ShowSnackbar(msg, isError = true))
                 }
         }

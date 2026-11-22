@@ -78,6 +78,46 @@ fun StoreServiceModeTab(
             )
         }
 
+        val audioTitle = stringResource(R.string.service_audio_mute_title)
+        CassyCard {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = CassyDimens.TouchTargetMin),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f).padding(end = CassyDimens.SpaceMd)) {
+                    Text(
+                        text = audioTitle,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colors.onSurface
+                    )
+                    Text(
+                        text = stringResource(R.string.service_audio_mute_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = state.audioCueMuted,
+                    onCheckedChange = { onEvent(StoreSettingsUiEvent.ToggleAudioCueMuted(it)) },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = colors.onPrimary,
+                        checkedTrackColor = colors.primary
+                    ),
+                    modifier = Modifier.semantics { contentDescription = audioTitle }
+                )
+            }
+        }
+
+        if (!state.hasManageAccess) {
+            CassyErrorBanner(
+                message = stringResource(R.string.service_readonly_owner_hint),
+                tone = CassyToastTone.INFO
+            )
+        } else {
         CassyCard {
             Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceMd)) {
                 CassySectionHeader(
@@ -256,7 +296,9 @@ fun StoreServiceModeTab(
             }
         )
         }
+        }
 
+        if (state.hasManageAccess) {
         Surface(
             color = colors.surface,
             tonalElevation = 2.dp,
@@ -277,6 +319,7 @@ fun StoreServiceModeTab(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
+        }
         }
     }
 }

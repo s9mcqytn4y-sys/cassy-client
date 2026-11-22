@@ -32,6 +32,7 @@ data class PosUiState(
     val quoteError: UiText? = null,
     val storeName: String = "",
     val cashierName: String = "",
+    val audioCueMuted: Boolean = false,
     val printerConfig: PrinterConfig = PrinterConfig(),
     val isPrinterConfigured: Boolean = false,
     val failoverAlert: UiText? = null,

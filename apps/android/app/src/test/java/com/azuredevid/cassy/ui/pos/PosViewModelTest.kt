@@ -29,15 +29,27 @@ import com.azuredevid.cassy.domain.repository.CatalogRepository
 import com.azuredevid.cassy.domain.repository.NoStaffSessionException
 import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
+import com.azuredevid.cassy.data.network.RealtimeConnectionState
+import com.azuredevid.cassy.data.network.RealtimeEventEnvelope
 import com.azuredevid.cassy.domain.repository.PrinterConfig
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.domain.repository.RealtimeEventSource
+import com.azuredevid.cassy.ui.designsystem.CassyToastTone
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -554,5 +566,43 @@ class PosViewModelTest {
         // Already-sent lines cannot be reduced without a void.
         vm.decreaseItemQuantity("p-1")
         assertEquals(2, vm.uiState.value.cart.single().quantity)
+    }
+
+    @Test
+    fun realtimeSplitCashierRequested_emitsToastAndRespectsAudioMute() = runTest {
+        val eventsFlow = MutableSharedFlow<RealtimeEventEnvelope>()
+        val fakeRealtime = object : RealtimeEventSource {
+            override val connectionState: StateFlow<RealtimeConnectionState> = MutableStateFlow(RealtimeConnectionState.CONNECTED)
+            override val events: SharedFlow<RealtimeEventEnvelope> = eventsFlow
+            override fun start(scope: CoroutineScope) {}
+        }
+        val tabs = FakeTableTabRepository()
+        val vm = PosViewModel(
+            StubCatalogRepository { Result.success(CatalogSnapshot(listOf(coffeeCategory), listOf(latte))) },
+            flatQuote,
+            FakePosOrderRepository(),
+            FakePrinterSettingsRepository(),
+            signedInSession(backgroundScope),
+            realtimeClient = fakeRealtime,
+            tableTabRepository = tabs
+        )
+        val emitted = mutableListOf<PosUiEffect>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.effects.collect { emitted += it } }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        vm.setAudioCueMuted(true)
+        assertTrue(vm.uiState.value.audioCueMuted)
+
+        eventsFlow.emit(
+            RealtimeEventEnvelope(
+                type = "split.cashier_requested",
+                seq = 1L,
+                payload = JsonObject(mapOf("label" to JsonPrimitive("Bagian 2"), "amount" to JsonPrimitive("32340")))
+            )
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val toast = emitted.filterIsInstance<PosUiEffect.ShowToast>().lastOrNull()
+        assertTrue(toast != null && toast.tone == CassyToastTone.WARNING)
     }
 }

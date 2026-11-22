@@ -62,10 +62,10 @@ class ServerConfigViewModelTest {
         val repo = FakeServerSettingsRepository("http://10.0.2.2:8080")
         val handle = SavedStateHandle()
         val firstVm = ServerConfigViewModel(repo, savedStateHandle = handle)
-        firstVm.applyPreset("https://demo.abbdullaziz.online")
+        firstVm.applyPreset("https://api.abbdullaziz.online")
 
         val recreatedVm = ServerConfigViewModel(repo, savedStateHandle = handle)
-        assertEquals("https://demo.abbdullaziz.online", recreatedVm.uiState.value.urlInput)
+        assertEquals("https://api.abbdullaziz.online", recreatedVm.uiState.value.urlInput)
     }
 
     @Test
@@ -77,16 +77,16 @@ class ServerConfigViewModelTest {
         assertFalse(vm.save())
         assertTrue(vm.uiState.value.isUrlInvalid)
 
-        vm.onUrlChanged("https://demo.abbdullaziz.online/")
+        vm.onUrlChanged("https://api.abbdullaziz.online/")
         assertTrue(vm.save())
         assertFalse(vm.uiState.value.isUrlInvalid)
         assertTrue(vm.uiState.value.isSaved)
-        assertEquals("https://demo.abbdullaziz.online", repo.getBaseUrl())
+        assertEquals("https://api.abbdullaziz.online", repo.getBaseUrl())
     }
 
     @Test
     fun testConnection_successAndFailureProbeHealthEndpoint() = runTest(testDispatcher) {
-        val repo = FakeServerSettingsRepository("https://demo.abbdullaziz.online")
+        val repo = FakeServerSettingsRepository("https://api.abbdullaziz.online")
         var requestedPath = ""
         val okClient = HttpClient(
             MockEngine(
@@ -172,15 +172,15 @@ class ServerConfigViewModelTest {
         assertTrue(vm.save())
         assertEquals(1, probeCount)
 
-        vm.applyPreset("https://demo.abbdullaziz.online")
+        vm.applyPreset("https://api.abbdullaziz.online")
         assertFalse(vm.uiState.value.showCleartextWarning)
     }
 
     @Test
     fun clearUrl_resetsUrlInputAndProbeState() = runTest(testDispatcher) {
-        val repo = FakeServerSettingsRepository("https://demo.abbdullaziz.online")
+        val repo = FakeServerSettingsRepository("https://api.abbdullaziz.online")
         val vm = ServerConfigViewModel(repo, enforceHttpsOnly = false)
-        assertEquals("https://demo.abbdullaziz.online", vm.uiState.value.urlInput)
+        assertEquals("https://api.abbdullaziz.online", vm.uiState.value.urlInput)
 
         vm.clearUrl()
         assertEquals("", vm.uiState.value.urlInput)
@@ -189,7 +189,7 @@ class ServerConfigViewModelTest {
 
     @Test
     fun discoverLocalServers_populatesMdnsCandidatesAndAppliesFirstEndpoint() = runTest(testDispatcher) {
-        val repo = FakeServerSettingsRepository("https://demo.abbdullaziz.online")
+        val repo = FakeServerSettingsRepository("https://api.abbdullaziz.online")
         val fakeDiscovery = object : LocalServerDiscoveryRepository {
             override suspend fun discoverLocalServers(timeoutMs: Long): List<DiscoveredLocalServer> {
                 return listOf(
@@ -227,7 +227,7 @@ class ServerConfigViewModelTest {
 
     @Test
     fun enforceHttpsOnly_blocksCleartextInProdAndAllowsHttps() = runTest(testDispatcher) {
-        val repo = FakeServerSettingsRepository("https://demo.abbdullaziz.online")
+        val repo = FakeServerSettingsRepository("https://api.abbdullaziz.online")
         val prodVm = ServerConfigViewModel(repo, enforceHttpsOnly = true)
 
         prodVm.onUrlChanged("http://192.168.1.100:8080")
@@ -244,7 +244,7 @@ class ServerConfigViewModelTest {
 
     @Test
     fun securityUrlValidation_rejectsCredentialsZeroHostAndUnsafeMdnsExternalIp() = runTest(testDispatcher) {
-        val repo = FakeServerSettingsRepository("https://demo.abbdullaziz.online")
+        val repo = FakeServerSettingsRepository("https://api.abbdullaziz.online")
         val fakeDiscovery = object : LocalServerDiscoveryRepository {
             override suspend fun discoverLocalServers(timeoutMs: Long): List<DiscoveredLocalServer> {
                 return listOf(
@@ -267,7 +267,7 @@ class ServerConfigViewModelTest {
         }
         val vm = ServerConfigViewModel(repo, localDiscovery = fakeDiscovery, enforceHttpsOnly = false)
 
-        vm.onUrlChanged("https://admin:secret@demo.abbdullaziz.online")
+        vm.onUrlChanged("https://admin:secret@api.abbdullaziz.online")
         assertFalse(vm.save())
         assertTrue(vm.uiState.value.isUrlInvalid)
 
@@ -287,7 +287,7 @@ class ServerConfigViewModelTest {
 
     @Test
     fun discoverLocalServersFlow_emitsLatencyAndSupportsForceRescan() = runTest(testDispatcher) {
-        val repo = FakeServerSettingsRepository("https://demo.abbdullaziz.online")
+        val repo = FakeServerSettingsRepository("https://api.abbdullaziz.online")
         var callCount = 0
         val streamingDiscovery = object : LocalServerDiscoveryRepository {
             override suspend fun discoverLocalServers(timeoutMs: Long): List<DiscoveredLocalServer> = emptyList()

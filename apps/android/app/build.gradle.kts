@@ -32,7 +32,7 @@ android {
             dimension = "environment"
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-staging"
-            buildConfigField("String", "BASE_API_URL", "\"https://demo.abbdullaziz.online\"")
+            buildConfigField("String", "BASE_API_URL", "\"https://api.abbdullaziz.online\"")
             buildConfigField("Boolean", "IS_DEMO_ENVIRONMENT", "true")
         }
         create("prod") {

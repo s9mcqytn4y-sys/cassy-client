@@ -281,13 +281,19 @@ private fun ShareCard(
 ) {
     CassyCard {
         Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)) {
                 Text(
                     text = share.label.ifBlank { stringResource(R.string.split_share_number, share.splitNumber) },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
+                if (share.isCashierRequested) {
+                    CassyStatusBadge(
+                        text = stringResource(R.string.split_status_cashier_requested),
+                        tone = CassyToastTone.INFO
+                    )
+                }
                 CassyStatusBadge(
                     text = stringResource(shareStatusLabel(share)),
                     tone = if (share.isSettled) CassyToastTone.SUCCESS else CassyToastTone.WARNING,

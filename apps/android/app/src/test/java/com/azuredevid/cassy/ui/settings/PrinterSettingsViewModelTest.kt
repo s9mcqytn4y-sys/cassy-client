@@ -1,5 +1,8 @@
 package com.azuredevid.cassy.ui.settings
 
+import com.azuredevid.cassy.core.hardware.BluetoothPrinterClient
+import com.azuredevid.cassy.core.hardware.PairedBluetoothDevice
+import com.azuredevid.cassy.core.hardware.PrinterEndpoint
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.domain.repository.PrinterConfig
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
@@ -146,5 +149,66 @@ class PrinterSettingsViewModelTest {
         assertEquals("Sampai jumpa", config.receiptFooter)
         assertEquals(2, config.kitchenCopies)
         assertEquals(1, config.barCopies)
+    }
+
+    private class FakeBluetoothClient(
+        private val devices: List<PairedBluetoothDevice> = listOf(
+            PairedBluetoothDevice("RPP02N-58mm", "AA:BB:CC:DD:EE:FF")
+        ),
+        private val health: PrinterPort9100Manager.PrinterHealth = PrinterPort9100Manager.PrinterHealth.READY
+    ) : BluetoothPrinterClient {
+        var lastCheckedMac: String? = null
+        override fun isBluetoothSupported(): Boolean = true
+        override fun isBluetoothEnabled(): Boolean = true
+        override fun hasConnectPermission(): Boolean = true
+        override fun listBondedDevices(): Result<List<PairedBluetoothDevice>> = Result.success(devices)
+        override suspend fun checkHealth(macAddress: String): PrinterPort9100Manager.HealthCheckResult {
+            lastCheckedMac = macAddress
+            return PrinterPort9100Manager.HealthCheckResult(health, "OK")
+        }
+        override suspend fun printRawBytes(macAddress: String, payload: ByteArray): Result<Boolean> = Result.success(true)
+        override suspend fun openCashDrawer(macAddress: String): Result<Boolean> = Result.success(true)
+    }
+
+    @Test
+    fun addingBluetoothPrinterSelectsPairedDeviceAndTestsHealth() = runTest {
+        val printers = FakePrinters()
+        val cache = FakeCache()
+        val bt = FakeBluetoothClient()
+        val vm = PrinterSettingsViewModel(printers, cache, PrinterPort9100Manager(), bt)
+
+        vm.load(canManage = true)
+        dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(1, vm.uiState.value.pairedBluetoothDevices.size)
+
+        vm.openNew()
+        vm.setTransportType(PrinterConfig.TRANSPORT_BLUETOOTH)
+        assertEquals(58, vm.uiState.value.editor?.paperWidthMm)
+        assertEquals(false, vm.uiState.value.editor?.canSave)
+
+        vm.selectPairedDevice(PairedBluetoothDevice("RPP02N-58mm", "AA:BB:CC:DD:EE:FF"))
+        assertEquals(true, vm.uiState.value.editor?.canSave)
+        vm.save()
+        dispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(PrinterConfig.TRANSPORT_BLUETOOTH, printers.created?.transportType)
+        assertEquals("AA:BB:CC:DD:EE:FF", printers.created?.bluetoothMac)
+        assertEquals("", printers.created?.lanAddress)
+
+        val btPrinter = StorePrinter(
+            id = "pr-bt",
+            name = "RPP02N-58mm",
+            station = "receipt",
+            lanAddress = null,
+            paperWidthMm = 58,
+            transportType = PrinterConfig.TRANSPORT_BLUETOOTH,
+            bluetoothMac = "AA:BB:CC:DD:EE:FF"
+        )
+        vm.test(btPrinter)
+        dispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals("AA:BB:CC:DD:EE:FF", bt.lastCheckedMac)
+        assertEquals(true, vm.uiState.value.messageOk)
+        assertEquals(PrinterEndpoint.Bluetooth("AA:BB:CC:DD:EE:FF"), listOf(btPrinter).toPrinterConfig().cashierEndpoint())
     }
 }

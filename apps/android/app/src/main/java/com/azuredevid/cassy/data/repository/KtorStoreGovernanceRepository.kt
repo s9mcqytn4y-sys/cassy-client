@@ -1,12 +1,16 @@
 package com.azuredevid.cassy.data.repository
 
+import com.azuredevid.cassy.data.model.DayOperatingHoursDto
 import com.azuredevid.cassy.data.model.PaymentCredentialInputDto
+import com.azuredevid.cassy.data.model.SetFeatureRequestDto
 import com.azuredevid.cassy.data.model.StoreCMSConfigDto
 import com.azuredevid.cassy.data.model.StoreCMSConfigInputDto
+import com.azuredevid.cassy.data.model.StoreFeaturesResponseDto
 import com.azuredevid.cassy.data.model.StorePaymentCredentialDto
 import com.azuredevid.cassy.data.model.StoreSettingsDto
 import com.azuredevid.cassy.data.model.StoreSettingsPatchDto
 import com.azuredevid.cassy.data.network.HttpErrorMapper
+import com.azuredevid.cassy.domain.model.DayOperatingHours
 import com.azuredevid.cassy.domain.model.MidtransEnvironment
 import com.azuredevid.cassy.domain.model.PaymentCredentialInput
 import com.azuredevid.cassy.domain.model.PaymentCredentials
@@ -111,7 +115,11 @@ class KtorStoreGovernanceRepository(
                 accentHex = input.accentHex,
                 highContrastMode = input.highContrastMode,
                 hidePoweredByBadge = input.hidePoweredByBadge,
-                customDomain = input.customDomain
+                customDomain = input.customDomain,
+                publicContactEmail = input.publicContactEmail.trim(),
+                operatingHours = input.operatingHours.takeIf { it.isNotEmpty() }?.mapValues { (_, v) ->
+                    DayOperatingHoursDto(open = v.open.trim(), close = v.close.trim(), closed = v.closed)
+                }
             )
 
             val response: HttpResponse = httpClient.put("$baseUrl/api/v1/store/cms") {
@@ -172,6 +180,39 @@ class KtorStoreGovernanceRepository(
         }
     }
 
+    override suspend fun getStoreFeatures(): Result<Map<String, Boolean>> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response: HttpResponse = httpClient.get("$baseUrl/api/v1/store/features")
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(
+                    HttpErrorMapper.toDomainException(response, "Gagal memuat fitur gerai.")
+                )
+            }
+            Result.success(response.body<StoreFeaturesResponseDto>().features)
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal memuat fitur gerai."))
+        }
+    }
+
+    override suspend fun setStoreFeature(key: String, enabled: Boolean): Result<Map<String, Boolean>> = withContext(ioDispatcher) {
+        try {
+            val baseUrl = serverSettings.getBaseUrl().trimEnd('/')
+            val response: HttpResponse = httpClient.put("$baseUrl/api/v1/store/features/$key") {
+                contentType(ContentType.Application.Json)
+                setBody(SetFeatureRequestDto(enabled = enabled))
+            }
+            if (!response.status.isSuccess()) {
+                return@withContext Result.failure(
+                    HttpErrorMapper.toDomainException(response, "Gagal memperbarui fitur gerai.")
+                )
+            }
+            Result.success(response.body<StoreFeaturesResponseDto>().features)
+        } catch (t: Throwable) {
+            Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal memperbarui fitur gerai."))
+        }
+    }
+
     private fun StorePaymentCredentialDto.toDomain(): PaymentCredentials = PaymentCredentials(
         environment = MidtransEnvironment.fromRaw(environment),
         merchantId = merchantId,
@@ -195,7 +236,11 @@ class KtorStoreGovernanceRepository(
         accentHex = accentHex,
         highContrastMode = highContrastMode,
         hidePoweredByBadge = hidePoweredByBadge,
-        customDomain = customDomain
+        customDomain = customDomain,
+        publicContactEmail = publicContactEmail,
+        operatingHours = operatingHours.orEmpty().mapValues { (_, v) ->
+            DayOperatingHours(open = v.open, close = v.close, closed = v.closed)
+        }
     )
 
     private fun StoreSettingsDto.toDomain(): StoreSettings = StoreSettings(

@@ -42,12 +42,12 @@ class AndroidServerHealthMonitorTest {
         val monitor = AndroidServerHealthMonitor(
             context = null,
             httpClient = HttpClient(engine),
-            serverSettings = FakeServerSettings("https://demo.abbdullaziz.online/")
+            serverSettings = FakeServerSettings("https://api.abbdullaziz.online/")
         )
 
         val state = monitor.probeNow()
 
-        assertEquals("https://demo.abbdullaziz.online/api/v1/health", requestedUrl)
+        assertEquals("https://api.abbdullaziz.online/api/v1/health", requestedUrl)
         assertEquals(ServerConnectionStatus.ONLINE, state.status)
         assertNotNull(state.latencyMs)
     }
@@ -63,7 +63,7 @@ class AndroidServerHealthMonitorTest {
         val failingMonitor = AndroidServerHealthMonitor(
             context = null,
             httpClient = HttpClient(errorEngine),
-            serverSettings = FakeServerSettings("https://demo.abbdullaziz.online")
+            serverSettings = FakeServerSettings("https://api.abbdullaziz.online")
         )
 
         val httpErrorState = failingMonitor.probeNow()
@@ -74,7 +74,7 @@ class AndroidServerHealthMonitorTest {
         val networkErrorMonitor = AndroidServerHealthMonitor(
             context = null,
             httpClient = HttpClient(exceptionEngine),
-            serverSettings = FakeServerSettings("https://demo.abbdullaziz.online")
+            serverSettings = FakeServerSettings("https://api.abbdullaziz.online")
         )
 
         val exceptionState = networkErrorMonitor.probeNow()
@@ -94,7 +94,7 @@ class AndroidServerHealthMonitorTest {
         val monitor = AndroidServerHealthMonitor(
             context = null,
             httpClient = HttpClient(engine),
-            serverSettings = FakeServerSettings("https://demo.abbdullaziz.online"),
+            serverSettings = FakeServerSettings("https://api.abbdullaziz.online"),
             pollIntervalMs = 60_000L
         )
 
@@ -113,7 +113,7 @@ class AndroidServerHealthMonitorTest {
         assertTrue(AndroidServerHealthMonitor.isLocalOrPrivateEndpoint("https://pos-lokal.cassy.local"))
         assertTrue(AndroidServerHealthMonitor.isLocalOrPrivateEndpoint("http://172.18.0.3:8080"))
 
-        assertFalse(AndroidServerHealthMonitor.isLocalOrPrivateEndpoint("https://demo.abbdullaziz.online"))
+        assertFalse(AndroidServerHealthMonitor.isLocalOrPrivateEndpoint("https://api.abbdullaziz.online"))
         assertFalse(AndroidServerHealthMonitor.isLocalOrPrivateEndpoint("https://172.32.0.1:8443"))
     }
 }

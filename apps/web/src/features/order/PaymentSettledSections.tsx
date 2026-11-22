@@ -92,6 +92,8 @@ export function PaymentPaidSection({
   estimatedPrepMinutes,
   serviceMode,
   muted,
+  bellEnabled = true,
+  emailReceiptEnabled = true,
   onToggleSound,
   onOrderAgain
 }: {
@@ -101,6 +103,8 @@ export function PaymentPaidSection({
   estimatedPrepMinutes?: number;
   serviceMode: ServiceMode;
   muted: boolean;
+  bellEnabled?: boolean;
+  emailReceiptEnabled?: boolean;
   onToggleSound: () => void;
   onOrderAgain: () => void;
 }) {
@@ -154,10 +158,13 @@ export function PaymentPaidSection({
             {t.estimatedPrepMinutes.replace("{minutes}", String(estimatedPrepMinutes))}
           </p>
         ) : null}
-        <button type="button" onClick={onToggleSound} className="btn-secondary mt-4 min-h-[44px] rounded-xl px-4 text-sm font-semibold">
-          {muted ? t.unmuteSound : t.muteSound}
-        </button>
+        {bellEnabled ? (
+          <button type="button" onClick={onToggleSound} className="btn-secondary mt-4 min-h-[44px] rounded-xl px-4 text-sm font-semibold">
+            {muted ? t.unmuteSound : t.muteSound}
+          </button>
+        ) : null}
 
+        {emailReceiptEnabled ? (
         <form onSubmit={sendReceipt} noValidate className="mt-6 border-t border-subtle pt-5">
           <label htmlFor="receipt-email" className="block text-sm font-bold text-ink">
             {t.receiptEmail}
@@ -193,6 +200,7 @@ export function PaymentPaidSection({
           {receipt === "sent" ? <p role="status" className="mt-2 text-sm">{t.receiptSent}</p> : null}
           {receipt === "failed" ? <p role="alert" className="mt-2 text-sm font-semibold">{t.receiptFailed}</p> : null}
         </form>
+        ) : null}
 
         <button type="button" onClick={onOrderAgain} className="btn-primary mt-6 min-h-[56px] w-full rounded-xl text-base font-bold">
           {t.orderAgain}

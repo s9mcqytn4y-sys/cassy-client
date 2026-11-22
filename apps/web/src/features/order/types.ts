@@ -79,6 +79,13 @@ export interface TableInfo {
   split_enabled?: boolean;
   // Shows "Panggil pelayan" when the store turned on the call_waiter flag; older APIs omit it.
   call_waiter_enabled?: boolean;
+  // Per-store guest capability flags (P-08); missing keys default to true for backward compatibility.
+  features?: Record<string, boolean>;
+}
+
+export function isFeatureEnabled(features: Record<string, boolean> | undefined, key: string, fallback = true): boolean {
+  if (!features || !(key in features)) return fallback;
+  return Boolean(features[key]);
 }
 
 /** One person's share of a split order; the token is shown once and never readable again. */

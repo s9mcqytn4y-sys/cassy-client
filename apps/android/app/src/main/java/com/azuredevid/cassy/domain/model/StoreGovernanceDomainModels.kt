@@ -31,6 +31,12 @@ data class PaymentCredentials(
     val lastVerifiedAt: String? = null
 )
 
+data class DayOperatingHours(
+    val open: String = "08:00",
+    val close: String = "22:00",
+    val closed: Boolean = false
+)
+
 data class StoreCMSConfig(
     val defaultLocale: String,
     val supportedLocales: List<String>,
@@ -43,7 +49,9 @@ data class StoreCMSConfig(
     val accentHex: String,
     val highContrastMode: Boolean,
     val hidePoweredByBadge: Boolean,
-    val customDomain: String
+    val customDomain: String,
+    val publicContactEmail: String = "",
+    val operatingHours: Map<String, DayOperatingHours> = emptyMap()
 )
 
 data class StoreSettings(
@@ -78,7 +86,9 @@ data class StoreCMSConfigInput(
     val accentHex: String,
     val highContrastMode: Boolean = false,
     val hidePoweredByBadge: Boolean = false,
-    val customDomain: String = ""
+    val customDomain: String = "",
+    val publicContactEmail: String = "",
+    val operatingHours: Map<String, DayOperatingHours> = emptyMap()
 )
 
 data class StoreSettingsPatch(

@@ -14,5 +14,7 @@ interface StoreGovernanceRepository {
     suspend fun saveStoreCMS(input: StoreCMSConfigInput): Result<StoreCMSConfig>
     suspend fun getStoreSettings(): Result<StoreSettings>
     suspend fun updateStoreSettings(patch: StoreSettingsPatch): Result<StoreSettings>
+    suspend fun getStoreFeatures(): Result<Map<String, Boolean>> = Result.success(emptyMap())
+    suspend fun setStoreFeature(key: String, enabled: Boolean): Result<Map<String, Boolean>> = Result.success(emptyMap())
 }
 

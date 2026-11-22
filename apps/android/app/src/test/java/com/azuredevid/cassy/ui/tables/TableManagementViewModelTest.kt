@@ -12,14 +12,23 @@ import com.azuredevid.cassy.domain.model.StoredSession
 import com.azuredevid.cassy.domain.model.TableDraft
 import com.azuredevid.cassy.domain.model.TableEntry
 import com.azuredevid.cassy.domain.model.TableStatus
+import com.azuredevid.cassy.data.network.RealtimeConnectionState
+import com.azuredevid.cassy.data.network.RealtimeEventEnvelope
 import com.azuredevid.cassy.domain.repository.PrinterConfig
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.domain.repository.RealtimeEventSource
 import com.azuredevid.cassy.domain.repository.TableManagementRepository
 import com.azuredevid.cassy.ui.designsystem.CassyToastTone
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -68,10 +77,13 @@ class TableManagementViewModelTest {
         var archiveError: Throwable? = null
         var rotateCalls = 0
         var createCalls = 0
+        var listCalls = 0
 
-        override suspend fun listTables(): Result<List<TableEntry>> =
-            if (failList) Result.failure(DomainException(DomainError.NetworkUnavailable("Koneksi terputus")))
+        override suspend fun listTables(): Result<List<TableEntry>> {
+            listCalls++
+            return if (failList) Result.failure(DomainException(DomainError.NetworkUnavailable("Koneksi terputus")))
             else Result.success(tables.toList())
+        }
 
         override suspend fun createTable(draft: TableDraft): Result<TableEntry> {
             createCalls++
@@ -315,6 +327,56 @@ class TableManagementViewModelTest {
         assertTrue(text.contains("Kopi Nusantara"))
         assertEquals(CassyToastTone.SUCCESS, lastMessage().tone)
         assertFalse(vm.uiState.value.isPrinting)
+    }
+
+    @Test
+    fun realtimeOrderCancelled_refreshesTablesBoard() = runTest(testDispatcher) {
+        val eventsFlow = MutableSharedFlow<RealtimeEventEnvelope>()
+        val fakeRealtime = object : RealtimeEventSource {
+            override val connectionState: StateFlow<RealtimeConnectionState> = MutableStateFlow(RealtimeConnectionState.CONNECTED)
+            override val events: SharedFlow<RealtimeEventEnvelope> = eventsFlow
+            override fun start(scope: CoroutineScope) {}
+        }
+        val session = DataStoreSessionManager(InMemorySessionDataStore(), backgroundScope)
+        session.saveLoginSession(
+            accessToken = "jwt",
+            accessTokenExpiresAt = "2026-11-17T00:00:00Z",
+            sessionExpiresAt = "2026-11-17T00:00:00Z",
+            staff = StaffIdentity("u1", "Pemilik", "owner@cassy.test", "owner", "s1", "kopi", "Kopi Nusantara"),
+            permissions = listOf("table.manage", "table.qr.manage")
+        )
+        TableManagementViewModel(
+            repository = repo,
+            sessionManager = session,
+            printerSettings = printerSettings,
+            printerManager = PrinterPort9100Manager(ioDispatcher = testDispatcher),
+            realtime = fakeRealtime,
+            ioDispatcher = testDispatcher
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+        val before = repo.listCalls
+
+        eventsFlow.emit(
+            RealtimeEventEnvelope(
+                type = "order.cancelled",
+                seq = 2L,
+                payload = JsonObject(mapOf("order_id" to JsonPrimitive("o-1")))
+            )
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(before + 1, repo.listCalls)
+
+        eventsFlow.emit(
+            RealtimeEventEnvelope(
+                type = "table_session.moved",
+                seq = 3L,
+                payload = JsonObject(mapOf("table_id" to JsonPrimitive("t-1")))
+            )
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(before + 2, repo.listCalls)
     }
 
     private companion object {

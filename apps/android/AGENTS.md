@@ -8,6 +8,7 @@ One module, strict layers per feature: `ui` (Compose + ViewModel) -> `domain` (m
 ## Rules
 - Totals come from `POST /api/v1/pos/orders/quote` (`OrderQuoteRepository`). Never compute tax or service on the device.
 - Theme colours must match `packages/design-tokens/tokens.json`; no Espresso & Crema values.
+- Material 3 Skill (`hamen/material-3-skill`, installed under `.agents/skills/material-3`): follow MD3 Compose-first component anatomy, tonal surface elevation (not heavy shadows), adaptive window size classes, and `8dp` spacing scale while keeping brand colors locked to `CassyTheme` (`packages/design-tokens/tokens.json`).
 - Icons: Material Symbols via `androidx.compose.material.icons`, each with a `contentDescription` or `null` when decorative.
 - All UI text in `res/values/strings.xml` and `res/values-en/strings.xml`. Keep cashier copy free of technical jargon (`JSON`, `payload`, `HID`).
 - Touch targets 48 dp or more. Rupiah formatted as integers.
