@@ -554,6 +554,8 @@
     <string name="service_row_taken">Being handled, called at %1$s</string>
     <string name="service_btn_take">Take</string>
     <string name="service_btn_done">Done</string>
+    <string name="service_btn_mute">Mute 15m</string>
+    <string name="service_cooldown_hint">Muted tables cannot call a waiter for 15 minutes. Table cooldown: 60 seconds.</string>
     <plurals name="service_pill_count">
         <item quantity="one">%d guest calling</item>
         <item quantity="other">%d guests calling</item>

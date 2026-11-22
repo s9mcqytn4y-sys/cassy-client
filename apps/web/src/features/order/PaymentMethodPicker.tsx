@@ -111,8 +111,16 @@ export function PaymentMethodPicker({
                     onChange={() => onSelect(m)}
                     className="sr-only"
                   />
-                  <span className="flex h-9 w-16 shrink-0 items-center justify-center rounded-lg bg-white ring-1 ring-black/10">
-                    <PaymentChannelLogo method={m} bare className="h-6 w-auto max-w-[52px]" />
+                  <span
+                    className={`flex h-9 shrink-0 items-center justify-center rounded-lg bg-white px-2 ring-1 ring-black/10 ${
+                      m === "bank_transfer" ? "w-11" : "w-20"
+                    }`}
+                  >
+                    <PaymentChannelLogo
+                      method={m}
+                      bare
+                      className={m === "bank_transfer" ? "h-5 w-5" : "h-5 w-full max-w-[64px]"}
+                    />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-center gap-1.5">

@@ -11,16 +11,21 @@ interface LocaleContextValue {
   locale: AppLocale;
   t: Messages;
   toggleLocale: () => void;
+  hidePoweredBy: boolean;
+  setHidePoweredBy: (hide: boolean) => void;
 }
 
 const LocaleContext = createContext<LocaleContextValue>({
   locale: "id-ID",
   t: MESSAGES["id-ID"],
-  toggleLocale: () => undefined
+  toggleLocale: () => undefined,
+  hidePoweredBy: false,
+  setHidePoweredBy: () => undefined
 });
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocale] = useState<AppLocale>("id-ID");
+  const [hidePoweredBy, setHidePoweredBy] = useState(false);
 
   useEffect(() => {
     try {
@@ -46,9 +51,11 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
         } catch {
           // See above.
         }
-      }
+      },
+      hidePoweredBy,
+      setHidePoweredBy
     }),
-    [locale]
+    [locale, hidePoweredBy]
   );
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;

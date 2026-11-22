@@ -59,6 +59,8 @@ class KtorServiceRequestRepository(
 
     override suspend fun markDone(id: String): Result<ServiceRequest> = transition(id, "done")
 
+    override suspend fun cancelAndMute(id: String): Result<ServiceRequest> = transition(id, "cancel")
+
     private suspend fun transition(id: String, action: String): Result<ServiceRequest> = withContext(ioDispatcher) {
         try {
             val response = httpClient.post("${baseUrl()}/api/v1/store/service-requests/$id/$action")

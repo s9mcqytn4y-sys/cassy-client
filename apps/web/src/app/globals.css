@@ -79,6 +79,21 @@ body {
   overflow-x: clip;
 }
 
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
 *,
 *::before,
 *::after {

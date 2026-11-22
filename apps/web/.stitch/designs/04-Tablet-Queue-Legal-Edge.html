@@ -1,0 +1,731 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cassy Tablet & Public Display Suite - Cassy Roastery Senopati</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bone: '#F7F5F0',
+            pandan: '#1F5F52',
+            'pandan-dark': '#154239',
+            'pandan-light': '#E8F2EF',
+            kunyit: '#E9A23B',
+            'kunyit-light': '#FDF5E8',
+            tinta: '#17211E',
+            'tinta-muted': '#56605B',
+            borderline: '#E2DDD2'
+          },
+          fontFamily: {
+            display: ['"Bricolage Grotesque"', 'sans-serif'],
+            body: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.96; transform: scale(1.008); }
+    }
+    .animate-call-pulse {
+      animation: pulse-subtle 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="bg-[#101715] text-[#ECEFEA] font-body min-h-screen py-10 px-4 md:px-8 selection:bg-pandan selection:text-white">
+
+  <!-- Header Showcase Control -->
+  <header class="max-w-[1400px] mx-auto mb-10 text-center">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pandan/20 border border-pandan/40 text-pandan-light text-xs font-mono mb-4 uppercase tracking-wider">
+      <span class="w-2 h-2 rounded-full bg-kunyit animate-pulse"></span>
+      Cassy Guest PWA &bull; Tablet &amp; Public Display Suite (1280x800)
+    </div>
+    <h1 class="text-3xl md:text-5xl font-display font-bold tracking-tight text-white mb-3">
+      Antarmuka Tablet Publik &amp; Ketahanan Sistem
+    </h1>
+    <p class="text-stone-300 max-w-3xl mx-auto text-sm md:text-base leading-relaxed">
+      Spesifikasi resmi tablet lanskap dan monitor publik (1280x800) untuk <strong class="text-white font-semibold">Cassy Roastery Senopati</strong>. Standar Putih Tulang (<span class="font-mono text-kunyit">#F7F5F0</span>), Pandan (<span class="font-mono text-kunyit">#1F5F52</span>), Kunyit (<span class="font-mono text-kunyit">#E9A23B</span>), teks angka tabular, bebas emoji dan bebas em dash.
+    </p>
+
+    <!-- Surface Navigation Badges -->
+    <div class="flex flex-wrap items-center justify-center gap-2 mt-6 text-xs font-medium">
+      <a href="#surface-antrean" class="px-3.5 py-1.5 rounded-lg bg-stone-800/80 hover:bg-stone-700 text-stone-200 border border-stone-700/60 transition">
+        01. Layar Antrean TV (/antrean)
+      </a>
+      <a href="#surface-home-legal" class="px-3.5 py-1.5 rounded-lg bg-stone-800/80 hover:bg-stone-700 text-stone-200 border border-stone-700/60 transition">
+        02. Portal Beranda &amp; Integritas Hukum (/ &amp; /legal)
+      </a>
+      <a href="#surface-resilience" class="px-3.5 py-1.5 rounded-lg bg-stone-800/80 hover:bg-stone-700 text-stone-200 border border-stone-700/60 transition">
+        03. Edge States &amp; Ketahanan Jaringan (Store Closed, 503, 404, Offline)
+      </a>
+    </div>
+  </header>
+
+  <!-- ========================================================
+       SURFACE 1: LIVE QUEUE PUBLIC DISPLAY (1280x800 NATIVE CANVAS)
+       ======================================================== -->
+  <section id="surface-antrean" class="max-w-[1320px] mx-auto mb-16">
+    <div class="flex items-center justify-between mb-3 px-2">
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-mono text-kunyit uppercase tracking-widest font-semibold">Permukaan 01 : Public Monitor</span>
+        <h2 class="text-lg md:text-xl font-display font-bold text-white">Layar Antrean Dapur &amp; Konter (/antrean)</h2>
+      </div>
+      <div class="text-xs font-mono text-stone-400 bg-stone-900/80 px-2.5 py-1 rounded border border-stone-800">
+        GET /api/v1/public/queue &bull; WebSocket /ws (28ms) &bull; 1280x800
+      </div>
+    </div>
+
+    <!-- The 1280x800 Physical Display Frame -->
+    <div class="w-full bg-bone rounded-2xl shadow-2xl border-4 border-stone-800 overflow-hidden relative" style="aspect-ratio: 16/10; min-height: 720px;">
+      
+      <!-- Top Broadcast Chrome Bar -->
+      <div class="h-16 bg-white border-b border-borderline px-6 flex items-center justify-between relative z-10">
+        <div class="flex items-center gap-4">
+          <div class="w-9 h-9 rounded-lg bg-pandan flex items-center justify-center text-white font-display font-extrabold text-lg">
+            C
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-display font-bold text-tinta text-base tracking-tight leading-none">Cassy Roastery Senopati</h3>
+              <span class="inline-block w-1.5 h-1.5 rounded-full bg-pandan"></span>
+              <span class="text-xs font-medium text-tinta-muted">Layar Publik Konter Utama</span>
+            </div>
+            <p class="text-[11px] font-mono text-tinta-muted mt-0.5">Jl. Senopati No. 42 &bull; Node: jkt-spt-tv01</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <!-- Live Audio Announcement Indicator -->
+          <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-pandan-light border border-pandan/30 text-pandan text-xs font-medium">
+            <span class="w-2 h-2 rounded-full bg-pandan animate-ping"></span>
+            Suara Panggilan Aktif (Bahasa Indonesia)
+          </div>
+
+          <!-- Live Clock with Tabular Nums -->
+          <div class="text-right pl-3 border-l border-borderline">
+            <div id="live-clock" class="font-mono text-base font-bold text-tinta tabular-nums tracking-tight">11:48:25 WIB</div>
+            <div class="text-[10px] font-medium text-tinta-muted uppercase tracking-wider">22 Nov 2026</div>
+          </div>
+
+          <!-- Pairing Modal Trigger Badge -->
+          <button onclick="document.getElementById('pairing-modal').classList.toggle('hidden')" class="px-2.5 py-1 rounded bg-stone-100 hover:bg-stone-200 text-tinta-muted text-xs font-mono border border-borderline transition">
+            Kode Layar: <strong class="text-tinta">SPT-88</strong>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main 2-Column Split Board -->
+      <div class="flex h-[calc(100%-4rem)] w-full">
+        
+        <!-- Left 40%: Sedang Disiapkan -->
+        <div class="w-[40%] bg-bone p-6 border-r border-borderline flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-borderline/80">
+              <div>
+                <span class="text-[11px] font-mono uppercase tracking-wider text-tinta-muted font-bold block">Status Pesanan</span>
+                <h4 class="text-xl font-display font-extrabold text-tinta tracking-tight">SEDANG DISIAPKAN</h4>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full bg-stone-200/80 text-tinta font-mono text-xs font-bold tabular-nums">
+                3 Pesanan
+              </span>
+            </div>
+
+            <!-- Queue Cards Stack -->
+            <div class="space-y-3">
+              <!-- Item 1 -->
+              <div class="bg-white rounded-xl p-4 border border-borderline shadow-sm flex items-center justify-between">
+                <div>
+                  <div class="text-3xl font-display font-extrabold text-tinta tabular-nums tracking-tight">
+                    A-015
+                  </div>
+                  <div class="text-xs text-tinta-muted mt-1 flex items-center gap-1.5">
+                    <span class="font-semibold text-tinta">Meja A3</span>
+                    <span>&bull;</span>
+                    <span>3 menu racik</span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-bone text-[11px] font-mono text-tinta-muted border border-borderline">
+                    <span class="w-1.5 h-1.5 rounded-full bg-kunyit"></span>
+                    Espresso Bar
+                  </span>
+                  <div class="text-[10px] font-mono text-stone-400 mt-1.5 tabular-nums">Est. 4 mnt</div>
+                </div>
+              </div>
+
+              <!-- Item 2 -->
+              <div class="bg-white rounded-xl p-4 border border-borderline shadow-sm flex items-center justify-between">
+                <div>
+                  <div class="text-3xl font-display font-extrabold text-tinta tabular-nums tracking-tight">
+                    A-016
+                  </div>
+                  <div class="text-xs text-tinta-muted mt-1 flex items-center gap-1.5">
+                    <span class="font-semibold text-tinta">Meja B2</span>
+                    <span>&bull;</span>
+                    <span>1 pastry hangat</span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-bone text-[11px] font-mono text-tinta-muted border border-borderline">
+                    <span class="w-1.5 h-1.5 rounded-full bg-kunyit"></span>
+                    Bakery Oven
+                  </span>
+                  <div class="text-[10px] font-mono text-stone-400 mt-1.5 tabular-nums">Est. 6 mnt</div>
+                </div>
+              </div>
+
+              <!-- Item 3 -->
+              <div class="bg-white rounded-xl p-4 border border-borderline shadow-sm flex items-center justify-between">
+                <div>
+                  <div class="text-3xl font-display font-extrabold text-tinta tabular-nums tracking-tight">
+                    A-017
+                  </div>
+                  <div class="text-xs text-tinta-muted mt-1 flex items-center gap-1.5">
+                    <span class="font-semibold text-tinta">Meja Outdoor 04</span>
+                    <span>&bull;</span>
+                    <span>2 filter v60</span>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-bone text-[11px] font-mono text-tinta-muted border border-borderline">
+                    <span class="w-1.5 h-1.5 rounded-full bg-kunyit"></span>
+                    Slow Bar
+                  </span>
+                  <div class="text-[10px] font-mono text-stone-400 mt-1.5 tabular-nums">Est. 8 mnt</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Operational Note -->
+          <div class="bg-white/80 rounded-lg p-3 border border-borderline text-[11px] text-tinta-muted leading-relaxed">
+            <span class="font-semibold text-tinta">Proses Pembuatan:</span> Barista menyeduh kopi satu per satu agar suhu dan ekstraksi tetap presisi. Harap menunggu nomor antrean berpindah ke sisi kanan.
+          </div>
+        </div>
+
+        <!-- Right 60%: Hero Pandan - Siap Diambil di Konter -->
+        <div class="w-[60%] bg-pandan p-6 text-white flex flex-col justify-between relative overflow-hidden">
+          <!-- Subtle graphic wave backdrop -->
+          <div class="absolute -right-20 -bottom-20 w-96 h-96 rounded-full bg-white/5 pointer-events-none"></div>
+
+          <div>
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/20">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-kunyit animate-ping"></span>
+                <span class="text-xs font-mono uppercase tracking-widest text-emerald-100 font-bold">Ambil Segera</span>
+              </div>
+              <h4 class="text-xl font-display font-extrabold tracking-tight text-white">SIAP DIAMBIL DI KONTER</h4>
+            </div>
+
+            <!-- Active Called Hero Card with Kunyit Accent -->
+            <div class="bg-white rounded-2xl p-6 text-tinta shadow-xl border-4 border-kunyit relative animate-call-pulse mb-5">
+              <div class="flex items-center justify-between">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-kunyit text-tinta font-mono text-xs font-bold uppercase tracking-wider">
+                  <span class="w-2 h-2 rounded-full bg-tinta"></span>
+                  Panggilan Aktif Saat Ini
+                </div>
+                <div class="text-xs font-mono text-tinta-muted">
+                  Pesanan ORD-014 &bull; Meja A1
+                </div>
+              </div>
+
+              <!-- 96px Tabular Number -->
+              <div class="text-center my-3">
+                <div class="text-8xl md:text-9xl font-display font-extrabold text-pandan tracking-tight tabular-nums leading-none">
+                  A-014
+                </div>
+                <p class="text-sm font-semibold text-tinta mt-2">
+                  Silakan menuju Konter Barista 01 (Pick-up Bay Senopati)
+                </p>
+              </div>
+
+              <div class="pt-3 border-t border-borderline flex items-center justify-between text-xs text-tinta-muted">
+                <span>Rincian: 1x Classic Iced Latte, 1x Butter Croissant</span>
+                <span class="font-mono text-pandan font-semibold">Dipanggil 1 menit lalu</span>
+              </div>
+            </div>
+
+            <!-- Previously Called Ready Queue (A-012, A-013) -->
+            <div>
+              <span class="text-xs font-mono uppercase tracking-wider text-emerald-100 block mb-2 font-medium">Antrean Menunggu Pengambilan</span>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="bg-pandan-dark/60 rounded-xl p-3.5 border border-white/15 flex items-center justify-between">
+                  <div>
+                    <div class="text-3xl font-display font-bold text-white tabular-nums">A-012</div>
+                    <div class="text-[11px] text-emerald-200">Meja Bar 02 &bull; 2 Item</div>
+                  </div>
+                  <span class="px-2 py-0.5 rounded bg-white/10 text-[10px] font-mono text-emerald-100">Konter 02</span>
+                </div>
+
+                <div class="bg-pandan-dark/60 rounded-xl p-3.5 border border-white/15 flex items-center justify-between">
+                  <div>
+                    <div class="text-3xl font-display font-bold text-white tabular-nums">A-013</div>
+                    <div class="text-[11px] text-emerald-200">Bawa Pulang (Takeaway)</div>
+                  </div>
+                  <span class="px-2 py-0.5 rounded bg-white/10 text-[10px] font-mono text-emerald-100">Konter 01</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Footer Bar on Screen -->
+          <div class="pt-4 border-t border-white/15 flex items-center justify-between text-xs text-emerald-100">
+            <span>Tunjukkan kode pesanan pada struk digital ponsel saat serah terima barang</span>
+            <span class="font-mono text-[11px]">Sistem Cassy v2.4.0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pairing Gate Modal Preview (Floating Overlay inside Display) -->
+      <div id="pairing-modal" class="hidden absolute inset-0 bg-black/60 backdrop-blur-sm z-30 flex items-center justify-center p-6">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full border border-borderline shadow-2xl text-tinta">
+          <div class="flex items-center justify-between pb-3 border-b border-borderline">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-pandan"></span>
+              <h5 class="font-display font-bold text-base">Pairing Layar Monitor Publik</h5>
+            </div>
+            <button onclick="document.getElementById('pairing-modal').classList.add('hidden')" class="w-7 h-7 rounded-full bg-bone hover:bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold">
+              &times;
+            </button>
+          </div>
+
+          <div class="my-5 text-center">
+            <span class="text-xs font-mono uppercase tracking-wider text-tinta-muted">Kode Verifikasi Layar Gerai</span>
+            <div class="my-3 px-4 py-3 bg-bone rounded-xl border-2 border-dashed border-pandan font-mono text-3xl font-bold tracking-widest text-pandan tabular-nums">
+              SPT-8824
+            </div>
+            <p class="text-xs text-tinta-muted leading-relaxed">
+              Masukkan kode ini pada Dashboard Kasir &gt; Perangkat Publik untuk menyinkronkan nomor antrean TV secara otomatis melalui WebSocket lokal.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="document.getElementById('pairing-modal').classList.add('hidden')" class="w-full py-2.5 rounded-xl bg-pandan hover:bg-pandan-dark text-white font-medium text-xs transition">
+              Simpan dan Tutup Pengaturan
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================
+       SURFACE 2: HOME ENTRY (/) & LEGAL INTEGRITY (/legal & /legal/mitra)
+       ======================================================== -->
+  <section id="surface-home-legal" class="max-w-[1320px] mx-auto mb-16">
+    <div class="flex items-center justify-between mb-3 px-2">
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-mono text-kunyit uppercase tracking-widest font-semibold">Permukaan 02 : Web Portal</span>
+        <h2 class="text-lg md:text-xl font-display font-bold text-white">Portal Beranda &amp; Integritas Hukum (/ &amp; /legal)</h2>
+      </div>
+      <div class="text-xs font-mono text-stone-400 bg-stone-900/80 px-2.5 py-1 rounded border border-stone-800">
+        Tablet View &bull; 1280x800 &bull; UU PDP No. 27/2022
+      </div>
+    </div>
+
+    <!-- The 1280x800 Native Tablet Frame -->
+    <div class="w-full bg-bone rounded-2xl shadow-2xl border-4 border-stone-800 overflow-hidden relative p-8 text-tinta" style="min-height: 720px;">
+      
+      <!-- Top Store Identity & Badges Header -->
+      <div class="flex items-center justify-between pb-6 border-b border-borderline">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-pandan text-white flex items-center justify-center font-display font-extrabold text-2xl shadow-sm">
+            C
+          </div>
+          <div>
+            <div class="flex items-center gap-2.5">
+              <h3 class="font-display font-extrabold text-2xl text-tinta tracking-tight">Cassy Roastery Senopati</h3>
+              <span class="px-2.5 py-0.5 rounded-full bg-pandan-light text-pandan text-xs font-semibold">
+                Sistem Pemesanan Mandiri
+              </span>
+            </div>
+            <p class="text-xs text-tinta-muted mt-0.5">Jl. Senopati No. 42, Kebayoran Baru, Jakarta Selatan &bull; Buka 07:00 - 22:00 WIB</p>
+          </div>
+        </div>
+
+        <!-- Compliance Badges -->
+        <div class="flex items-center gap-2.5">
+          <div class="px-3 py-1.5 rounded-lg bg-white border border-borderline shadow-sm flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-pandan"></span>
+            <span class="text-xs font-semibold text-tinta">Harga Dihitung Server</span>
+          </div>
+          <div class="px-3 py-1.5 rounded-lg bg-white border border-borderline shadow-sm flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-kunyit"></span>
+            <span class="text-xs font-semibold text-tinta">Patuh UU PDP No. 27/2022</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2-Column Content Grid: Left 3-Steps Guest Guide, Right Legal Cards & SHA-256 -->
+      <div class="grid grid-cols-12 gap-8 mt-7">
+        
+        <!-- Left 7 Cols: Home 3-Step Guest Flow -->
+        <div class="col-span-7 space-y-5">
+          <div>
+            <span class="text-xs font-mono uppercase tracking-wider text-pandan font-bold">Alur Pengalaman Tamu</span>
+            <h4 class="text-2xl font-display font-extrabold text-tinta tracking-tight mt-1">
+              Pesan Langsung Tanpa Unduh Aplikasi
+            </h4>
+            <p class="text-sm text-tinta-muted mt-1 leading-relaxed">
+              Tamu cukup memindai kode QR yang tertempel di meja. Seluruh menu, varian rasa, harga bersih, dan struk digital diproses secara instan di peramban ponsel.
+            </p>
+          </div>
+
+          <!-- The 3 Step Cards -->
+          <div class="grid grid-cols-3 gap-3.5 pt-1">
+            <!-- Step 1 -->
+            <div class="bg-white rounded-xl p-4 border border-borderline shadow-sm flex flex-col justify-between">
+              <div>
+                <div class="w-7 h-7 rounded-lg bg-bone text-pandan font-mono font-bold text-xs flex items-center justify-center mb-3 border border-borderline">
+                  01
+                </div>
+                <h5 class="font-display font-bold text-sm text-tinta leading-snug">Pindai QR Meja</h5>
+                <p class="text-xs text-tinta-muted mt-2 leading-relaxed">
+                  Buka kamera ponsel untuk membuka katalog menu resmi Meja Anda tanpa registrasi akun baru.
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-borderline/60 text-[11px] font-mono text-pandan font-medium">
+                Kamera / QR Reader
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="bg-white rounded-xl p-4 border border-borderline shadow-sm flex flex-col justify-between">
+              <div>
+                <div class="w-7 h-7 rounded-lg bg-bone text-pandan font-mono font-bold text-xs flex items-center justify-center mb-3 border border-borderline">
+                  02
+                </div>
+                <h5 class="font-display font-bold text-sm text-tinta leading-snug">Harga Resmi Server</h5>
+                <p class="text-xs text-tinta-muted mt-2 leading-relaxed">
+                  Kalkulasi kuotasi resmi melalui API backend. Tanpa selisih harga, transparan pajak restoran PB1 10%.
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-borderline/60 text-[11px] font-mono text-pandan font-medium">
+                POST /api/v1/orders/quote
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="bg-white rounded-xl p-4 border border-borderline shadow-sm flex flex-col justify-between">
+              <div>
+                <div class="w-7 h-7 rounded-lg bg-bone text-pandan font-mono font-bold text-xs flex items-center justify-center mb-3 border border-borderline">
+                  03
+                </div>
+                <h5 class="font-display font-bold text-sm text-tinta leading-snug">Struk Digital &amp; PDF</h5>
+                <p class="text-xs text-tinta-muted mt-2 leading-relaxed">
+                  Bukti pembayaran instan tersimpan di cloud, siap diunduh dalam format PDF atau diteruskan ke WhatsApp.
+                </p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-borderline/60 text-[11px] font-mono text-pandan font-medium">
+                Tersimpan di Cloud &amp; PDF Resmi
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Operational Banner inside Home -->
+          <div class="bg-pandan-light/70 rounded-xl p-4 border border-pandan/20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-pandan text-white flex items-center justify-center font-bold text-xs">
+                QR
+              </div>
+              <div>
+                <div class="text-xs font-bold text-pandan">Ingin Memesan Sekarang?</div>
+                <div class="text-[11px] text-tinta-muted">Pindai kode QR akrilik di meja Anda atau minta bantuan barista.</div>
+              </div>
+            </div>
+            <span class="px-3 py-1 rounded bg-pandan text-white text-xs font-medium">
+              Meja Terverifikasi
+            </span>
+          </div>
+        </div>
+
+        <!-- Right 5 Cols: Legal Integrity (/legal & /legal/mitra) -->
+        <div class="col-span-5 bg-white rounded-xl p-6 border border-borderline shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-borderline">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-pandan"></span>
+                <span class="text-xs font-mono uppercase tracking-wider text-tinta-muted font-bold">Kepatuhan Hukum &amp; Data</span>
+              </div>
+              <span class="text-[11px] font-mono text-pandan bg-pandan-light px-2 py-0.5 rounded font-semibold">
+                v1.1.0 Rilis
+              </span>
+            </div>
+
+            <!-- Legal Documents Links -->
+            <div class="mt-4 space-y-3">
+              <div class="p-3 rounded-lg bg-bone border border-borderline flex items-center justify-between">
+                <div>
+                  <h6 class="font-display font-bold text-xs text-tinta">Ketentuan Pemesanan Tamu v1.1.0</h6>
+                  <p class="text-[11px] text-tinta-muted mt-0.5">Hak konsumen, penyelesaian pembayaran via QRIS, dan kebijakan pembatalan.</p>
+                </div>
+                <a href="#legal-terms" class="text-xs font-semibold text-pandan hover:underline ml-2 shrink-0">Buka &rarr;</a>
+              </div>
+
+              <div class="p-3 rounded-lg bg-bone border border-borderline flex items-center justify-between">
+                <div>
+                  <h6 class="font-display font-bold text-xs text-tinta">Perjanjian Pemrosesan Data Mitra (DPA)</h6>
+                  <p class="text-[11px] text-tinta-muted mt-0.5">Kepatuhan prinsip minimisasi data pribadi sesuai amanat UU PDP No. 27/2022.</p>
+                </div>
+                <a href="#legal-dpa" class="text-xs font-semibold text-pandan hover:underline ml-2 shrink-0">Buka &rarr;</a>
+              </div>
+            </div>
+
+            <!-- Legal Metadata & Support Footer (No SHA-256 Hash) -->
+            <div class="mt-5 space-y-3">
+              <div class="p-3.5 rounded-xl bg-bone border border-borderline space-y-2.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-mono uppercase text-tinta-muted font-bold text-[10px] tracking-wider">Status &amp; Legalitas</span>
+                  <span class="px-2 py-0.5 rounded-full bg-pandan text-white font-mono text-[10px] font-semibold tabular-nums">Versi 2.4 (Terdaftar)</span>
+                </div>
+                <div class="text-xs text-tinta-muted flex items-center justify-between pt-1 border-t border-borderline/60">
+                  <span>Tanggal Efektif:</span>
+                  <span class="font-mono font-medium text-tinta tabular-nums">Berlaku sejak 1 Nov 2026</span>
+                </div>
+                <div class="text-xs text-tinta-muted flex items-center justify-between pt-1 border-t border-borderline/60">
+                  <span>Bantuan Hukum:</span>
+                  <a href="mailto:legal@azuredevid.com" class="font-mono text-pandan hover:underline font-medium text-[11px]">legal@azuredevid.com</a>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-xs font-medium">
+                <a href="#legal-terms" class="p-2.5 rounded-lg bg-pandan-light border border-pandan/30 text-pandan flex items-center justify-between hover:bg-pandan-light/70 transition">
+                  <span class="text-[11px] font-semibold">/legal (Tamu)</span>
+                  <span>&rarr;</span>
+                </a>
+                <a href="#legal-mitra" class="p-2.5 rounded-lg bg-bone border border-borderline text-tinta hover:bg-stone-200 transition flex items-center justify-between">
+                  <span class="text-[11px] font-semibold">/legal/mitra (F&amp;B)</span>
+                  <span>&rarr;</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Footer Citation -->
+          <div class="pt-4 border-t border-borderline text-[11px] text-tinta-muted leading-relaxed">
+            Dikelola oleh <strong class="text-tinta">Cassy Roastery Senopati</strong> di bawah kerangka kemitraan teknologi berlisensi AzureDevID.
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================
+       SURFACE 3: ALL EDGE & RESILIENCE STATES (STORE CLOSED, 503, 404, OFFLINE)
+       ======================================================== -->
+  <section id="surface-resilience" class="max-w-[1320px] mx-auto mb-16">
+    <div class="flex items-center justify-between mb-3 px-2">
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-mono text-kunyit uppercase tracking-widest font-semibold">Permukaan 03 : Ketahanan &amp; Edge</span>
+        <h2 class="text-lg md:text-xl font-display font-bold text-white">Status Operasional, Pemeliharaan &amp; Resiliensi Jaringan</h2>
+      </div>
+      <div class="text-xs font-mono text-stone-400 bg-stone-900/80 px-2.5 py-1 rounded border border-stone-800">
+        Resilience Suite &bull; 1280x800 Native View
+      </div>
+    </div>
+
+    <!-- The 1280x800 Native Frame showcasing Edge Matrix -->
+    <div class="w-full bg-bone rounded-2xl shadow-2xl border-4 border-stone-800 overflow-hidden relative p-8 text-tinta" style="min-height: 720px;">
+      
+      <!-- Top Sticky-Simulation Offline Reconnection Toast -->
+      <div class="w-full mb-6 bg-[#17211E] text-white rounded-xl p-3.5 px-5 shadow-lg border border-stone-700 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="w-2.5 h-2.5 rounded-full bg-kunyit animate-pulse"></span>
+          <span class="text-xs font-medium tracking-wide">
+            <strong>Koneksi terputus.</strong> Kami coba sambung ulang otomatis ke server Cassy Senopati dalam <span class="font-mono text-kunyit tabular-nums">4 detik</span>.
+          </span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-[11px] font-mono text-stone-400">WebSocket /ws: Reconnecting</span>
+          <button class="px-2.5 py-1 rounded bg-stone-800 hover:bg-stone-700 text-xs font-mono text-stone-200 border border-stone-600 transition">
+            Coba Sekarang
+          </button>
+        </div>
+      </div>
+
+      <!-- State 1: StoreClosedBanner with Expandable Operating Hours -->
+      <div class="bg-white rounded-2xl p-5 border border-borderline shadow-sm mb-6">
+        <div class="flex items-start justify-between">
+          <div class="flex items-start gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-kunyit-light border border-kunyit/40 flex items-center justify-center text-kunyit font-mono font-bold text-sm shrink-0">
+              JAM
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded bg-kunyit text-tinta text-[10px] font-bold uppercase tracking-wider">Shift Kasir Belum Dibuka</span>
+                <span class="text-xs text-tinta-muted">Status: Tutup Sementara</span>
+              </div>
+              <h4 class="font-display font-bold text-base text-tinta mt-1">
+                Gerai belum membuka pemesanan - Kasir belum membuka shift hari ini
+              </h4>
+              <p class="text-xs text-tinta-muted mt-0.5 leading-relaxed">
+                Katalog menu dapat dijelajahi untuk referensi pesanan, namun tombol pembayaran dinonaktifkan hingga kasir mengaktifkan register shift pagi.
+              </p>
+            </div>
+          </div>
+
+          <button onclick="document.getElementById('hours-detail').classList.toggle('hidden')" class="px-3.5 py-1.5 rounded-lg bg-bone hover:bg-stone-200 text-xs font-semibold text-tinta border border-borderline transition flex items-center gap-1.5 shrink-0">
+            <span>Jadwal Operasional</span>
+            <span class="text-[10px]">&darr;</span>
+          </button>
+        </div>
+
+        <!-- Expandable Operating Hours Block -->
+        <div id="hours-detail" class="mt-4 pt-4 border-t border-borderline grid grid-cols-3 gap-4">
+          <div class="p-3 bg-bone rounded-lg border border-borderline">
+            <div class="text-[11px] font-mono text-tinta-muted uppercase">Hari Kerja (Senin - Jumat)</div>
+            <div class="text-sm font-bold font-mono text-tinta tabular-nums mt-1">07:00 - 22:00 WIB</div>
+            <div class="text-[10px] text-pandan font-medium mt-0.5">Dapur buka 07:15 WIB</div>
+          </div>
+          <div class="p-3 bg-bone rounded-lg border border-borderline">
+            <div class="text-[11px] font-mono text-tinta-muted uppercase">Akhir Pekan (Sabtu - Minggu)</div>
+            <div class="text-sm font-bold font-mono text-tinta tabular-nums mt-1">06:30 - 23:00 WIB</div>
+            <div class="text-[10px] text-pandan font-medium mt-0.5">Dapur buka 06:45 WIB</div>
+          </div>
+          <div class="p-3 bg-bone rounded-lg border border-borderline">
+            <div class="text-[11px] font-mono text-tinta-muted uppercase">Kontak Darurat Meja</div>
+            <div class="text-sm font-bold font-mono text-tinta tabular-nums mt-1">+62 21 582 9901</div>
+            <div class="text-[10px] text-tinta-muted mt-0.5">Konter Barista Senopati</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2-Column Split for 503 Maintenance & 404 Table Not Found -->
+      <div class="grid grid-cols-2 gap-6">
+        
+        <!-- State 2: MaintenanceMode 503 -->
+        <div class="bg-white rounded-2xl p-6 border border-borderline shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-borderline">
+              <span class="text-xs font-mono uppercase text-tinta-muted font-bold tracking-wider">Status Respon HTTP 503</span>
+              <span class="px-2 py-0.5 rounded bg-stone-100 font-mono text-[11px] font-bold text-stone-600">
+                Service Unavailable
+              </span>
+            </div>
+
+            <div class="mt-4 flex items-start gap-4">
+              <div class="w-12 h-12 rounded-xl bg-pandan-light text-pandan flex items-center justify-center font-mono font-extrabold text-base shrink-0">
+                503
+              </div>
+              <div>
+                <h5 class="font-display font-bold text-base text-tinta">
+                  Pemeliharaan Singkat Sistem Gerai
+                </h5>
+                <p class="text-xs text-tinta-muted mt-1 leading-relaxed">
+                  Sedang ada pemeliharaan singkat. Pesanan yang sudah dibayar tetap diproses gerai secara normal melalui printer dapur offline kami.
+                </p>
+              </div>
+            </div>
+
+            <!-- Guarantee Callout Box -->
+            <div class="mt-4 p-3.5 bg-bone rounded-xl border border-borderline text-xs space-y-1.5">
+              <div class="flex items-center gap-2 text-tinta font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-pandan"></span>
+                <span>Jaminan Transaksi Tersimpan Aman</span>
+              </div>
+              <p class="text-[11px] text-tinta-muted leading-relaxed">
+                Bukti bayar QRIS yang telah keluar dari aplikasi perbankan Anda dijamin sah. Harap tunjukkan struk mutasi bank Anda ke kasir jika antrean belum terpanggil.
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-5 pt-3 border-t border-borderline flex items-center justify-between">
+            <span class="text-[11px] font-mono text-tinta-muted">Estimasi selesai: &lt; 2 menit</span>
+            <button class="px-3 py-1.5 rounded bg-pandan text-white text-xs font-medium hover:bg-pandan-dark transition">
+              Muat Ulang Halaman
+            </button>
+          </div>
+        </div>
+
+        <!-- State 3: TableNotFound 404 -->
+        <div class="bg-white rounded-2xl p-6 border border-borderline shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-borderline">
+              <span class="text-xs font-mono uppercase text-tinta-muted font-bold tracking-wider">Status Respon HTTP 404</span>
+              <span class="px-2 py-0.5 rounded bg-stone-100 font-mono text-[11px] font-bold text-stone-600">
+                Resource Missing
+              </span>
+            </div>
+
+            <div class="mt-4 flex items-start gap-4">
+              <div class="w-12 h-12 rounded-xl bg-kunyit-light text-kunyit flex items-center justify-center font-mono font-extrabold text-base shrink-0">
+                404
+              </div>
+              <div>
+                <h5 class="font-display font-bold text-base text-tinta">
+                  Meja Tidak Ditemukan
+                </h5>
+                <p class="text-xs text-tinta-muted mt-1 leading-relaxed">
+                  Tautan atau kode QR meja yang Anda pindai tidak terdaftar di denah resmi Cassy Roastery Senopati.
+                </p>
+              </div>
+            </div>
+
+            <!-- Recovery Guide -->
+            <div class="mt-4 p-3.5 bg-bone rounded-xl border border-borderline text-xs space-y-2">
+              <span class="font-semibold text-tinta block">Langkah Pemulihan Tamu:</span>
+              <ul class="text-[11px] text-tinta-muted space-y-1 list-disc pl-4 leading-relaxed">
+                <li>Pastikan lensa kamera memindai kode QR akrilik fisik di meja Anda, bukan foto layar ponsel lain.</li>
+                <li>Jika Anda berpindah tempat duduk, silakan pindai ulang stiker QR di meja baru Anda.</li>
+                <li>Tekan tombol panggil pelayan di bawah atau hampiri konter kasir.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="mt-5 pt-3 border-t border-borderline flex items-center justify-between">
+            <span class="text-[11px] font-mono text-tinta-muted">Bantuan Langsung</span>
+            <button class="px-3 py-1.5 rounded bg-tinta text-white text-xs font-medium hover:bg-black transition">
+              Panggil Pelayan Meja
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Technical Verification Spec Strip -->
+  <footer class="max-w-[1320px] mx-auto text-center pt-4 pb-12 text-xs font-mono text-stone-400">
+    <div class="inline-flex items-center gap-3 px-4 py-2 rounded-lg bg-stone-900 border border-stone-800">
+      <span>Cassy Roastery Senopati PWA v2.4</span>
+      <span>&bull;</span>
+      <span>Viewport Standar: 1280x800 Tablet Landscape</span>
+      <span>&bull;</span>
+      <span class="text-emerald-400">Semua Uji Bebas Emojis &amp; Em Dash Lolos</span>
+    </div>
+  </footer>
+
+  <script>
+    // Live Clock updater to keep accurate tabular numbers running
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      const clockEl = document.getElementById('live-clock');
+      if (clockEl) {
+        clockEl.textContent = `${h}:${m}:${s} WIB`;
+      }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
+</body>
+</html>
+

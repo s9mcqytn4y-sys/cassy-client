@@ -88,7 +88,7 @@ const structuredData = [
 
 export default function HomePage() {
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-5 py-6 text-ink">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-5 py-5 text-ink">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -96,21 +96,35 @@ export default function HomePage() {
 
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-subtle pb-4">
         <CassyWordmark height={24} />
-        <nav aria-label="Tautan informasi" className="flex flex-wrap items-center gap-4 text-sm text-subink">
-          <Link href="/legal" className="inline-flex min-h-[44px] items-center underline underline-offset-4 hover:text-ink">
-            Privasi Tamu
+        <nav aria-label="Tautan informasi" className="flex flex-wrap items-center gap-2 text-sm">
+          <Link
+            href="/legal"
+            className="inline-flex min-h-[48px] items-center rounded-xl border border-subtle bg-surface px-3.5 font-semibold text-ink transition hover:border-brand"
+          >
+            Untuk Tamu: Privasi
           </Link>
-          <Link href="/legal/mitra" className="inline-flex min-h-[44px] items-center underline underline-offset-4 hover:text-ink">
-            Dokumen Mitra
+          <Link
+            href="/legal/mitra"
+            className="inline-flex min-h-[48px] items-center rounded-xl bg-brand px-3.5 font-semibold text-brand-fg transition hover:opacity-95"
+          >
+            Untuk Mitra Gerai
           </Link>
         </nav>
       </header>
 
-      <section className="space-y-2.5">
+      <section className="space-y-3">
+        <div className="flex flex-wrap gap-2 text-xs font-semibold text-subink">
+          <span className="rounded-full border border-subtle bg-surface px-3 py-1 text-ink">
+            Harga Dihitung Server
+          </span>
+          <span className="rounded-full border border-subtle bg-surface px-3 py-1 text-ink">
+            Patuh UU PDP No. 27/2022
+          </span>
+        </div>
         <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">
           Pesan dan bayar dari meja, terhubung ke kasir gerai.
         </h1>
-        <p className="text-sm leading-relaxed text-subink">
+        <p className="text-sm leading-relaxed text-subink sm:text-base">
           <strong>Cassy</strong> oleh AzureDevID adalah platform kasir POS tablet Android dan pemesanan QR meja untuk
           kafe, restoran, dan bakery di Indonesia. Semua total dihitung server dan struk digital dikirim aman.
         </p>

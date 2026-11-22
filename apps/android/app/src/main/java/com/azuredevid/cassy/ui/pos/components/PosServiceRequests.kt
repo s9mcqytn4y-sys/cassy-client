@@ -69,7 +69,8 @@ fun PosServiceRequestsModal(
     busyRequestId: String?,
     onAcknowledge: (String) -> Unit,
     onDone: (String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onCancelMute: (String) -> Unit = {}
 ) {
     CassyModalDialog(
         title = stringResource(R.string.service_panel_title),
@@ -77,6 +78,11 @@ fun PosServiceRequestsModal(
         maxWidth = CassyDimens.ModalWidthStandard,
         onDismissRequest = onDismiss
     ) {
+        Text(
+            text = stringResource(R.string.service_cooldown_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         if (requests.isEmpty()) {
             Text(
                 text = stringResource(R.string.service_panel_empty),
@@ -116,6 +122,11 @@ fun PosServiceRequestsModal(
                     modifier = Modifier.align(Alignment.End),
                     horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
                 ) {
+                    CassySecondaryButton(
+                        text = stringResource(R.string.service_btn_mute),
+                        onClick = { onCancelMute(request.id) },
+                        enabled = !busy
+                    )
                     if (!request.isAcknowledged) {
                         CassySecondaryButton(
                             text = stringResource(R.string.service_btn_take),

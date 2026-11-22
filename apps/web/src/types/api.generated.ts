@@ -83,8 +83,9 @@ export interface paths {
          * Guest menu of a store (categories, products, variants, modifier groups)
          * @description Inactive categories and archived products are hidden; unavailable items stay listed with
          *     `available=false` and `sold_out_reason`. Stock counts are not exposed. Responses carry a content
-         *     `ETag` (excluding `generated_at`) and `Cache-Control: public, max-age=30`; send `If-None-Match`
-         *     to get `304`.
+         *     `ETag` (excluding `generated_at`) and `Cache-Control: public, max-age=30, stale-while-revalidate=30`;
+         *     send `If-None-Match` to get `304`. Concurrent requests for one slug share a single database load;
+         *     nothing is cached server-side after it returns (PM-E6).
          */
         get: operations["getPublicStoreCatalog"];
         put?: never;
@@ -107,7 +108,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Lock-free calculation of subtotal, discounts, PB1 tax, and service charge for guest order */
+        /**
+         * Lock-free calculation of subtotal, discounts, PB1 tax, and service charge for guest order
+         * @description Every response, errors included, carries `Cache-Control: no-store`; a quote reflects live prices, promotions, and stock (PM-E6).
+         */
         post: operations["getPublicOrderQuote"];
         delete?: never;
         options?: never;
@@ -1165,7 +1169,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Lock-free calculation of subtotal, discounts, PB1 tax, and service charge for POS order */
+        /**
+         * Lock-free calculation of subtotal, discounts, PB1 tax, and service charge for POS order
+         * @description Every response, errors included, carries `Cache-Control: no-store`; a quote reflects live prices, promotions, and stock (PM-E6).
+         */
         post: operations["getPosOrderQuote"];
         delete?: never;
         options?: never;
@@ -1260,7 +1267,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Replace the QR token; the old sticker stops at once (owner, table.qr.manage, audited) */
+        /**
+         * Replace the QR token; the old sticker stops at once (owner, table.qr.manage, audited)
+         * @description Refused with 409 TABLE_SESSION_OPEN while the table has an open session or is merged into one, so a seated guest keeps a working QR. The table row and session are locked, so the check is serialised with a guest opening a session.
+         */
         post: operations["rotateTableQR"];
         delete?: never;
         options?: never;
@@ -1630,7 +1640,7 @@ export interface paths {
         };
         /**
          * WebSocket upgrade with a ticket; replays missed events after last_seq
-         * @description The ticket is consumed on first use and re-checks its subject (staff session live and user active, or guest session valid). Messages are JSON `{seq, type, store_id, payload}`, one per frame, delivered at least once in per-store sequence order; clients keep the highest seq and deduplicate. With last_seq, events after it are replayed (filtered to the ticket's channels); more than 500 missed events yield a single `resync_required` and the client reloads over REST. Staff channels get the full outbox payload; a guest gets only order_id, order_number, queue_number, status and payment_status of its own orders. Origin must be in ALLOWED_ORIGINS. An open connection re-checks its subject every 30 s and is closed once the staff session is revoked, expired or logged out, the account is deactivated or locked, or the guest session ended; the client then needs a new ticket. Concurrent connections are capped per guest session (3), client IP (20) and store (150).
+         * @description The ticket is consumed on first use and re-checks its subject (staff session live and user active, or guest session valid). Messages are JSON `{seq, type, store_id, payload}`, one per frame, delivered at least once in per-store sequence order; clients keep the highest seq and deduplicate. With last_seq, events after it are replayed (filtered to the ticket's channels); more than 500 missed events yield a single `resync_required` and the client reloads over REST. Staff channels get the full outbox payload; a guest gets only order_id, order_number, queue_number, status and payment_status of its own orders. A browser Origin must be in ALLOWED_ORIGINS; native clients (Android POS and KDS) send no Origin and are admitted on the ticket alone. An open connection re-checks its subject every 30 s and is closed once the staff session is revoked, expired or logged out, the account is deactivated or locked, or the guest session ended; the client then needs a new ticket. Concurrent connections are capped per guest session (3), client IP (20) and store (150).
          */
         get: operations["connectWebSocket"];
         put?: never;
@@ -1925,6 +1935,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pos/orders/{id}/splits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cashier splits a pending pay-first order into server-priced shares (order.pos.create, Release One PR 9)
+         * @description Divides an untouched pay-first order (no payment attempt, not expired, not divided before) into equal
+         *     or by-item shares priced on the server. Each share is then paid with
+         *     `POST /api/v1/pos/orders/{id}/payments` and its `split_id`. The order stays `partially_paid` until the
+         *     last share settles, and KDS tickets are created only then. Independent of `GUEST_SPLIT_ENABLED`.
+         */
+        post: operations["divideOrderByCashier"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pos/tabs/{id}/close": {
         parameters: {
             query?: never;
@@ -1959,6 +1992,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pos/tabs/{id}/items/{itemId}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Take part or all of one line off an open tab
+         * @description Needs order.void. Authority follows the voided value (snapshot price x quantity, before tax and
+         *     service): up to void_refund_owner_threshold the cashier's own PIN is enough; above it send
+         *     owner_pin or the id of an approved void_item request for exactly this line and quantity.
+         *     Stock comes back only when the kitchen has not started the line. A line voided to zero is
+         *     removed. Tab totals are recalculated, VOID_ORDER_ITEM is audited and order.item_voided is
+         *     emitted. A closed tab must be reopened first.
+         */
+        post: operations["voidTabItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/pos/approvals": {
         parameters: {
             query?: never;
@@ -1971,7 +2029,7 @@ export interface paths {
         /**
          * Ask the owner's phone to approve one void, refund, stock override or shift variance (ADR-007)
          * @description Needs the permission of the underlying action; owners use their PIN directly and get 403. The
-         *     server computes amount and label from the reference: order total (void), payment amount
+         *     server computes amount and label from the reference: order total (void), voided line value (void_item), payment amount
          *     (refund), new quantity (stock override), or signed cash variance from counted_cash (shift).
          *     The owner has 2 minutes to decide; after approval the requester has 2 minutes to use it.
          *     Emits approval.requested on the owner WebSocket channel.
@@ -2248,6 +2306,51 @@ export interface paths {
         patch: operations["updateDevice"];
         trace?: never;
     };
+    "/api/v1/pos/devices/pairing-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Issue a single-use pairing token for the Owner Dashboard QR (device.manage, audited, PM-E2)
+         * @description The token lives 5 minutes and is consumed by the first successful `POST /api/v1/pos/devices/pair`.
+         *     The QR carries only `store_slug` and `pairing_token` (SecurityQrPairingAdr). Name and prefix are
+         *     validated now; the device quota and prefix uniqueness are checked again at exchange time.
+         *     Responses carry `Cache-Control: no-store`.
+         */
+        post: operations["issueDevicePairingToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/devices/pair": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Exchange a pairing token for a device credential, returned once (public, audited, PM-E2)
+         * @description The token travels in the body, never in the URL. The token row is locked and marked consumed in the
+         *     same transaction as the device insert, so concurrent exchanges of one token create one device.
+         *     Responses carry `Cache-Control: no-store`.
+         */
+        post: operations["pairDevice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/store/devices/{id}/revoke": {
         parameters: {
             query?: never;
@@ -2336,6 +2439,23 @@ export interface paths {
          * @description Accept re-processes the stored order with the device-side checks waived (verifier, limits, revoked device); pricing and the shift still apply, and a failure answers 422 with the reason while the submission keeps waiting. Reject needs a note.
          */
         post: operations["resolveOfflineSubmission"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/pos/printers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active printers the POS tablets print to directly (those with lan_address); any signed-in staff */
+        get: operations["listPosPrinters"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4105,8 +4225,11 @@ export interface components {
             /** Format: uuid */
             id: string;
             name: string;
-            /** @enum {string} */
-            station: "bar" | "kitchen" | "checker" | "label";
+            /**
+             * @description receipt is the cashier printer; it is always printed by the tablets and needs lan_address
+             * @enum {string}
+             */
+            station: "bar" | "kitchen" | "checker" | "label" | "receipt";
             /** @enum {string} */
             format: "escpos" | "tspl";
             /** @description 58 or 80 for escpos; 25-110 for tspl labels */
@@ -4115,6 +4238,11 @@ export interface components {
             label_height_mm?: number;
             copies: number;
             footer: string;
+            /**
+             * @description Private IPv4 "host:port". Set means the POS tablets print to it directly on the LAN and the print queue skips it
+             * @example 192.168.1.50:9100
+             */
+            lan_address?: string;
             is_active: boolean;
             /**
              * Format: date-time
@@ -4132,11 +4260,13 @@ export interface components {
              * @description Required on create
              * @enum {string}
              */
-            station?: "bar" | "kitchen" | "checker" | "label";
+            station?: "bar" | "kitchen" | "checker" | "label" | "receipt";
             paper_width_mm?: number;
             label_height_mm?: number;
             copies?: number;
             footer?: string;
+            /** @description Private IPv4 with an optional port (default 9100), normalized to "host:port". An empty string clears it. Required for receipt, not allowed for label */
+            lan_address?: string;
             is_active?: boolean;
         };
         AgentJob: {
@@ -4165,6 +4295,11 @@ export interface components {
             last_seen_at?: string;
             /** @description Only in the create response; "<store_id>.<token_id>.<secret>", only its hash is stored */
             token?: string;
+            /**
+             * @description Only in the create response, when APP_PUBLIC_URL is set; opens the web queue screen with the token in the URL fragment
+             * @example https://order.example.com/antrean#t=<token>
+             */
+            display_url?: string;
         };
         QueueView: {
             store_name: string;
@@ -4250,6 +4385,8 @@ export interface components {
             capacity: number;
             /** @description Opaque 256-bit base64url token printed as QR (decision QR1); omitted for staff without table.qr.manage */
             qr_token?: string;
+            /** @description Guest ordering link to print as the table QR (APP_PUBLIC_URL + "/order/" + qr_token); present only together with qr_token */
+            qr_url?: string;
             /** Format: date-time */
             qr_rotated_at: string;
             is_active: boolean;
@@ -4571,15 +4708,17 @@ export interface components {
         };
         CreateApprovalRequest: {
             /** @enum {string} */
-            action: "void" | "refund" | "stock_override" | "shift_variance" | "outlet_expense" | "discount";
+            action: "void" | "void_item" | "refund" | "stock_override" | "shift_variance" | "outlet_expense" | "discount";
             /**
              * Format: uuid
-             * @description Order (void), payment (refund), product (stock_override) or shift (shift_variance)
+             * @description Order (void), order item of an open tab (void_item), payment (refund), product (stock_override) or shift (shift_variance)
              */
             reference_id: string;
             params?: {
                 /** @description Required for stock_override */
                 new_quantity?: number;
+                /** @description Required for void_item: units taken off the line */
+                quantity?: number;
                 /**
                  * Format: int64
                  * @description Required for shift_variance
@@ -4602,7 +4741,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             /** @enum {string} */
-            action: "void" | "refund" | "stock_override" | "shift_variance" | "outlet_expense" | "discount";
+            action: "void" | "void_item" | "refund" | "stock_override" | "shift_variance" | "outlet_expense" | "discount";
             /** Format: uuid */
             reference_id: string;
             /** @description Order number, product name or drawer name */
@@ -4750,6 +4889,8 @@ export interface components {
             };
             /** Format: uuid */
             order_id: string;
+            /** @description Whether the "Powered by Cassy" footer badge should be hidden on public receipt pages. */
+            hide_powered_by_badge?: boolean;
             order_number: string;
             queue_number: string;
             table_number?: string;
@@ -5865,6 +6006,28 @@ export interface components {
                 "application/json": components["schemas"]["ConflictResponse"];
             };
         };
+        /**
+         * @description The store's subscription plan quota for this resource is full (`PLAN_LIMIT_REACHED`, PM-E1).
+         *     Archive, revoke, or deactivate an existing item or upgrade the plan. Limits come from
+         *     `subscription_plans` (`max_products`, `max_staff`, `max_devices`, `max_tables`, `max_printers`; 0 = unlimited).
+         */
+        PlanLimitReached: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    code: "PLAN_LIMIT_REACHED";
+                    /** @example Paket Anda mencakup maksimal 2 perangkat POS aktif. Nonaktifkan yang tidak dipakai atau tingkatkan paket. */
+                    error: string;
+                    /** @enum {string} */
+                    resource: "products" | "staff" | "devices" | "tables" | "printers";
+                    limit: number;
+                    plan_code: string;
+                };
+            };
+        };
         /** @description Field-level validation errors (`VALIDATION_FAILED`) */
         ValidationFailed: {
             headers: {
@@ -6194,6 +6357,7 @@ export interface operations {
                 content?: never;
             };
             400: components["responses"]["InvalidJSON"];
+            402: components["responses"]["PlanLimitReached"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationFailed"];
@@ -8492,6 +8656,7 @@ export interface operations {
                 };
             };
             400: components["responses"]["InvalidJSON"];
+            402: components["responses"]["PlanLimitReached"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationFailed"];
@@ -8580,6 +8745,15 @@ export interface operations {
             };
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            /** @description TABLE_SESSION_OPEN (the table is occupied or merged into an open session) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     openTableSession: {
@@ -9167,6 +9341,13 @@ export interface operations {
         responses: {
             /** @description One link per person */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description `SPLIT_BILL_DISABLED` when the store turned split_bill off */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -10018,6 +10199,77 @@ export interface operations {
             };
         };
     };
+    divideOrderByCashier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ResourceID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    strategy: "equal" | "by_item";
+                    split_count?: number;
+                    splits?: {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+        };
+        responses: {
+            /** @description Order with its new shares */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        order: components["schemas"]["Order"];
+                        splits: components["schemas"]["PaymentSplit"][];
+                    };
+                };
+            };
+            /** @description INVALID_JSON or INVALID_SPLIT_STRATEGY */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Role not allowed, or `SPLIT_BILL_DISABLED` when the store turned the split_bill flag off */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["NotFound"];
+            /** @description SPLIT_NOT_ALLOWED (payment started, order expired or not pay-first pending, or already divided) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description INVALID_SPLIT_COUNT (2 to 20) or ITEM_ALLOCATION_MISMATCH (every line allocated exactly once) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     closeTab: {
         parameters: {
             query?: never;
@@ -10071,6 +10323,13 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description `SPLIT_BILL_DISABLED` for an equal or by_item close when the store turned split_bill off */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Tab already closed or conflict */
             409: {
                 headers: {
@@ -10116,6 +10375,96 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    voidTabItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    quantity: number;
+                    reason: string;
+                    /** @description Cashier PIN */
+                    pin: string;
+                    /** @description Owner PIN entered on this device */
+                    owner_pin?: string;
+                    /**
+                     * Format: uuid
+                     * @description Approved void_item request
+                     */
+                    approval_id?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Line voided */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        order?: components["schemas"]["Order"];
+                        /** @description 0 when the line was removed */
+                        remaining_quantity?: number;
+                        /** @description false when the kitchen had started the line */
+                        stock_returned?: boolean;
+                    };
+                };
+            };
+            /** @description INVALID_STAFF_PIN or INVALID_OWNER_PIN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description FORBIDDEN (lacks order.void) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description NOT_FOUND (tab or line not in this store) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description TAB_NOT_OPEN or APPROVAL_INVALID */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description VALIDATION_FAILED (quantity, reason) or OWNER_PIN_REQUIRED (above the threshold without owner_pin or approval_id) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
             };
         };
     };
@@ -10995,6 +11344,7 @@ export interface operations {
                     "application/json": components["schemas"]["Device"];
                 };
             };
+            402: components["responses"]["PlanLimitReached"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["ValidationFailed"];
@@ -11030,6 +11380,81 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationFailed"];
+        };
+    };
+    issueDevicePairingToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                    prefix: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Token issued; shown once */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description <store_id>.<token_id>.<secret>; only a SHA-256 hash of the secret is stored. */
+                        pairing_token: string;
+                        store_slug: string;
+                        /** Format: date-time */
+                        expires_at: string;
+                    };
+                };
+            };
+            402: components["responses"]["PlanLimitReached"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationFailed"];
+        };
+    };
+    pairDevice: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    pairing_token: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Device paired; `credential` shown once */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Device"];
+                };
+            };
+            400: components["responses"]["InvalidJSON"];
+            /** @description Token malformed, unknown, expired, already used, or store/issuer deactivated (`PAIRING_TOKEN_INVALID`) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            402: components["responses"]["PlanLimitReached"];
+            409: components["responses"]["Conflict"];
         };
     };
     revokeDevice: {
@@ -11225,6 +11650,28 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
         };
     };
+    listPosPrinters: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tablet printers, without agent tokens */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        printers: components["schemas"]["Printer"][];
+                    };
+                };
+            };
+        };
+    };
     listPrinters: {
         parameters: {
             query?: never;
@@ -11270,6 +11717,7 @@ export interface operations {
                     "application/json": components["schemas"]["Printer"];
                 };
             };
+            402: components["responses"]["PlanLimitReached"];
             403: components["responses"]["Forbidden"];
             /** @description Invalid printer settings */
             422: {
@@ -11306,6 +11754,7 @@ export interface operations {
                     "application/json": components["schemas"]["Printer"];
                 };
             };
+            402: components["responses"]["PlanLimitReached"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             /** @description Invalid printer settings */
@@ -13103,6 +13552,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+            402: components["responses"]["PlanLimitReached"];
             /** @description Not an owner (`FORBIDDEN`) */
             403: {
                 headers: {

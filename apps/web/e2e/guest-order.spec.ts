@@ -240,7 +240,7 @@ test("pesanan siap: toast muncul dan langkah siap diberi jam", async ({ page }) 
   await addAndOpenCart(page);
   await page.getByRole("button", { name: "Bayar Rp 28.750" }).click();
   await expect(page.getByRole("heading", { name: "Pembayaran diterima" })).toBeVisible();
-  const result = page.getByRole("heading", { name: "Pembayaran diterima" }).locator("xpath=preceding-sibling::span[1]");
+  const result = page.getByRole("heading", { name: "Pembayaran diterima" }).locator("xpath=../preceding-sibling::span[1]");
   await expect(result).toHaveCSS("animation-name", "pop");
   await expect(result).toHaveCSS("animation-duration", "0.3s");
 
@@ -296,7 +296,7 @@ test("animasi hasil bayar mati saat reduced motion", async ({ page }) => {
   await mockCheckout(page, { status: "queued", payment_status: "paid" });
   await addAndOpenCart(page);
   await page.getByRole("button", { name: "Bayar Rp 28.750" }).click();
-  const icon = page.getByRole("heading", { name: "Pembayaran diterima" }).locator("xpath=preceding-sibling::span[1]");
+  const icon = page.getByRole("heading", { name: "Pembayaran diterima" }).locator("xpath=../preceding-sibling::span[1]");
   await expect(icon).toHaveCSS("animation-name", "none");
   await expect(page.getByRole("button", { name: "Pesan lagi" })).toHaveCSS("transition-duration", "0s");
 });
@@ -572,4 +572,125 @@ test.describe("bagi tagihan (W13, di belakang split_enabled)", () => {
     await page.goto("/bagian/nope");
     await expect(page.getByRole("heading", { name: "Tautan bagian tidak berlaku" })).toBeVisible();
   });
+});
+
+test("gerai tutup tidak membolehkan tambah ke keranjang dari modal detail produk", async ({ page }) => {
+  await mockStore(page, { ordering_open: false, closed_reason: "store_closed" });
+  await page.goto("/order/T1");
+  await page.getByRole("button", { name: "Detail Croissant" }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByText("Pemesanan sedang ditutup.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Masukkan keranjang" })).toHaveCount(0);
+});
+
+test("drawer Pesanan Saya menampilkan riwayat sesi dan membuka pesanan aktif", async ({ page }) => {
+  await mockStore(page);
+  const now = new Date().toISOString();
+  await page.route("**/api/v1/public/guest/orders", (r) =>
+    r.request().method() === "GET"
+      ? r.fulfill(
+          json({
+            orders: [
+              { id: "o1", order_number: "A-014", queue_number: "14", status: "pending_payment", payment_status: "unpaid", total_amount: 28750, created_at: now },
+              { id: "o0", order_number: "A-010", queue_number: "10", status: "completed", payment_status: "paid", total_amount: 45000, created_at: now }
+            ]
+          })
+        )
+      : r.fulfill(json({ order: { id: "o1", order_number: "A-014" }, tracking_token: "trk" }, 201))
+  );
+  await page.route("**/api/v1/public/guest/orders/o1/payments", (r) =>
+    r.fulfill(json({ payment: { id: "p1", qr_string: "00020101", amount: 28750, expires_at: new Date(Date.now() + 15 * 60_000).toISOString() } }, 201))
+  );
+  await page.route("**/api/v1/public/guest/ws-ticket", (r) => r.fulfill(json({}, 503)));
+  await page.route("**/api/v1/public/orders/track/trk", (r) =>
+    r.fulfill(json({ order_number: "A-014", status: "pending_payment", payment_status: "unpaid" }))
+  );
+
+  await addAndOpenCart(page);
+  await page.getByRole("button", { name: "Bayar Rp 28.750" }).click();
+  await expect(page.getByText("Menunggu pembayaran")).toBeVisible();
+  await page.getByRole("button", { name: /Kembali ke menu/ }).click();
+
+  await page.getByRole("button", { name: /Pesanan \(1\)/ }).click();
+  const dialog = page.getByRole("dialog", { name: "Pesanan saya" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText("A-014");
+  await expect(dialog).toContainText("A-010");
+  await expect(dialog).toContainText("Rp 45.000");
+
+  await dialog.getByRole("button", { name: "Lihat pesanan aktif" }).click();
+  await expect(page.getByText("Menunggu pembayaran")).toBeVisible();
+});
+
+test("paket bundle memvalidasi semua slot dan mengirim bundle_items ke quote dan order", async ({ page }) => {
+  await mockStore(page);
+  const bundleCatalog = {
+    ...CATALOG,
+    products: [
+      ...CATALOG.products,
+      {
+        id: "paket-pagi",
+        category_id: "coffee",
+        name: "Paket Pagi",
+        available: true,
+        variants: [{ id: "v-pkt", name: "Reguler", price: 50000, is_default: true, available: true }],
+        modifier_groups: [],
+        bundle_slots: [
+          { id: "slot-drink", name: "Pilih Minuman", quantity: 1, display_order: 1, product_ids: ["latte"] },
+          { id: "slot-food", name: "Pilih Roti", quantity: 1, display_order: 2, product_ids: ["croissant"] }
+        ]
+      }
+    ]
+  };
+  let quoteBody: { items?: Array<{ product_id?: string; bundle_items?: unknown[] }> } = {};
+  let orderBody: { items?: Array<{ product_id?: string; bundle_items?: unknown[] }> } = {};
+  await page.route("**/api/v1/public/stores/senja/catalog", (r) => r.fulfill(json(bundleCatalog)));
+  await page.route("**/api/v1/public/stores/senja/orders/quote", (r) => {
+    quoteBody = r.request().postDataJSON();
+    return r.fulfill(
+      json({
+        subtotal_amount: 50000,
+        discount_amount: 0,
+        service_charge_amount: 2500,
+        tax_amount: 5000,
+        total_amount: 57500,
+        quote_fingerprint: "fp-pkt",
+        lines: [{ product_name: "Paket Pagi", variant_name: "Reguler", quantity: 1, subtotal_amount: 50000 }]
+      })
+    );
+  });
+  await page.route("**/api/v1/public/guest/orders", (r) => {
+    orderBody = r.request().postDataJSON();
+    return r.fulfill(json({ order: { id: "o-pkt", order_number: "A-020" }, tracking_token: "trk-pkt" }, 201));
+  });
+  await page.route("**/api/v1/public/guest/orders/o-pkt/payments", (r) =>
+    r.fulfill(json({ payment: { id: "p-pkt", qr_string: "00020101", amount: 57500 } }, 201))
+  );
+  await page.route("**/api/v1/public/guest/ws-ticket", (r) => r.fulfill(json({}, 503)));
+  await page.route("**/api/v1/public/orders/track/trk-pkt", (r) =>
+    r.fulfill(json({ order_number: "A-020", status: "pending_payment", payment_status: "unpaid" }))
+  );
+
+  await page.goto("/order/T1");
+  await page.getByRole("button", { name: "Pilih Paket Pagi" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("button", { name: "Masukkan keranjang" }).click();
+  await expect(dialog.getByText("Lengkapi pilihan")).toBeVisible();
+
+  await dialog.getByLabel("Caffe Latte").check();
+  await dialog.getByLabel(/Oat/).check();
+  await dialog.getByLabel("Croissant").check();
+  await dialog.getByRole("button", { name: "Masukkan keranjang" }).click();
+
+  await page.getByRole("button", { name: /Lihat keranjang \(1 item\)/ }).click();
+  await expect(page.getByRole("dialog")).toContainText("Rp 57.500");
+  expect(quoteBody.items?.[0]?.product_id).toBe("paket-pagi");
+  expect(quoteBody.items?.[0]?.bundle_items).toEqual([
+    { slot_id: "slot-drink", product_id: "latte", variant_id: "v-l", modifiers: [{ option_id: "oat", quantity: 1, sub_addons: [] }] },
+    { slot_id: "slot-food", product_id: "croissant", variant_id: "v-c", modifiers: [] }
+  ]);
+
+  await page.getByRole("button", { name: "Bayar Rp 57.500" }).click();
+  await expect(page.getByText("Menunggu pembayaran")).toBeVisible();
+  expect(orderBody.items?.[0]?.bundle_items).toEqual(quoteBody.items?.[0]?.bundle_items);
 });

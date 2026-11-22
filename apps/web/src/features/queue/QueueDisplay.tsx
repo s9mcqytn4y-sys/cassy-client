@@ -5,6 +5,7 @@ import { Bell, Clock, Wifi, WifiOff } from "lucide-react";
 import { useLocale } from "@/components/Providers";
 import { DataStateBox } from "@/components/Shell";
 import { ApiError, apiFetch } from "@/lib/api";
+import { normalizeSubmissionText, stripControlChars } from "@/lib/sanitize";
 import { reconnectDelay } from "@/features/order/status";
 
 interface QueueEntry {
@@ -200,7 +201,7 @@ export function QueueDisplay() {
   const submit = useCallback(
     (e: FormEvent) => {
       e.preventDefault();
-      const value = draft.trim();
+      const value = normalizeSubmissionText(draft, 256);
       if (!value) return;
       storeToken(value);
       setError(null);
@@ -214,32 +215,35 @@ export function QueueDisplay() {
 
   if (!token) {
     return (
-      <div className="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-6 px-4 py-10">
-        <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-ink">{t.queueSetupTitle}</h1>
-          <p className="mt-2 text-sm leading-relaxed text-subink">{t.queueSetupBody}</p>
+      <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-5 py-10 md:max-w-lg">
+        <div className="flex flex-col gap-6 rounded-3xl border border-subtle bg-surface p-6 shadow-sm md:p-8">
+          <div>
+            <h1 className="font-display text-2xl font-bold tracking-tight text-ink">{t.queueSetupTitle}</h1>
+            <p className="mt-2 text-sm leading-relaxed text-subink">{t.queueSetupBody}</p>
+          </div>
+          {error ? (
+            <p role="alert" className="rounded-xl bg-[var(--state-err-bg)] px-4 py-3 text-sm text-[var(--state-err-fg)]">
+              {error}
+            </p>
+          ) : null}
+          <form onSubmit={submit} className="flex flex-col gap-3">
+            <label htmlFor="display-token" className="text-sm font-semibold text-ink">
+              {t.queueTokenLabel}
+            </label>
+            <input
+              id="display-token"
+              value={draft}
+              onChange={(e) => setDraft(stripControlChars(e.target.value, 256))}
+              maxLength={256}
+              autoComplete="off"
+              spellCheck={false}
+              className="min-h-[48px] rounded-xl border border-strong bg-surface px-4 text-base text-ink"
+            />
+            <button type="submit" disabled={!draft.trim()} className="btn-primary min-h-[48px] cursor-pointer px-5 text-sm font-semibold">
+              {t.queueTokenSubmit}
+            </button>
+          </form>
         </div>
-        {error ? (
-          <p role="alert" className="rounded-xl bg-[var(--state-err-bg)] px-4 py-3 text-sm text-[var(--state-err-fg)]">
-            {error}
-          </p>
-        ) : null}
-        <form onSubmit={submit} className="flex flex-col gap-3">
-          <label htmlFor="display-token" className="text-sm font-semibold text-ink">
-            {t.queueTokenLabel}
-          </label>
-          <input
-            id="display-token"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            autoComplete="off"
-            spellCheck={false}
-            className="min-h-[48px] rounded-xl border border-strong bg-surface px-4 text-base text-ink"
-          />
-          <button type="submit" disabled={!draft.trim()} className="btn-primary min-h-[48px] px-5 text-sm font-semibold">
-            {t.queueTokenSubmit}
-          </button>
-        </form>
       </div>
     );
   }
@@ -295,7 +299,7 @@ export function QueueDisplay() {
         <div className="md:col-span-5">
           <QueueColumn title={t.queuePreparing} numbers={preparing} emptyText={t.queueNonePreparing} tone="muted" />
         </div>
-        <div className="flex flex-col gap-4 md:col-span-7">
+        <div className="order-first flex flex-col gap-4 md:order-last md:col-span-7">
           {spotlight ? (
             <section
               aria-label="Baru dipanggil"
@@ -335,7 +339,7 @@ function QueueColumn({ title, numbers, emptyText, tone }: { title: string; numbe
       {numbers.length === 0 ? (
         <p className="text-base text-subink ipad:text-xl">{emptyText}</p>
       ) : (
-        <ul aria-live="polite" className="grid grid-cols-2 gap-3 sm:grid-cols-3 ipad:gap-4">
+        <ul aria-live="polite" className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 ipad:gap-4">
           {numbers.map((o) => (
             <li
               key={o.queue_number}

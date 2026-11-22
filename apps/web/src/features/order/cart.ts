@@ -3,12 +3,21 @@ export interface SelectedOption {
   subOptionIds: string[];
 }
 
+export interface SelectedBundleItem {
+  slotId: string;
+  productId: string;
+  variantId?: string;
+  options: SelectedOption[];
+  notes?: string;
+}
+
 export interface CartLine {
   key: string;
   productId: string;
   variantId?: string;
   name: string;
   options: SelectedOption[];
+  bundleItems?: SelectedBundleItem[];
   quantity: number;
   notes: string;
   // Names of the chosen size and add-ons, kept for display so two lines of one product never look alike
@@ -22,12 +31,20 @@ export type CartAction =
   | { type: "replace"; lines: CartLine[] }
   | { type: "clear" };
 
-function lineKey(line: Omit<CartLine, "key">): string {
-  const options = line.options
+function serializeOptions(options: SelectedOption[]): string {
+  return options
     .map((o) => `${o.optionId}(${[...o.subOptionIds].sort().join(",")})`)
     .sort()
     .join("|");
-  return [line.productId, line.variantId ?? "", options, line.notes].join("#");
+}
+
+function lineKey(line: Omit<CartLine, "key">): string {
+  const options = serializeOptions(line.options);
+  const bundles = (line.bundleItems ?? [])
+    .map((b) => `${b.slotId}:${b.productId}:${b.variantId ?? ""}:${serializeOptions(b.options)}:${b.notes ?? ""}`)
+    .sort()
+    .join(";");
+  return [line.productId, line.variantId ?? "", options, bundles, line.notes].join("#");
 }
 
 export function cartReducer(state: CartLine[], action: CartAction): CartLine[] {
@@ -68,16 +85,31 @@ export function optionNames(raw?: string): string[] {
   }
 }
 
+function mapModifiers(options: SelectedOption[]) {
+  return options.map((o) => ({
+    option_id: o.optionId,
+    quantity: 1,
+    sub_addons: o.subOptionIds.map((id) => ({ option_id: id, quantity: 1 }))
+  }));
+}
+
 export function toOrderItems(lines: CartLine[]) {
   return lines.map((l) => ({
     product_id: l.productId,
     variant_id: l.variantId,
     quantity: l.quantity,
     notes: l.notes,
-    modifiers: l.options.map((o) => ({
-      option_id: o.optionId,
-      quantity: 1,
-      sub_addons: o.subOptionIds.map((id) => ({ option_id: id, quantity: 1 }))
-    }))
+    modifiers: mapModifiers(l.options),
+    ...(l.bundleItems?.length
+      ? {
+          bundle_items: l.bundleItems.map((b) => ({
+            slot_id: b.slotId,
+            product_id: b.productId,
+            variant_id: b.variantId,
+            modifiers: mapModifiers(b.options),
+            ...(b.notes ? { notes: b.notes } : {})
+          }))
+        }
+      : {})
   }));
 }

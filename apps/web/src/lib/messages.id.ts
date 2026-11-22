@@ -160,6 +160,7 @@ export const id = {
   callWaiterNote: "Catatan untuk staf (opsional)",
   callWaiterSending: "Mengirim...",
   callWaiterSent: "Permintaan terkirim. Staf segera datang.",
+  callWaiterCooldownBanner: "Panggilan pelayan baru saja dikirim. Anda dapat memanggil kembali setelah jeda 60 detik.",
   callWaiterFailed: "Permintaan belum terkirim. Coba lagi.",
   callWaiterEmpty: "Belum ada permintaan yang bisa dipilih. Silakan panggil staf langsung.",
   callWaiterMine: "Permintaan Anda",
@@ -213,8 +214,10 @@ export const id = {
   addedToCart: "Ditambahkan ke keranjang.",
   downloadReceiptPdf: "Unduh PDF Struk",
   printReceipt: "Cetak Struk",
-  legalIntegrityLabel: "Integritas dokumen (SHA-256)",
-  copyHash: "Salin hash",
+  pairingTitle: "Cocok dipesan bersama",
+  pairingAdd: "Tambah",
+  receiptB2bAttribution: "Ditenagai Cassy oleh AzureDevID. Kasir, meja QR, dan dapur dalam satu harga jujur.",
+  receiptB2bCta: "Info untuk mitra gerai",
   queueSetupTitle: "Layar antrean",
   queueSetupBody: "Tempel kode layar dari tablet owner (Pengaturan, Layar antrean), atau buka tautan yang dibagikan dari sana.",
   queueTokenLabel: "Kode layar",
@@ -226,7 +229,20 @@ export const id = {
   queuePreparing: "Sedang disiapkan",
   queueReady: "Siap diambil",
   queueNonePreparing: "Belum ada pesanan yang disiapkan.",
-  queueNoneReady: "Belum ada pesanan yang siap."
+  queueNoneReady: "Belum ada pesanan yang siap.",
+  myOrders: "Pesanan",
+  ordersTitle: "Pesanan saya",
+  ordersEmpty: "Belum ada pesanan di sesi meja ini.",
+  openActiveOrder: "Lihat pesanan aktif",
+  refreshOrders: "Muat ulang",
+  bundleChoose: "Paket pilihan",
+  storeClosedAction: "Pemesanan sedang ditutup.",
+  orderStatusPending: "Menunggu bayar",
+  orderStatusQueued: "Dalam antrean",
+  orderStatusPreparing: "Disiapkan",
+  orderStatusReady: "Siap diambil",
+  orderStatusServed: "Selesai",
+  orderStatusCancelled: "Dibatalkan"
 };
 
 export type Messages = typeof id;

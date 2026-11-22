@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Download, Printer } from "lucide-react";
+import Link from "next/link";
 import { useLocale } from "@/components/Providers";
+import { DataStateBox } from "@/components/Shell";
 import { ApiError, apiFetch, isMaintenance } from "@/lib/api";
 import { formatIdr } from "@/lib/format";
 import type { Messages } from "@/lib/messages";
@@ -10,6 +12,7 @@ import { isFinal, orderPhase, progressStep } from "@/features/order/status";
 
 interface Receipt {
   store: { name: string; address?: string };
+  hide_powered_by_badge?: boolean;
   order_number: string;
   status: string;
   payment_status: string;
@@ -47,7 +50,7 @@ function Row({ label, value, strong }: { label: string; value: number; strong?: 
 }
 
 export function ReceiptView({ token, mode = "token" }: { token: string; mode?: "token" | "short" }) {
-  const { t, locale } = useLocale();
+  const { t, locale, hidePoweredBy, setHidePoweredBy } = useLocale();
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "missing" | "maintenance" | "failed">("loading");
   const apiBasePath =
@@ -57,7 +60,8 @@ export function ReceiptView({ token, mode = "token" }: { token: string; mode?: "
 
   const load = useCallback(async () => {
     try {
-      setReceipt(await apiFetch<Receipt>(apiBasePath));
+      const r = await apiFetch<Receipt>(apiBasePath);
+      setReceipt(r);
       setState("ready");
     } catch (e) {
       setState(e instanceof ApiError && e.status === 404 ? "missing" : isMaintenance(e) ? "maintenance" : "failed");
@@ -67,6 +71,11 @@ export function ReceiptView({ token, mode = "token" }: { token: string; mode?: "
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    setHidePoweredBy(Boolean(receipt?.hide_powered_by_badge));
+    return () => setHidePoweredBy(false);
+  }, [receipt?.hide_powered_by_badge, setHidePoweredBy]);
 
   // Follow the order until it is done, only while the guest is looking; no push, no email.
   const done = receipt ? isFinal(receipt) : true;
@@ -79,33 +88,37 @@ export function ReceiptView({ token, mode = "token" }: { token: string; mode?: "
   }, [done, load]);
 
   if (state === "loading") {
-    return <p className="mx-auto max-w-md px-5 py-10 text-subink">{t.receiptLoading}</p>;
+    return (
+      <div className="mx-auto max-w-md px-5 py-10 md:max-w-lg">
+        <DataStateBox state="loading" title={t.receiptLoading} description={t.receiptTitle} />
+      </div>
+    );
   }
   if (state !== "ready" || !receipt) {
-    const [title, body] =
+    const [title, body, illustration] =
       state === "missing"
-        ? [t.receiptMissingTitle, t.receiptMissingBody]
+        ? [t.receiptMissingTitle, t.receiptMissingBody, "notFound" as const]
         : state === "maintenance"
-          ? [t.maintenanceTitle, t.maintenanceBody]
-          : [t.loadFailedTitle, t.loadFailedBody];
+          ? [t.maintenanceTitle, t.maintenanceBody, "maintenance" as const]
+          : [t.loadFailedTitle, t.loadFailedBody, "offline" as const];
     return (
-      <section className="mx-auto max-w-md px-5 py-10">
-        <h1 className="text-2xl font-bold">{title}</h1>
-        <p className="mt-2 text-base">{body}</p>
-        {state !== "missing" ? (
-          <button type="button" onClick={() => void load()} className="btn-primary mt-6 min-h-[48px] px-6 font-bold">
-            {t.retry}
-          </button>
-        ) : null}
-      </section>
+      <div className="mx-auto max-w-md px-5 py-10 md:max-w-lg">
+        <DataStateBox
+          state="error"
+          illustration={illustration}
+          title={title}
+          description={body}
+          onRetry={state !== "missing" ? () => void load() : undefined}
+        />
+      </div>
     );
   }
 
   const methods = [...new Set(receipt.payments.map((p) => METHOD[p.method] ?? p.method))];
   const isPaid = receipt.payment_status?.toLowerCase() === "paid";
   return (
-    <section className="mx-auto max-w-md px-5 py-8">
-      <div className="rounded-3xl border border-subtle bg-surface p-6">
+    <section className="mx-auto max-w-md px-5 py-8 md:max-w-lg">
+      <div className="rounded-3xl border border-subtle bg-surface p-6 shadow-sm md:p-8">
         <div className="flex items-start justify-between gap-3 border-b border-subtle pb-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-subink">{t.receiptTitle}</p>
@@ -191,6 +204,18 @@ export function ReceiptView({ token, mode = "token" }: { token: string; mode?: "
         </button>
       </div>
       </div>
+
+      {!hidePoweredBy ? (
+        <aside className="mt-4 rounded-2xl border border-subtle bg-surface px-4 py-3 text-center text-xs text-subink print:hidden">
+          <p>{t.receiptB2bAttribution}</p>
+          <Link
+            href="/legal/mitra"
+            className="mt-1 inline-flex min-h-[44px] items-center font-semibold text-brand underline underline-offset-4 hover:opacity-80"
+          >
+            {t.receiptB2bCta}
+          </Link>
+        </aside>
+      ) : null}
     </section>
   );
 }

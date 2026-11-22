@@ -22,8 +22,8 @@ function useItem(product: CatalogProduct, canOrder: boolean) {
   const variant = defaultVariant(product);
   const soldOut = !product.available || !variant;
   const bundled = (product.bundle_slots?.length ?? 0) > 0;
-  const needsChoice = product.variants.length > 1 || product.modifier_groups.length > 0;
-  return { variant, soldOut, bundled, needsChoice, showAdd: !soldOut && !bundled && canOrder };
+  const needsChoice = product.variants.length > 1 || product.modifier_groups.length > 0 || bundled;
+  return { variant, soldOut, bundled, needsChoice, showAdd: !soldOut && canOrder };
 }
 
 function AddButton({ product, needsChoice, onOpen, onQuickAdd }: { product: CatalogProduct; needsChoice: boolean; onOpen: () => void; onQuickAdd: () => void }) {
@@ -40,10 +40,26 @@ function AddButton({ product, needsChoice, onOpen, onQuickAdd }: { product: Cata
   );
 }
 
-function Meta({ soldOut, bundled, needsChoice }: { soldOut: boolean; bundled: boolean; needsChoice: boolean }) {
+function Meta({
+  soldOut,
+  soldOutReason,
+  bundled,
+  needsChoice
+}: {
+  soldOut: boolean;
+  soldOutReason?: string | null;
+  bundled: boolean;
+  needsChoice: boolean;
+}) {
   const { t } = useLocale();
-  if (soldOut) return <span className="text-xs font-semibold text-[var(--state-err-fg)]">{t.soldOut}</span>;
-  if (bundled) return <span className="text-xs text-subink">{t.askStaff}</span>;
+  if (soldOut) {
+    return (
+      <span className="line-clamp-1 text-xs font-semibold text-[var(--state-err-fg)]">
+        {soldOutReason ? `${t.soldOut}: ${soldOutReason}` : t.soldOut}
+      </span>
+    );
+  }
+  if (bundled) return <span className="text-xs text-subink">{t.bundleChoose}</span>;
   return needsChoice ? <span className="text-xs text-subink">{t.hasOptions}</span> : null;
 }
 
@@ -65,7 +81,7 @@ export function ProductCard({ product, canOrder, onOpen, onQuickAdd, eager = fal
       <div className="flex flex-1 flex-col gap-1.5 p-3.5">
         <h3 className="line-clamp-2 min-h-[2.5rem] text-[0.9375rem] font-semibold leading-snug text-ink">{product.name}</h3>
         {product.description ? <p className="line-clamp-2 text-xs leading-relaxed text-subink">{product.description}</p> : null}
-        <Meta {...item} />
+        <Meta {...item} soldOutReason={product.sold_out_reason} />
         <div className="mt-auto flex items-center justify-between gap-2 pt-2">
           <p className="text-base font-bold tabular-nums text-ink">{item.variant ? formatIdr(item.variant.price) : ""}</p>
           {item.showAdd ? <AddButton product={product} needsChoice={item.needsChoice} onOpen={onOpen} onQuickAdd={onQuickAdd} /> : null}
@@ -86,7 +102,7 @@ export function ProductRow({ product, canOrder, onOpen, onQuickAdd }: ItemProps)
         {product.description ? <span className="mt-0.5 line-clamp-2 block text-sm text-subink">{product.description}</span> : null}
         <span className="mt-1 flex items-center gap-2">
           <span className="text-base font-bold tabular-nums">{item.variant ? formatIdr(item.variant.price) : ""}</span>
-          <Meta {...item} />
+          <Meta {...item} soldOutReason={product.sold_out_reason} />
         </span>
       </button>
       {item.showAdd ? <AddButton product={product} needsChoice={item.needsChoice} onOpen={onOpen} onQuickAdd={onQuickAdd} /> : null}

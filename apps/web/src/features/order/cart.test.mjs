@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { cartReducer, optionNames, toOrderItems } from "./cart.ts";
 import { checkoutMessageKey, isFinal, moneyTaken, orderPhase, progressStep, readActiveOrder, reconnectDelay, safeDeeplink, writeActiveOrder } from "./status.ts";
-import { menuSections } from "./menu.ts";
+import { menuSections, pickSmartPairings } from "./menu.ts";
 
 const latte = { productId: "p1", variantId: "v1", name: "Latte", options: [], quantity: 1, notes: "" };
 const oat = { ...latte, options: [{ optionId: "oat", subOptionIds: ["b", "a"] }] };
@@ -111,3 +111,70 @@ assert.equal(isMaintenance(new ApiError(503, "x", { code: "MAINTENANCE" })), tru
 assert.equal(isMaintenance(new ApiError(503, "x", { code: "SERVICE_TEMPORARILY_UNAVAILABLE" })), false);
 assert.equal(isMaintenance(new ApiError(503, "x", null)), false);
 assert.equal(checkoutMessageKey("MAINTENANCE"), "maintenanceShort");
+
+// Bundle lines: same slot choices in another order merge, different choices stay separate, and toOrderItems maps bundle_items.
+const bundleA = {
+  productId: "bundle-1",
+  variantId: "v-b1",
+  name: "Paket Kopi & Roti",
+  options: [],
+  bundleItems: [
+    { slotId: "slot-drink", productId: "latte", variantId: "v-l", options: [{ optionId: "oat", subOptionIds: ["b", "a"] }] },
+    { slotId: "slot-food", productId: "croissant", variantId: "v-c", options: [] }
+  ],
+  quantity: 1,
+  notes: ""
+};
+const bundleAReordered = {
+  ...bundleA,
+  bundleItems: [
+    { slotId: "slot-food", productId: "croissant", variantId: "v-c", options: [] },
+    { slotId: "slot-drink", productId: "latte", variantId: "v-l", options: [{ optionId: "oat", subOptionIds: ["a", "b"] }] }
+  ]
+};
+const bundleB = {
+  ...bundleA,
+  bundleItems: [
+    { slotId: "slot-drink", productId: "americano", variantId: "v-a", options: [] },
+    { slotId: "slot-food", productId: "croissant", variantId: "v-c", options: [] }
+  ]
+};
+let bundleCart = cartReducer([], { type: "add", line: bundleA });
+bundleCart = cartReducer(bundleCart, { type: "add", line: bundleAReordered });
+assert.equal(bundleCart.length, 1, "identical bundle choices in another slot/sub-addon order merge");
+assert.equal(bundleCart[0].quantity, 2);
+bundleCart = cartReducer(bundleCart, { type: "add", line: bundleB });
+assert.equal(bundleCart.length, 2, "different bundle component stays a separate line");
+const mappedBundle = toOrderItems(bundleCart);
+assert.deepEqual(mappedBundle[0].bundle_items, [
+  {
+    slot_id: "slot-drink",
+    product_id: "latte",
+    variant_id: "v-l",
+    modifiers: [{ option_id: "oat", quantity: 1, sub_addons: [{ option_id: "b", quantity: 1 }, { option_id: "a", quantity: 1 }] }]
+  },
+  {
+    slot_id: "slot-food",
+    product_id: "croissant",
+    variant_id: "v-c",
+    modifiers: []
+  }
+]);
+assert.equal("bundle_items" in toOrderItems(cart)[0], false, "non-bundle line omits bundle_items");
+
+// Smart pairing: prefers complementary available simple products not yet in cart, capped at max.
+const simpleVariant = { id: "v", name: "Regular", price: 25000, is_default: true, available: true };
+const catalog = [
+  { id: "c1", category_id: "coffee", name: "Latte", available: true, variants: [simpleVariant], modifier_groups: [] },
+  { id: "c2", category_id: "coffee", name: "Americano", available: true, variants: [simpleVariant], modifier_groups: [] },
+  { id: "p1", category_id: "pastry", name: "Croissant", available: true, variants: [simpleVariant], modifier_groups: [] },
+  { id: "p2", category_id: "pastry", name: "Pain au Chocolat", available: true, variants: [simpleVariant], modifier_groups: [{ id: "g", name: "Warm", required: false, min: 0, max: 1, options: [] }] },
+  { id: "p3", category_id: "pastry", name: "Sold Out Tart", available: false, variants: [simpleVariant], modifier_groups: [] },
+  { id: "p4", category_id: "snack", name: "Cookies", available: true, variants: [simpleVariant], modifier_groups: [] }
+];
+assert.deepEqual(
+  pickSmartPairings(catalog, [{ key: "k", productId: "c1", name: "Latte", options: [], quantity: 1, notes: "" }], 2).map((p) => p.id),
+  ["p1", "p4"],
+  "skips in-cart, modifiers, and sold-out; picks complementary categories first"
+);
+assert.deepEqual(pickSmartPairings(catalog, [], 2), [], "empty cart returns no pairings");

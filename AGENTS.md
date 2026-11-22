@@ -1,4 +1,4 @@
-# Cassy Client Monorepo
+﻿# Cassy Client Monorepo
 
 Single source of agent instructions for this repo. `CLAUDE.md` and `GEMINI.md` import this file. App-specific rules live in `apps/web/AGENTS.md`, `apps/android/AGENTS.md`, and `apps/ios/AGENTS.md`. Global style, Caveman communication, and Karpathy coding rules are inherited from user global configuration.
 
@@ -18,7 +18,7 @@ Sibling folders inside `C:\Projects\CassyWorkspace`:
 - Docker (`Docker`, repo `s9mcqytn4y-sys/cassy-docker`): Standalone Compose, Nginx, Monitoring, and VPS Gateway definitions.
 - Business Vault (`C:\Users\Acer\OneDrive\Documents\AzureDevId`): Brand, legal, payment, and recovery docs (readable by authorized workspace config; never print, copy, or commit secret values).
 
-Source of Truth docs: `docs/PrdCassyV4.md`, `docs/ProjectManagement/README.md`, `docs/TechDebt.md`, `apps/android/docs/ReleaseOnePlan.md`.
+Source of Truth docs: `docs/PrdCassyV4.md`, `docs/ProjectManagement/README.md`, `docs/TechDebt.md`, `apps/android/docs/ReleaseOnePlan.md`, plus workspace UI/UX specs `../Docs/UiUxHandoffSpec.md`, `../Docs/PwaUiUxDissection.md`, `../Docs/BackendUiUxProposals.md`, and `apps/web/.stitch/SITE.md` (active live demo domain: `https://pos.abbdullaziz.online` & `https://api.abbdullaziz.online`; `pos.abbdullaziz.online` is retired).
 
 ## Non-Negotiable Client Rules
 
