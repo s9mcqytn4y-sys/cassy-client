@@ -228,6 +228,7 @@ class KdsViewModel(
 
     private fun concernsBoard(event: RealtimeEventEnvelope): Boolean {
         if (event.type == RealtimeEventEnvelope.TYPE_RESYNC_REQUIRED) return true
+        if (event.type in KDS_ORDER_EVENTS) return true
         if (!event.type.startsWith("kds.")) return false
         val eventStation = event.payloadString("station") ?: return true
         return eventStation == _uiState.value.station?.wireValue
@@ -254,6 +255,12 @@ class KdsViewModel(
         private const val KEY_STATION = "kds_station"
         private const val CODE_TRANSITION_NOT_ALLOWED = "KDS_TRANSITION_NOT_ALLOWED"
         private const val CLOCK_TICK_MILLIS = 15_000L
+        private val KDS_ORDER_EVENTS = setOf(
+            "order.cancelled",
+            "order.expired",
+            "order.item_voided",
+            "order.round_submitted"
+        )
 
         private fun sortOldestFirst(tickets: List<KdsTicket>) = tickets.sortedBy { it.createdAtMillis }
 

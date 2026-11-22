@@ -266,7 +266,7 @@ class CassyUiShowcaseTest {
     }
 
     private class ShowcaseServerSettingsRepo(
-        private var url: String = "https://demo.abbdullaziz.online"
+        private var url: String = "https://api.abbdullaziz.online"
     ) : ServerSettingsRepository {
         override fun getBaseUrl(): String = url
         override fun setBaseUrl(url: String) {

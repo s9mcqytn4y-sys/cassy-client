@@ -1544,10 +1544,30 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Pay one share with dynamic QRIS
-         * @description Only when `GUEST_SPLIT_ENABLED=true`. Requires `X-CSRF-Protection: 1`.
+         * Pay one share via QRIS, Virtual Account, or request cashier settlement (P-06)
+         * @description Only when `GUEST_SPLIT_ENABLED=true`. Requires `X-CSRF-Protection: 1`. Non-QRIS methods (`va`, `cashier`) require store flag `guest_split_multi_payment_enabled`.
          */
         post: operations["paySplitShare"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/guest/orders/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel an unpaid or pending guest order (P-05)
+         * @description Requires guest session cookie and `X-CSRF-Protection: 1`. Gated by store flag `guest_self_cancel_enabled`. Refuses with 409 if any payment is authorized, paid, partially_paid, or refunded; otherwise cancels pending payment attempts, releases unstarted stock, cancels unpaid split shares, frees `UNPAID_ORDER_LIMIT`, and emits `order.cancelled`.
+         */
+        post: operations["cancelGuestOrder"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2452,7 +2472,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Active printers the POS tablets print to directly (those with lan_address); any signed-in staff */
+        /** Active printers the POS tablets print to directly (LAN IP or Bluetooth MAC); any signed-in staff */
         get: operations["listPosPrinters"];
         put?: never;
         post?: never;
@@ -4226,7 +4246,7 @@ export interface components {
             id: string;
             name: string;
             /**
-             * @description receipt is the cashier printer; it is always printed by the tablets and needs lan_address
+             * @description receipt is the cashier printer; it is always printed by the tablets and needs lan_address or bluetooth_mac
              * @enum {string}
              */
             station: "bar" | "kitchen" | "checker" | "label" | "receipt";
@@ -4239,10 +4259,21 @@ export interface components {
             copies: number;
             footer: string;
             /**
+             * @description Transport mechanism used by POS tablets (lan TCP 9100 / print agent, or bluetooth Classic SPP)
+             * @default lan
+             * @enum {string}
+             */
+            transport_type: "lan" | "bluetooth";
+            /**
              * @description Private IPv4 "host:port". Set means the POS tablets print to it directly on the LAN and the print queue skips it
              * @example 192.168.1.50:9100
              */
             lan_address?: string;
+            /**
+             * @description Colon-separated Bluetooth MAC address for direct SPP ESC/POS printing from POS tablets
+             * @example AA:BB:CC:DD:EE:FF
+             */
+            bluetooth_mac?: string;
             is_active: boolean;
             /**
              * Format: date-time
@@ -4265,8 +4296,15 @@ export interface components {
             label_height_mm?: number;
             copies?: number;
             footer?: string;
-            /** @description Private IPv4 with an optional port (default 9100), normalized to "host:port". An empty string clears it. Required for receipt, not allowed for label */
+            /**
+             * @description Transport mechanism ("lan" or "bluetooth"). Switching clears the opposite address field.
+             * @enum {string}
+             */
+            transport_type?: "lan" | "bluetooth";
+            /** @description Private IPv4 with an optional port (default 9100), normalized to "host:port". An empty string clears it. Required for receipt when transport_type is lan, not allowed for label */
             lan_address?: string;
+            /** @description Colon-separated Bluetooth MAC address (AA:BB:CC:DD:EE:FF). Required when transport_type is bluetooth, not allowed for label */
+            bluetooth_mac?: string;
             is_active?: boolean;
         };
         AgentJob: {
@@ -4478,6 +4516,10 @@ export interface components {
             service_mode?: "pickup" | "table";
             /** @description True only when GUEST_SPLIT_ENABLED is on, so the guest page offers an equal split before paying. */
             split_enabled?: boolean;
+            /** @description Per-store guest capability flags (P-08) including guest_self_cancel_enabled, guest_split_equal_enabled, guest_split_by_item_enabled, guest_split_multi_payment_enabled, guest_bell_sound_enabled, cart_pairing_enabled, guest_email_receipt_enabled, call_waiter, and split_bill. */
+            features?: {
+                [key: string]: boolean;
+            };
         };
         CashDrawer: {
             /** Format: uuid */
@@ -9393,7 +9435,19 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        store_name?: string;
+                        label?: string;
+                        /** Format: int64 */
+                        amount?: number;
+                        status?: string;
+                        /** Format: date-time */
+                        cashier_requested_at?: string | null;
+                        hide_powered_by_badge?: boolean;
+                        multi_payment_enabled?: boolean;
+                    };
+                };
             };
             /** @description Unknown or expired link */
             404: {
@@ -9420,12 +9474,29 @@ export interface operations {
             content: {
                 "application/json": {
                     idempotency_key: string;
+                    /**
+                     * @default qris
+                     * @enum {string}
+                     */
+                    method?: "qris" | "va" | "cashier";
+                    /**
+                     * @description Required when method is `va`.
+                     * @enum {string}
+                     */
+                    bank?: "bca" | "bni" | "bri" | "mandiri" | "permata";
                 };
             };
         };
         responses: {
-            /** @description Pending QRIS charge (or idempotent replay) */
+            /** @description Pending QRIS/VA charge or cashier payment intent (`cashier_requested`) */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Multi-payment split disabled for this store */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9433,6 +9504,63 @@ export interface operations {
             };
             /** @description Unknown or expired link */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Split share is already paid or cancelled */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    cancelGuestOrder: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Must be `1`. Forces a CORS preflight so cross-site forms cannot use the refresh cookie. */
+                "X-CSRF-Protection": components["parameters"]["CsrfProtectionHeader"];
+            };
+            path: {
+                id: components["parameters"]["ResourceID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    reason?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Order cancelled (idempotent when already cancelled) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Guest self-cancel disabled for this store or missing CSRF header */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Order not found for this guest session */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Order already has settled/authorized payments (`ORDER_HAS_PAYMENTS`) */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

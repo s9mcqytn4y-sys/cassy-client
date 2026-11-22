@@ -1,8 +1,10 @@
 package com.azuredevid.cassy.ui.shift
 
 import com.azuredevid.cassy.R
+import com.azuredevid.cassy.core.hardware.BluetoothPrinterClient
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.core.hardware.ShiftReportThermalBuilder
+import com.azuredevid.cassy.core.hardware.UnifiedEscPosPrinter
 import com.azuredevid.cassy.core.security.SessionManager
 import com.azuredevid.cassy.domain.model.XReport
 import com.azuredevid.cassy.domain.model.ZReport
@@ -16,22 +18,24 @@ internal class ShiftReportPrinter(
     private val printerSettings: PrinterSettingsRepository,
     private val sessionManager: SessionManager?,
     private val printerManager: PrinterPort9100Manager,
-    private val thermalBuilder: ShiftReportThermalBuilder
+    private val thermalBuilder: ShiftReportThermalBuilder,
+    private val bluetoothPrinter: BluetoothPrinterClient? = null
 ) {
+    private val unifiedPrinter = UnifiedEscPosPrinter(printerManager, bluetoothPrinter)
 
     suspend fun printXReport(
         report: XReport,
         onPrintingStateChanged: (Boolean) -> Unit,
         onEffect: suspend (ShiftUiEffect) -> Unit
     ) {
-        val config = printerSettings.getConfig()
-        if (!config.hasCashierPrinter) {
+        val endpoint = printerSettings.getConfig().cashierEndpoint()
+        if (endpoint == null) {
             onEffect(ShiftUiEffect.ShowToast(UiText.res(R.string.msg_cashier_printer_missing)))
             return
         }
         onPrintingStateChanged(true)
         val payload = thermalBuilder.buildXReportReceipt(resolveStoreName(), report)
-        printerManager.printRawBytes(config.cashierPrinterIp, payload, config.cashierPrinterPort)
+        unifiedPrinter.printRawBytes(endpoint, payload)
             .onSuccess {
                 onPrintingStateChanged(false)
                 onEffect(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_xreport_printed)))
@@ -47,14 +51,14 @@ internal class ShiftReportPrinter(
         onPrintingStateChanged: (Boolean) -> Unit,
         onEffect: suspend (ShiftUiEffect) -> Unit
     ) {
-        val config = printerSettings.getConfig()
-        if (!config.hasCashierPrinter) {
+        val endpoint = printerSettings.getConfig().cashierEndpoint()
+        if (endpoint == null) {
             onEffect(ShiftUiEffect.ShowToast(UiText.res(R.string.msg_cashier_printer_missing)))
             return
         }
         onPrintingStateChanged(true)
         val payload = thermalBuilder.buildZReportReceipt(resolveStoreName(), report)
-        printerManager.printRawBytes(config.cashierPrinterIp, payload, config.cashierPrinterPort)
+        unifiedPrinter.printRawBytes(endpoint, payload)
             .onSuccess {
                 onPrintingStateChanged(false)
                 onEffect(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_zreport_printed)))
@@ -66,14 +70,14 @@ internal class ShiftReportPrinter(
     }
 
     suspend fun kickDrawerIfConfigured(onEffect: suspend (ShiftUiEffect) -> Unit) {
-        val config = printerSettings.getConfig()
-        if (!config.hasCashierPrinter) {
+        val endpoint = printerSettings.getConfig().cashierEndpoint()
+        if (endpoint == null) {
             onEffect(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_drawer_no_ip)))
             return
         }
-        printerManager.openCashDrawer(config.cashierPrinterIp, config.cashierPrinterPort)
+        unifiedPrinter.openCashDrawer(endpoint)
             .onFailure {
-                onEffect(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_drawer_failed, config.cashierPrinterIp)))
+                onEffect(ShiftUiEffect.ShowToast(UiText.res(R.string.shift_msg_drawer_failed, endpoint.displayLabel)))
             }
     }
 

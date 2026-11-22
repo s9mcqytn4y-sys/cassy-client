@@ -21,7 +21,6 @@ Prioritas: **T** tinggi (bayar sebelum pilot), **S** sedang (bayar dalam rilis b
 | O1 | `/opt/mycaffe` di host demo adalah salinan `deploy/` dan `scripts/`, bukan checkout git; perubahan konfigurasi deploy perlu disalin manual | S | Sebelum pilot VPS Jakarta: checkout git dengan tag rilis |
 | O2 | Port forwarding localhost Windows ke WSL putus; skrip lokal memakai IP WSL | R | Saat mengganti mesin atau setelah `wsl --shutdown` terjadwal |
 | O3 | Override `next>postcss` di `pnpm-workspace.yaml` karena Next memasang postcss 8.4.31 | R | Hapus saat Next memakai postcss yang sudah ditambal |
-| P1 | Mode antar meja hanya mencapai "Sudah diantar" bila KDS Android menandai `served` (US3) | T | Sebelum gerai antar meja memakai mode `table` |
 | P2 | Ikon Cassy PNG dibuat dari SVG vault di repo web, belum disimpan balik ke vault | R | Saat Director merapikan aset vault |
 | P3 | Halaman struk menampilkan nama varian tunggal seperti "Reguler" karena struk menyimpan snapshot varian. Disengaja, sama dengan struk kertas | R | Bila tenant meminta; butuh flag `has_variants` di snapshot pesanan |
 

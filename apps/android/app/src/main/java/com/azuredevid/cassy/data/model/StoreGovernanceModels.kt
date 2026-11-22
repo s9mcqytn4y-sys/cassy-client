@@ -78,7 +78,28 @@ data class StoreCMSConfigDto(
     @SerialName("hide_powered_by_badge")
     val hidePoweredByBadge: Boolean = false,
     @SerialName("custom_domain")
-    val customDomain: String = ""
+    val customDomain: String = "",
+    @SerialName("public_contact_email")
+    val publicContactEmail: String = "",
+    @SerialName("operating_hours")
+    val operatingHours: Map<String, DayOperatingHoursDto>? = null
+)
+
+@Serializable
+data class DayOperatingHoursDto(
+    @SerialName("open") val open: String = "08:00",
+    @SerialName("close") val close: String = "22:00",
+    @SerialName("closed") val closed: Boolean = false
+)
+
+@Serializable
+data class StoreFeaturesResponseDto(
+    @SerialName("features") val features: Map<String, Boolean> = emptyMap()
+)
+
+@Serializable
+data class SetFeatureRequestDto(
+    @SerialName("enabled") val enabled: Boolean
 )
 
 @Serializable
@@ -110,7 +131,11 @@ data class StoreCMSConfigInputDto(
     @SerialName("hide_powered_by_badge")
     val hidePoweredByBadge: Boolean = false,
     @SerialName("custom_domain")
-    val customDomain: String = ""
+    val customDomain: String = "",
+    @SerialName("public_contact_email")
+    val publicContactEmail: String = "",
+    @SerialName("operating_hours")
+    val operatingHours: Map<String, DayOperatingHoursDto>? = null
 )
 
 @Serializable

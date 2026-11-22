@@ -8,12 +8,13 @@ import com.azuredevid.cassy.core.audio.CassyAudioCue
 import com.azuredevid.cassy.core.audio.CassySoundPlayer
 import com.azuredevid.cassy.core.coroutines.runCatchingCancellable
 import com.azuredevid.cassy.core.hardware.KdsTicketRouter
+import com.azuredevid.cassy.core.hardware.BluetoothPrinterClient
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.core.security.SessionManager
 import com.azuredevid.cassy.data.local.OfflineSyncCoordinator
 import com.azuredevid.cassy.data.model.CatalogProduct
-import com.azuredevid.cassy.data.network.CassyRealtimeClient
 import com.azuredevid.cassy.data.network.RealtimeEventEnvelope
+import com.azuredevid.cassy.data.repository.ServerSettingsRepository
 import com.azuredevid.cassy.domain.model.PosOrder
 import com.azuredevid.cassy.domain.repository.CatalogRepository
 import com.azuredevid.cassy.domain.repository.OrderQuoteRepository
@@ -22,9 +23,12 @@ import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import com.azuredevid.cassy.domain.repository.PosOrderVoidInput
 import com.azuredevid.cassy.domain.repository.PosTable
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.domain.repository.RealtimeEventSource
 import com.azuredevid.cassy.domain.repository.StorePrinterRepository
 import com.azuredevid.cassy.domain.repository.TableTabRepository
 import com.azuredevid.cassy.domain.repository.toPrinterConfig
+import java.text.NumberFormat
+import java.util.Locale
 import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import com.azuredevid.cassy.ui.designsystem.UiText
 import com.azuredevid.cassy.ui.designsystem.toUiText
@@ -48,12 +52,14 @@ class PosViewModel(
     private val printerSettings: PrinterSettingsRepository,
     private val sessionManager: SessionManager,
     private val printerManager: PrinterPort9100Manager = PrinterPort9100Manager(),
-    private val realtimeClient: CassyRealtimeClient? = null,
+    private val realtimeClient: RealtimeEventSource? = null,
     private val soundPlayer: CassySoundPlayer? = null,
     private val offlineSyncCoordinator: OfflineSyncCoordinator? = null,
     private val tableTabRepository: TableTabRepository? = null,
     private val storePrinters: StorePrinterRepository? = null,
-    private val savedStateHandle: SavedStateHandle = SavedStateHandle()
+    private val serverSettings: ServerSettingsRepository? = null,
+    private val savedStateHandle: SavedStateHandle = SavedStateHandle(),
+    private val bluetoothPrinter: BluetoothPrinterClient? = null
 ) : ViewModel() {
 
     private companion object {
@@ -63,7 +69,7 @@ class PosViewModel(
         const val KEY_TABLE_NAME = "pos_table_name"
     }
 
-    private val printDispatcher = PosPrintDispatcher(printerManager)
+    private val printDispatcher = PosPrintDispatcher(printerManager, bluetoothPrinter)
     private val tabCoordinator = PosTabCoordinator(tableTabRepository)
     private val paymentCoordinator = PosPaymentCoordinator(
         posOrderRepository = posOrderRepository,
@@ -71,7 +77,8 @@ class PosViewModel(
         printerManager = printerManager,
         printDispatcher = printDispatcher,
         tabCoordinator = tabCoordinator,
-        soundPlayer = soundPlayer
+        soundPlayer = soundPlayer,
+        bluetoothPrinter = bluetoothPrinter
     )
 
     private val _uiState = MutableStateFlow(
@@ -92,10 +99,32 @@ class PosViewModel(
 
     init {
         observePrinterConfig()
+        observeAudioPreference()
         observeRealtimeEvents()
         loadInitialData()
         offlineSyncCoordinator?.let { sync ->
             viewModelScope.launch { runCatchingCancellable { sync.syncPendingOrders() } }
+        }
+    }
+
+    private fun observeAudioPreference() {
+        val settings = serverSettings ?: return
+        viewModelScope.launch {
+            settings.audioCueMutedFlow.collect { muted ->
+                _uiState.update { it.copy(audioCueMuted = muted) }
+            }
+        }
+    }
+
+    /** Persists device-local audio cue mute preference in Preferences DataStore. */
+    fun setAudioCueMuted(muted: Boolean) {
+        serverSettings?.setAudioCueMuted(muted)
+        _uiState.update { it.copy(audioCueMuted = muted) }
+    }
+
+    private fun playAudioCueIfEnabled(cue: CassyAudioCue) {
+        if (!_uiState.value.audioCueMuted && serverSettings?.isAudioCueMuted() != true) {
+            soundPlayer?.play(cue)
         }
     }
 
@@ -125,10 +154,57 @@ class PosViewModel(
                     }
                     return@collect
                 }
+                if (event.type.equals("split.cashier_requested", ignoreCase = true)) {
+                    playAudioCueIfEnabled(CassyAudioCue.CALL_WAITER)
+                    val label = event.payloadString("label")
+                        ?: event.payloadString("split_number")?.let { "#$it" }
+                        ?: "#1"
+                    val amountText = event.payloadString("amount")?.toLongOrNull()
+                        ?.let {
+                            NumberFormat.getCurrencyInstance(
+                                Locale.Builder().setLanguage("id").setRegion("ID").build()
+                            ).apply { maximumFractionDigits = 0 }.format(it)
+                        }
+                        .orEmpty()
+                    _effects.emit(
+                        PosUiEffect.ShowToast(
+                            UiText.res(R.string.pos_msg_split_cashier_requested, label, amountText),
+                            CassyToastTone.WARNING
+                        )
+                    )
+                    if (tableTabRepository != null) loadTables()
+                    return@collect
+                }
+                if (event.type.equals("order.cancelled", ignoreCase = true) ||
+                    event.type.equals("order.paid", ignoreCase = true) ||
+                    event.type.equals("order.item_voided", ignoreCase = true) ||
+                    event.type.equals("order.round_submitted", ignoreCase = true)
+                ) {
+                    if (tableTabRepository != null) loadTables()
+                }
+                if (event.type.equals("print_job.failed", ignoreCase = true)) {
+                    val kind = event.payloadString("kind").orEmpty().ifBlank { "struk" }
+                    _effects.emit(
+                        PosUiEffect.ShowToast(
+                            UiText.res(R.string.pos_msg_print_job_failed, kind),
+                            CassyToastTone.WARNING
+                        )
+                    )
+                }
+                if (event.type.equals("inventory.low_stock", ignoreCase = true)) {
+                    val name = event.payloadString("ingredient_name") ?: event.payloadString("name").orEmpty()
+                    _effects.emit(
+                        PosUiEffect.ShowToast(
+                            UiText.res(R.string.pos_msg_low_stock_alert, name),
+                            CassyToastTone.WARNING
+                        )
+                    )
+                    loadInitialData()
+                }
                 if (event.type.equals("service_request.created", ignoreCase = true)) {
-                    soundPlayer?.play(CassyAudioCue.CALL_WAITER)
+                    playAudioCueIfEnabled(CassyAudioCue.CALL_WAITER)
                 } else if (event.type.contains("order.created", ignoreCase = true)) {
-                    soundPlayer?.play(CassyAudioCue.NEW_QR_ORDER)
+                    playAudioCueIfEnabled(CassyAudioCue.NEW_QR_ORDER)
                 }
                 val activeOrder = _uiState.value.pendingOrder ?: return@collect
                 if (_uiState.value.activeQrisPayment == null) return@collect

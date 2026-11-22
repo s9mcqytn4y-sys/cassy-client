@@ -1,9 +1,11 @@
 package com.azuredevid.cassy.ui.pos
 
+import com.azuredevid.cassy.core.hardware.BluetoothPrinterClient
 import com.azuredevid.cassy.core.hardware.DEFAULT_RECEIPT_FOOTER
 import com.azuredevid.cassy.core.hardware.EscPosReceiptBuilder
 import com.azuredevid.cassy.core.hardware.KdsTicketRouter
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
+import com.azuredevid.cassy.core.hardware.UnifiedEscPosPrinter
 import com.azuredevid.cassy.core.hardware.repeatCopies
 import com.azuredevid.cassy.domain.model.PosOrder
 import com.azuredevid.cassy.domain.repository.PrinterConfig
@@ -14,8 +16,10 @@ import com.azuredevid.cassy.domain.repository.TabSplit
  * to keep ViewModel state orchestration focused and under 300-400 lines.
  */
 internal class PosPrintDispatcher(
-    private val printerManager: PrinterPort9100Manager
+    private val printerManager: PrinterPort9100Manager,
+    private val bluetoothPrinter: BluetoothPrinterClient? = null
 ) {
+    private val unifiedPrinter = UnifiedEscPosPrinter(printerManager, bluetoothPrinter)
 
     suspend fun printShareReceipt(
         state: PosUiState,
@@ -25,7 +29,7 @@ internal class PosPrintDispatcher(
         changeIdr: Long?,
         config: PrinterConfig
     ) {
-        if (!config.hasCashierPrinter) return
+        val cashierEndpoint = config.cashierEndpoint() ?: return
         val paperWidth = if (config.paperWidthMm == 58) {
             EscPosReceiptBuilder.PaperWidth.WIDTH_58MM
         } else {
@@ -45,7 +49,7 @@ internal class PosPrintDispatcher(
             cashTenderedIdr = cashTenderedIdr,
             changeIdr = changeIdr ?: cashTenderedIdr?.let { (it - share.totalAmount).coerceAtLeast(0L) }
         ).repeatCopies(config.receiptCopies)
-        printerManager.printRawBytes(config.cashierPrinterIp, bytes, config.cashierPrinterPort)
+        unifiedPrinter.printRawBytes(cashierEndpoint, bytes)
     }
 
     suspend fun dispatchReceiptsAndKitchenTickets(
@@ -106,7 +110,7 @@ internal class PosPrintDispatcher(
             null
         }
 
-        val router = KdsTicketRouter(printerManager)
+        val router = KdsTicketRouter(printerManager, bluetoothPrinter = bluetoothPrinter)
         val deliveryMode = if (order.orderType.equals("takeaway", ignoreCase = true)) {
             KdsTicketRouter.OrderDeliveryMode.TAKEAWAY
         } else {
@@ -121,22 +125,61 @@ internal class PosPrintDispatcher(
             cashierPrinterPort = config.cashierPrinterPort,
             cashierReceiptBytes = receiptBytes,
             deliveryMode = deliveryMode,
-            roundNumber = roundNumber
+            roundNumber = roundNumber,
+            cashierTransportType = config.cashierTransportType,
+            cashierBluetoothMac = config.cashierBluetoothMac
         )
         return result.hasAnyFailover
     }
 
     fun buildStationConfigs(config: PrinterConfig): List<KdsTicketRouter.StationPrinterConfig> {
-        val fallback = config.cashierPrinterIp.takeIf { it.isNotBlank() }
+        val fallbackIp = config.cashierPrinterIp.takeIf { it.isNotBlank() }
+        val fallbackEndpoint = config.cashierEndpoint()
         val list = mutableListOf<KdsTicketRouter.StationPrinterConfig>()
-        if (config.barPrinterIp.isNotBlank()) {
-            list.add(KdsTicketRouter.StationPrinterConfig("bar", "BARISTA", config.barPrinterIp, fallback, config.barPrinterPort, config.barCopies))
+        if (config.barEndpoint() != null) {
+            list.add(
+                KdsTicketRouter.StationPrinterConfig(
+                    stationId = "bar",
+                    displayName = "BARISTA",
+                    primaryIp = config.barPrinterIp,
+                    fallbackIp = fallbackIp,
+                    port = config.barPrinterPort,
+                    copies = config.barCopies,
+                    transportType = config.barTransportType,
+                    bluetoothMac = config.barBluetoothMac,
+                    fallbackEndpoint = fallbackEndpoint
+                )
+            )
         }
-        if (config.kitchenPrinterIp.isNotBlank()) {
-            list.add(KdsTicketRouter.StationPrinterConfig("kitchen", "DAPUR PANAS", config.kitchenPrinterIp, fallback, config.kitchenPrinterPort, config.kitchenCopies))
+        if (config.kitchenEndpoint() != null) {
+            list.add(
+                KdsTicketRouter.StationPrinterConfig(
+                    stationId = "kitchen",
+                    displayName = "DAPUR PANAS",
+                    primaryIp = config.kitchenPrinterIp,
+                    fallbackIp = fallbackIp,
+                    port = config.kitchenPrinterPort,
+                    copies = config.kitchenCopies,
+                    transportType = config.kitchenTransportType,
+                    bluetoothMac = config.kitchenBluetoothMac,
+                    fallbackEndpoint = fallbackEndpoint
+                )
+            )
         }
-        if (config.expediterPrinterIp.isNotBlank()) {
-            list.add(KdsTicketRouter.StationPrinterConfig("runner", "RUNNER / EXPO", config.expediterPrinterIp, fallback, config.expediterPrinterPort, config.expediterCopies))
+        if (config.expediterEndpoint() != null) {
+            list.add(
+                KdsTicketRouter.StationPrinterConfig(
+                    stationId = "runner",
+                    displayName = "RUNNER / EXPO",
+                    primaryIp = config.expediterPrinterIp,
+                    fallbackIp = fallbackIp,
+                    port = config.expediterPrinterPort,
+                    copies = config.expediterCopies,
+                    transportType = config.expediterTransportType,
+                    bluetoothMac = config.expediterBluetoothMac,
+                    fallbackEndpoint = fallbackEndpoint
+                )
+            )
         }
         return list
     }

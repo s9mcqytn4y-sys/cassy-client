@@ -243,7 +243,15 @@ export const id = {
   orderStatusPreparing: "Disiapkan",
   orderStatusReady: "Siap diambil",
   orderStatusServed: "Selesai",
-  orderStatusCancelled: "Dibatalkan"
+  orderStatusCancelled: "Dibatalkan",
+  cancelOrder: "Batalkan pesanan",
+  cancellingOrder: "Membatalkan",
+  orderCancelledToast: "Pesanan dibatalkan.",
+  cancelOrderFailed: "Pesanan tidak bisa dibatalkan.",
+  sharePayVa: "Transfer Bank (VA)",
+  sharePayCashier: "Bayar di kasir",
+  shareCashierRequested: "Menunggu konfirmasi kasir",
+  shareCashierRequestedBody: "Tunjukkan layar ini ke kasir untuk membayar bagian Anda secara tunai atau EDC."
 };
 
 export type Messages = typeof id;

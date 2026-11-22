@@ -11,8 +11,11 @@ import kotlinx.coroutines.withContext
  */
 class KdsTicketRouter(
     private val printerManager: PrinterPort9100Manager = PrinterPort9100Manager(),
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val bluetoothPrinter: BluetoothPrinterClient? = null
 ) {
+
+    private val unifiedPrinter = UnifiedEscPosPrinter(printerManager, bluetoothPrinter)
 
     enum class OrderDeliveryMode {
         DINE_IN,
@@ -25,8 +28,18 @@ class KdsTicketRouter(
         val primaryIp: String,
         val fallbackIp: String? = null,
         val port: Int = 9100,
-        val copies: Int = 1
-    )
+        val copies: Int = 1,
+        val transportType: String = "lan",
+        val bluetoothMac: String = "",
+        val fallbackEndpoint: PrinterEndpoint? = null
+    ) {
+        fun primaryEndpointOrNull(): PrinterEndpoint? = when {
+            transportType.equals("bluetooth", ignoreCase = true) && bluetoothMac.isNotBlank() ->
+                PrinterEndpoint.Bluetooth(bluetoothMac.trim().uppercase())
+            primaryIp.isNotBlank() -> PrinterEndpoint.Lan(primaryIp.trim(), port)
+            else -> null
+        }
+    }
 
     data class StationItem(
         val name: String,
@@ -133,11 +146,19 @@ class KdsTicketRouter(
         cashierPrinterPort: Int = 9100,
         cashierReceiptBytes: ByteArray? = null,
         deliveryMode: OrderDeliveryMode = OrderDeliveryMode.DINE_IN,
-        roundNumber: Int = 1
+        roundNumber: Int = 1,
+        cashierTransportType: String = "lan",
+        cashierBluetoothMac: String = ""
     ): RoutingResult = withContext(ioDispatcher) {
         val errors = mutableListOf<String>()
         val statuses = mutableListOf<StationPrintStatus>()
         var anyFailover = false
+        val cashierEndpoint: PrinterEndpoint? = when {
+            cashierTransportType.equals("bluetooth", ignoreCase = true) && cashierBluetoothMac.isNotBlank() ->
+                PrinterEndpoint.Bluetooth(cashierBluetoothMac.trim().uppercase())
+            cashierPrinterIp.isNotBlank() -> PrinterEndpoint.Lan(cashierPrinterIp.trim(), cashierPrinterPort)
+            else -> null
+        }
 
         // Group items by normalized prepStation (e.g. "bar", "kitchen", "pastry", "runner")
         val itemsByStation = items.groupBy { it.prepStation.trim().lowercase() }
@@ -149,8 +170,9 @@ class KdsTicketRouter(
         for ((stationKey, stationItems) in itemsByStation) {
             val config = stationConfigMap[stationKey] ?: defaultSafetyStation
             val stationName = config?.displayName ?: stationKey.uppercase()
+            val primaryEndpoint = config?.primaryEndpointOrNull()
 
-            if (config == null || config.primaryIp.isBlank()) {
+            if (config == null || primaryEndpoint == null) {
                 statuses.add(
                     StationPrintStatus(
                         stationId = stationKey,
@@ -159,14 +181,14 @@ class KdsTicketRouter(
                         isPrinted = false,
                         isRedirected = false,
                         itemsCount = stationItems.size,
-                        errorMessage = "Tidak ada konfigurasi IP printer untuk stasiun '$stationKey'"
+                        errorMessage = "Tidak ada konfigurasi printer untuk stasiun '$stationKey'"
                     )
                 )
                 errors.add("Printer stasiun '$stationKey' belum dikonfigurasi.")
                 continue
             }
 
-            // 1. Attempt print to Primary Printer
+            // 1. Attempt print to Primary Printer (LAN or Bluetooth)
             val ticketBytes = buildKitchenTicket(
                 stationTitle = config.displayName,
                 orderNumber = orderNumber,
@@ -177,22 +199,24 @@ class KdsTicketRouter(
                 isRedirected = false
             )
 
-            val primaryResult = printerManager.printRawBytes(config.primaryIp, ticketBytes.repeatCopies(config.copies), config.port)
+            val primaryResult = unifiedPrinter.printRawBytes(primaryEndpoint, ticketBytes.repeatCopies(config.copies))
             if (primaryResult.isSuccess) {
                 statuses.add(
                     StationPrintStatus(
                         stationId = config.stationId,
                         stationName = config.displayName,
-                        targetIp = config.primaryIp,
+                        targetIp = primaryEndpoint.displayLabel,
                         isPrinted = true,
                         isRedirected = false,
                         itemsCount = stationItems.size
                     )
                 )
             } else {
-                // 2. Primary Failed -> Attempt Fallback Redirection
-                val fallbackIp = config.fallbackIp?.takeIf { it.isNotBlank() } ?: cashierPrinterIp.takeIf { it.isNotBlank() }
-                if (!fallbackIp.isNullOrBlank() && fallbackIp != config.primaryIp) {
+                // 2. Primary Failed -> Attempt Fallback Redirection (supports LAN <-> Bluetooth failover)
+                val fallbackEndpoint = config.fallbackEndpoint
+                    ?: config.fallbackIp?.takeIf { it.isNotBlank() }?.let { PrinterEndpoint.Lan(it, config.port) }
+                    ?: cashierEndpoint
+                if (fallbackEndpoint != null && fallbackEndpoint != primaryEndpoint) {
                     val redirectedBytes = buildKitchenTicket(
                         stationTitle = config.displayName,
                         orderNumber = orderNumber,
@@ -201,30 +225,30 @@ class KdsTicketRouter(
                         deliveryMode = deliveryMode,
                         roundNumber = roundNumber,
                         isRedirected = true,
-                        originalStation = "${config.displayName} (${config.primaryIp})"
+                        originalStation = "${config.displayName} (${primaryEndpoint.displayLabel})"
                     )
 
-                    val fallbackResult = printerManager.printRawBytes(fallbackIp, redirectedBytes, config.port)
+                    val fallbackResult = unifiedPrinter.printRawBytes(fallbackEndpoint, redirectedBytes)
                     if (fallbackResult.isSuccess) {
                         anyFailover = true
                         statuses.add(
                             StationPrintStatus(
                                 stationId = config.stationId,
                                 stationName = config.displayName,
-                                targetIp = fallbackIp,
+                                targetIp = fallbackEndpoint.displayLabel,
                                 isPrinted = true,
                                 isRedirected = true,
                                 itemsCount = stationItems.size,
-                                errorMessage = "Dialihkan ke $fallbackIp karena printer utama offline"
+                                errorMessage = "Dialihkan ke ${fallbackEndpoint.displayLabel} karena printer utama offline"
                             )
                         )
                     } else {
-                        errors.add("Gagal cetak stasiun '${config.displayName}' di IP utama (${config.primaryIp}) dan fallback ($fallbackIp)")
+                        errors.add("Gagal cetak stasiun '${config.displayName}' di utama (${primaryEndpoint.displayLabel}) dan fallback (${fallbackEndpoint.displayLabel})")
                         statuses.add(
                             StationPrintStatus(
                                 stationId = config.stationId,
                                 stationName = config.displayName,
-                                targetIp = config.primaryIp,
+                                targetIp = primaryEndpoint.displayLabel,
                                 isPrinted = false,
                                 isRedirected = false,
                                 itemsCount = stationItems.size,
@@ -233,12 +257,12 @@ class KdsTicketRouter(
                         )
                     }
                 } else {
-                    errors.add("Gagal cetak stasiun '${config.displayName}' (${config.primaryIp}): ${primaryResult.exceptionOrNull()?.message}")
+                    errors.add("Gagal cetak stasiun '${config.displayName}' (${primaryEndpoint.displayLabel}): ${primaryResult.exceptionOrNull()?.message}")
                     statuses.add(
                         StationPrintStatus(
                             stationId = config.stationId,
                             stationName = config.displayName,
-                            targetIp = config.primaryIp,
+                            targetIp = primaryEndpoint.displayLabel,
                             isPrinted = false,
                             isRedirected = false,
                             itemsCount = stationItems.size,
@@ -251,10 +275,10 @@ class KdsTicketRouter(
 
         // 3. Print Cashier Receipt if present
         var cashierSuccess = false
-        if (cashierReceiptBytes != null && cashierPrinterIp.isNotBlank()) {
-            printerManager.printRawBytes(cashierPrinterIp, cashierReceiptBytes, cashierPrinterPort)
+        if (cashierReceiptBytes != null && cashierEndpoint != null) {
+            unifiedPrinter.printRawBytes(cashierEndpoint, cashierReceiptBytes)
                 .onSuccess { cashierSuccess = true }
-                .onFailure { errors.add("Gagal cetak struk kasir ($cashierPrinterIp): ${it.message}") }
+                .onFailure { errors.add("Gagal cetak struk kasir (${cashierEndpoint.displayLabel}): ${it.message}") }
         }
 
         RoutingResult(

@@ -2,6 +2,8 @@ package com.azuredevid.cassy.di
 
 import androidx.room.Room
 import com.azuredevid.cassy.core.audio.CassySoundPlayer
+import com.azuredevid.cassy.core.hardware.AndroidBluetoothEscPosManager
+import com.azuredevid.cassy.core.hardware.BluetoothPrinterClient
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.data.local.CassyDatabase
 import com.azuredevid.cassy.data.local.OfflineOrderDao
@@ -84,6 +86,7 @@ val appModule = module {
     single { get<CassyDatabase>().catalogCacheDao() }
     single { get<CassyDatabase>().offlineOrderDao() }
     single<PrinterPort9100Manager> { PrinterPort9100Manager() }
+    single<BluetoothPrinterClient> { AndroidBluetoothEscPosManager(androidContext()) }
     single<ShiftReportThermalBuilder> { ShiftReportThermalBuilder() }
     single<BiometricSecurityManager> { BiometricSecurityManager(androidContext()) }
     single<AeadCipher> { AndroidTinkAeadCipher(androidContext()) }
@@ -283,6 +286,7 @@ val viewModelModule = module {
         StoreSettingsViewModel(
             repository = get(),
             sessionManager = get(),
+            serverSettings = get(),
             savedStateHandle = get()
         )
     }
@@ -300,7 +304,8 @@ val viewModelModule = module {
         PrinterSettingsViewModel(
             printers = get(),
             printerSettings = get(),
-            printerManager = get()
+            printerManager = get(),
+            bluetoothPrinter = get()
         )
     }
     viewModel {
@@ -310,7 +315,8 @@ val viewModelModule = module {
             sessionManager = get(),
             printerManager = get(),
             thermalBuilder = get(),
-            savedStateHandle = get()
+            savedStateHandle = get(),
+            bluetoothPrinter = get()
         )
     }
     viewModel {
@@ -326,7 +332,9 @@ val viewModelModule = module {
             offlineSyncCoordinator = get(),
             tableTabRepository = get(),
             storePrinters = get(),
-            savedStateHandle = get()
+            serverSettings = get(),
+            savedStateHandle = get(),
+            bluetoothPrinter = get()
         )
     }
     viewModel {
@@ -342,7 +350,9 @@ val viewModelModule = module {
             sessionManager = get(),
             printerSettings = get(),
             printerManager = get(),
-            savedStateHandle = get()
+            realtime = get(),
+            savedStateHandle = get(),
+            bluetoothPrinter = get()
         )
     }
     viewModel {

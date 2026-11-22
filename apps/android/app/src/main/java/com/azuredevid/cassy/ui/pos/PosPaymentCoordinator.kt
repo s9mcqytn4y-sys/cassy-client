@@ -3,7 +3,9 @@ package com.azuredevid.cassy.ui.pos
 import com.azuredevid.cassy.R
 import com.azuredevid.cassy.core.audio.CassyAudioCue
 import com.azuredevid.cassy.core.audio.CassySoundPlayer
+import com.azuredevid.cassy.core.hardware.BluetoothPrinterClient
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
+import com.azuredevid.cassy.core.hardware.UnifiedEscPosPrinter
 import com.azuredevid.cassy.data.model.OrderQuote
 import com.azuredevid.cassy.domain.model.CreatePosOrderInput
 import com.azuredevid.cassy.domain.model.CreatePosOrderItemInput
@@ -26,8 +28,10 @@ internal class PosPaymentCoordinator(
     private val printerManager: PrinterPort9100Manager,
     private val printDispatcher: PosPrintDispatcher,
     private val tabCoordinator: PosTabCoordinator,
-    private val soundPlayer: CassySoundPlayer?
+    private val soundPlayer: CassySoundPlayer?,
+    private val bluetoothPrinter: BluetoothPrinterClient? = null
 ) {
+    private val unifiedPrinter = UnifiedEscPosPrinter(printerManager, bluetoothPrinter)
 
     suspend fun ensureOrderCreated(
         stateFlow: MutableStateFlow<PosUiState>,
@@ -107,8 +111,9 @@ internal class PosPaymentCoordinator(
         ).onSuccess { res ->
             val settledOrder = res.order ?: order
             val config = printerSettings.getConfig()
-            if (res.openDrawer && config.hasCashierPrinter) {
-                printerManager.openCashDrawer(config.cashierPrinterIp, config.cashierPrinterPort)
+            val cashierEndpoint = config.cashierEndpoint()
+            if (res.openDrawer && cashierEndpoint != null) {
+                unifiedPrinter.openCashDrawer(cashierEndpoint)
             }
             if (!settlesWholeBill(stateFlow.value, settledOrder)) {
                 advanceToNextSplit(

@@ -26,13 +26,26 @@ private data class PrinterDto(
     val id: String,
     val name: String = "",
     val station: String = "",
+    @SerialName("transport_type") val transportType: String = "lan",
     @SerialName("lan_address") val lanAddress: String? = null,
+    @SerialName("bluetooth_mac") val bluetoothMac: String? = null,
     @SerialName("paper_width_mm") val paperWidthMm: Int = 58,
     @SerialName("is_active") val isActive: Boolean = true,
     val copies: Int = 1,
     val footer: String = ""
 ) {
-    fun toDomain() = StorePrinter(id, name, station, lanAddress, paperWidthMm, isActive, copies, footer)
+    fun toDomain() = StorePrinter(
+        id = id,
+        name = name,
+        station = station,
+        lanAddress = lanAddress,
+        paperWidthMm = paperWidthMm,
+        isActive = isActive,
+        copies = copies,
+        footer = footer,
+        transportType = transportType,
+        bluetoothMac = bluetoothMac
+    )
 }
 
 @Serializable
@@ -42,7 +55,9 @@ private data class PrinterListDto(val printers: List<PrinterDto> = emptyList())
 private data class PrinterInputDto(
     val name: String,
     val station: String,
+    @SerialName("transport_type") val transportType: String,
     @SerialName("lan_address") val lanAddress: String,
+    @SerialName("bluetooth_mac") val bluetoothMac: String,
     @SerialName("paper_width_mm") val paperWidthMm: Int
 )
 
@@ -67,7 +82,17 @@ class KtorStorePrinterRepository(
 
     private fun HttpRequestBuilder.json(input: StorePrinterInput) {
         contentType(ContentType.Application.Json)
-        setBody(PrinterInputDto(input.name.trim(), input.station, input.lanAddress.trim(), input.paperWidthMm))
+        val isBt = input.transportType.equals("bluetooth", ignoreCase = true)
+        setBody(
+            PrinterInputDto(
+                name = input.name.trim(),
+                station = input.station,
+                transportType = if (isBt) "bluetooth" else "lan",
+                lanAddress = if (isBt) "" else input.lanAddress.trim(),
+                bluetoothMac = if (isBt) input.bluetoothMac.trim().uppercase() else "",
+                paperWidthMm = input.paperWidthMm
+            )
+        )
     }
 
     private suspend fun list(path: String): Result<List<StorePrinter>> = withContext(ioDispatcher) {

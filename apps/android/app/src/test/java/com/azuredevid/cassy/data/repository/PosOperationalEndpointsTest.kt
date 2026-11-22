@@ -23,7 +23,7 @@ import org.junit.Test
 class PosOperationalEndpointsTest {
 
     private val fakeServerSettings = object : ServerSettingsRepository {
-        override fun getBaseUrl(): String = "https://demo.abbdullaziz.online"
+        override fun getBaseUrl(): String = "https://api.abbdullaziz.online"
         override fun setBaseUrl(url: String) = Unit
     }
 

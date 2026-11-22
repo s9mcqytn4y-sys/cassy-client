@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.azuredevid.cassy.R
+import com.azuredevid.cassy.domain.model.DayOperatingHours
 import com.azuredevid.cassy.ui.designsystem.CassyCard
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
 import com.azuredevid.cassy.ui.designsystem.CassyPrimaryButton
@@ -240,6 +241,13 @@ fun StoreBrandCmsTab(
                         )
                     }
 
+                    CassyTextField(
+                        value = state.publicContactEmail,
+                        onValueChange = { onEvent(StoreSettingsUiEvent.UpdatePublicContactEmail(it)) },
+                        label = stringResource(R.string.cms_contact_email_label),
+                        placeholder = stringResource(R.string.cms_contact_email_placeholder)
+                    )
+
                     HorizontalDivider(color = colors.outline)
 
                     val whiteLabelTitle = stringResource(R.string.cms_white_label_title)
@@ -275,6 +283,86 @@ fun StoreBrandCmsTab(
                                 )
                                 .semantics { contentDescription = whiteLabelTitle }
                         )
+                    }
+                }
+            }
+
+            CassyCard {
+                Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)) {
+                    CassySectionHeader(
+                        title = stringResource(R.string.cms_operating_hours_title),
+                        subtitle = stringResource(R.string.cms_operating_hours_desc)
+                    )
+                    val dayLabels = listOf(
+                        "mon" to R.string.day_mon,
+                        "tue" to R.string.day_tue,
+                        "wed" to R.string.day_wed,
+                        "thu" to R.string.day_thu,
+                        "fri" to R.string.day_fri,
+                        "sat" to R.string.day_sat,
+                        "sun" to R.string.day_sun
+                    )
+                    dayLabels.forEachIndexed { idx, (dayKey, labelRes) ->
+                        val hours = state.operatingHours[dayKey] ?: DayOperatingHours()
+                        val dayName = stringResource(labelRes)
+                        Column(verticalArrangement = Arrangement.spacedBy(CassyDimens.SpaceXs)) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .defaultMinSize(minHeight = CassyDimens.TouchTargetMin),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = dayName,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = colors.onSurface
+                                )
+                                Switch(
+                                    checked = !hours.closed,
+                                    onCheckedChange = { isOpen ->
+                                        onEvent(
+                                            StoreSettingsUiEvent.UpdateOperatingDay(
+                                                dayKey = dayKey,
+                                                hours = hours.copy(closed = !isOpen)
+                                            )
+                                        )
+                                    },
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = colors.onPrimary,
+                                        checkedTrackColor = colors.primary
+                                    ),
+                                    modifier = Modifier.semantics { contentDescription = dayName }
+                                )
+                            }
+                            if (!hours.closed) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(CassyDimens.SpaceSm)
+                                ) {
+                                    CassyTextField(
+                                        value = hours.open,
+                                        onValueChange = {
+                                            onEvent(StoreSettingsUiEvent.UpdateOperatingDay(dayKey, hours.copy(open = it)))
+                                        },
+                                        label = stringResource(R.string.cms_hours_open_label),
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    CassyTextField(
+                                        value = hours.close,
+                                        onValueChange = {
+                                            onEvent(StoreSettingsUiEvent.UpdateOperatingDay(dayKey, hours.copy(close = it)))
+                                        },
+                                        label = stringResource(R.string.cms_hours_close_label),
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
+                        }
+                        if (idx < dayLabels.lastIndex) {
+                            HorizontalDivider(color = colors.outlineVariant)
+                        }
                     }
                 }
             }

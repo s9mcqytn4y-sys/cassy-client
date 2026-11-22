@@ -125,22 +125,22 @@ class TinkSessionManagerTest {
         val manager = createSessionManager(this)
         val storage = SessionCookiesStorage(manager)
         storage.addCookie(
-            Url("https://demo.abbdullaziz.online/api/v1/auth/staff/login"),
+            Url("https://api.abbdullaziz.online/api/v1/auth/staff/login"),
             Cookie(
                 name = "__Secure-mc_staff_rt",
                 value = "rt-secret-value",
-                domain = "demo.abbdullaziz.online",
+                domain = "api.abbdullaziz.online",
                 path = "/api/v1/auth/staff",
                 secure = true,
                 httpOnly = true
             )
         )
 
-        val refreshCookies = storage.get(Url("https://demo.abbdullaziz.online/api/v1/auth/staff/refresh"))
+        val refreshCookies = storage.get(Url("https://api.abbdullaziz.online/api/v1/auth/staff/refresh"))
         assertEquals(1, refreshCookies.size)
         assertEquals("rt-secret-value", refreshCookies.single().value)
 
-        val otherPathCookies = storage.get(Url("https://demo.abbdullaziz.online/api/v1/pos/orders"))
+        val otherPathCookies = storage.get(Url("https://api.abbdullaziz.online/api/v1/pos/orders"))
         assertTrue(otherPathCookies.isEmpty())
 
         val otherHostCookies = storage.get(Url("https://r2.cloudflarestorage.com/bucket/banner.webp"))

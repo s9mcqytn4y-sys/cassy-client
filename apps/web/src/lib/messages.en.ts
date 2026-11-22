@@ -245,5 +245,13 @@ export const en: Messages = {
   orderStatusPreparing: "Preparing",
   orderStatusReady: "Ready",
   orderStatusServed: "Completed",
-  orderStatusCancelled: "Cancelled"
+  orderStatusCancelled: "Cancelled",
+  cancelOrder: "Cancel order",
+  cancellingOrder: "Cancelling",
+  orderCancelledToast: "Order cancelled.",
+  cancelOrderFailed: "Order could not be cancelled.",
+  sharePayVa: "Bank Transfer (VA)",
+  sharePayCashier: "Pay at cashier",
+  shareCashierRequested: "Waiting for cashier confirmation",
+  shareCashierRequestedBody: "Show this screen at the counter to settle your share with cash or EDC."
 };

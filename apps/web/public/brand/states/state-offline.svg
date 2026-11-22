@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" fill="none" role="img" aria-label="Koneksi terputus sementara">
+  <style>
+    @keyframes cassyPulse {
+      0%, 100% { opacity: 0.35; }
+      50% { opacity: 1; }
+    }
+    .cassy-wave { animation: cassyPulse 2.4s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce) {
+      .cassy-wave { animation: none; opacity: 0.7; }
+    }
+  </style>
+  <ellipse cx="100" cy="134" rx="52" ry="7" fill="#17211E" fill-opacity="0.08"/>
+  <!-- Wi-Fi Arcs -->
+  <path class="cassy-wave" d="M62 60C83 41 117 41 138 60" stroke="#1F5F52" stroke-width="3" stroke-linecap="round"/>
+  <path d="M76 74C89 62 111 62 124 74" stroke="#1F5F52" stroke-width="3" stroke-linecap="round"/>
+  <!-- Coffee Cup Base -->
+  <path d="M74 90H126V110C126 119.9 117.9 128 108 128H92C82.1 128 74 119.9 74 110V90Z" fill="#FFFFFF" stroke="#1F5F52" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M126 95H134C138.4 95 142 98.6 142 103C142 107.4 138.4 111 134 111H126" stroke="#1F5F52" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Kunyit Offline Slash Badge -->
+  <circle cx="100" cy="86" r="11" fill="#E9A23B"/>
+  <path d="M95.5 81.5L104.5 90.5" stroke="#17211E" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M104.5 81.5L95.5 90.5" stroke="#17211E" stroke-width="2.4" stroke-linecap="round"/>
+</svg>

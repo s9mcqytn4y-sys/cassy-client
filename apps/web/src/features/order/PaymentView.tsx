@@ -27,6 +27,11 @@ export function PaymentView({
   bank,
   serviceMode,
   muted,
+  bellEnabled = true,
+  emailReceiptEnabled = true,
+  canSelfCancel = false,
+  cancelling = false,
+  onCancelOrder,
   onToggleSound,
   onNewQr,
   onSwitch,
@@ -50,6 +55,11 @@ export function PaymentView({
   bank: BankCode;
   serviceMode: ServiceMode;
   muted: boolean;
+  bellEnabled?: boolean;
+  emailReceiptEnabled?: boolean;
+  canSelfCancel?: boolean;
+  cancelling?: boolean;
+  onCancelOrder?: () => void;
   onToggleSound: () => void;
   onNewQr: () => void;
   onSwitch: (method: PayMethod, bank?: BankCode) => void;
@@ -120,6 +130,8 @@ export function PaymentView({
         estimatedPrepMinutes={estimatedPrepMinutes}
         serviceMode={serviceMode}
         muted={muted}
+        bellEnabled={bellEnabled}
+        emailReceiptEnabled={emailReceiptEnabled}
         onToggleSound={onToggleSound}
         onOrderAgain={onOrderAgain}
       />
@@ -343,6 +355,16 @@ export function PaymentView({
         <button type="button" onClick={onBack} className="btn-secondary min-h-[44px] px-5 font-semibold motion-safe:transition-transform motion-safe:active:scale-[0.98]">
           {t.back}
         </button>
+        {canSelfCancel && onCancelOrder ? (
+          <button
+            type="button"
+            disabled={retrying || cancelling}
+            onClick={onCancelOrder}
+            className="min-h-[44px] cursor-pointer rounded-xl border border-[var(--state-err-fg)]/30 bg-surface px-4 text-sm font-semibold text-[var(--state-err-fg)] transition hover:bg-[var(--state-err-bg)] disabled:opacity-50"
+          >
+            {cancelling ? t.cancellingOrder : t.cancelOrder}
+          </button>
+        ) : null}
       </div>
     </section>
   );

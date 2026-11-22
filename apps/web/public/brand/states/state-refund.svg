@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" fill="none" role="img" aria-label="Pesanan dibatalkan atau dana dikembalikan">
+  <style>
+    @keyframes cassyReturn {
+      0%, 100% { transform: translateX(0px); }
+      50% { transform: translateX(-3px); }
+    }
+    .cassy-return { animation: cassyReturn 2.8s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+    @media (prefers-reduced-motion: reduce) {
+      .cassy-return { animation: none; }
+    }
+  </style>
+  <ellipse cx="100" cy="134" rx="52" ry="7" fill="#17211E" fill-opacity="0.08"/>
+  <!-- Receipt Card -->
+  <path d="M64 28C64 24.7 66.7 22 70 22H130C133.3 22 136 24.7 136 28V122L126 115L116 122L106 115L96 122L86 115L76 122L64 114V28Z" fill="#FFFFFF" stroke="#1F5F52" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Ledger Lines -->
+  <path d="M78 44H122" stroke="#E2DDD2" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M78 56H110" stroke="#E2DDD2" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M78 96H104" stroke="#E2DDD2" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Refund Shield / Return Arrow -->
+  <circle cx="118" cy="84" r="20" fill="#1F5F52"/>
+  <g class="cassy-return">
+    <path d="M111 84H125C128.3 84 131 86.7 131 90" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M116 79L110 84L116 89" stroke="#E9A23B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

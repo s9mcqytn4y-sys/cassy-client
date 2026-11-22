@@ -45,7 +45,7 @@ class CassyHttpClientFactoryTest {
             }
     }
 
-    private fun createSettings(url: String = "https://demo.abbdullaziz.online") = object : ServerSettingsRepository {
+    private fun createSettings(url: String = "https://api.abbdullaziz.online") = object : ServerSettingsRepository {
         override fun getBaseUrl(): String = url
         override fun setBaseUrl(url: String) {}
     }
@@ -105,9 +105,9 @@ class CassyHttpClientFactoryTest {
         )
 
         val responses = listOf(
-            async { client.get("https://demo.abbdullaziz.online/api/v1/pos/shifts/current") },
-            async { client.get("https://demo.abbdullaziz.online/api/v1/pos/shifts/current") },
-            async { client.get("https://demo.abbdullaziz.online/api/v1/pos/shifts/current") }
+            async { client.get("https://api.abbdullaziz.online/api/v1/pos/shifts/current") },
+            async { client.get("https://api.abbdullaziz.online/api/v1/pos/shifts/current") },
+            async { client.get("https://api.abbdullaziz.online/api/v1/pos/shifts/current") }
         ).awaitAll()
 
         responses.forEach { assertEquals(HttpStatusCode.OK, it.status) }
@@ -146,7 +146,7 @@ class CassyHttpClientFactoryTest {
             engine = mockEngine
         )
 
-        val response = client.get("https://demo.abbdullaziz.online/api/v1/pos/shifts/current")
+        val response = client.get("https://api.abbdullaziz.online/api/v1/pos/shifts/current")
         assertEquals(HttpStatusCode.Unauthorized, response.status)
         assertNull(sessionManager.getAccessToken())
     }

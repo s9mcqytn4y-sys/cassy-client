@@ -1,5 +1,11 @@
 package com.azuredevid.cassy.ui.settings
 
+import android.Manifest
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +56,7 @@ import com.azuredevid.cassy.ui.settings.components.PrinterEditorDialog
 import com.azuredevid.cassy.ui.settings.components.RevokeDisplayDialog
 import com.azuredevid.cassy.ui.settings.components.PrinterSettingsTab
 import com.azuredevid.cassy.ui.settings.components.StoreBrandCmsTab
+import com.azuredevid.cassy.ui.settings.components.StoreFeatureFlagsTab
 import com.azuredevid.cassy.ui.settings.components.StoreServiceModeTab
 import org.koin.androidx.compose.koinViewModel
 
@@ -75,6 +82,11 @@ fun StoreSettingsScreen(
     }
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val bluetoothPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) {
+        printerViewModel.refreshBluetoothDevices()
+    }
     val colors = MaterialTheme.colorScheme
 
     // Single source of snackbar truth from one-shot effects to avoid double-firing.
@@ -155,7 +167,8 @@ fun StoreSettingsScreen(
                 stringResource(R.string.settings_tab_cms),
                 stringResource(R.string.settings_tab_service),
                 stringResource(R.string.settings_tab_printer),
-                stringResource(R.string.settings_tab_display)
+                stringResource(R.string.settings_tab_display),
+                stringResource(R.string.settings_tab_features)
             )
 
             androidx.compose.foundation.layout.BoxWithConstraints(
@@ -257,15 +270,11 @@ fun StoreSettingsScreen(
                     } else {
                         RestrictedAccessNotice(modifier = Modifier.fillMaxSize())
                     }
-                    2 -> if (state.hasManageAccess) {
-                        StoreServiceModeTab(
-                            state = state,
-                            onEvent = viewModel::onEvent,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        RestrictedAccessNotice(modifier = Modifier.fillMaxSize())
-                    }
+                    2 -> StoreServiceModeTab(
+                        state = state,
+                        onEvent = viewModel::onEvent,
+                        modifier = Modifier.fillMaxSize()
+                    )
                     3 -> PrinterSettingsTab(
                         state = printerState,
                         onAdd = printerViewModel::openNew,
@@ -273,11 +282,16 @@ fun StoreSettingsScreen(
                         onTest = printerViewModel::test,
                         modifier = Modifier.fillMaxSize()
                     )
-                    4 -> if (state.hasManageAccess) {
-                        DisplayScreensTab(
-                            state = displayState,
-                            onAdd = displayViewModel::openNew,
-                            onRevoke = displayViewModel::askRevoke,
+                    4 -> DisplayScreensTab(
+                        state = displayState,
+                        onAdd = displayViewModel::openNew,
+                        onRevoke = displayViewModel::askRevoke,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    5 -> if (state.hasManageAccess) {
+                        StoreFeatureFlagsTab(
+                            state = state,
+                            onEvent = viewModel::onEvent,
                             modifier = Modifier.fillMaxSize()
                         )
                     } else {
@@ -313,9 +327,29 @@ fun StoreSettingsScreen(
             editor = editor,
             isSaving = printerState.isSaving,
             error = printerState.message?.asString(),
+            pairedBluetoothDevices = printerState.pairedBluetoothDevices,
+            hasBluetoothPermission = printerState.hasBluetoothPermission,
+            isBluetoothEnabled = printerState.isBluetoothEnabled,
             onName = printerViewModel::setName,
             onStation = printerViewModel::setStation,
+            onTransport = printerViewModel::setTransportType,
             onAddress = printerViewModel::setLanAddress,
+            onBluetoothMac = printerViewModel::setBluetoothMac,
+            onSelectPairedDevice = printerViewModel::selectPairedDevice,
+            onRefreshBluetooth = printerViewModel::refreshBluetoothDevices,
+            onRequestBluetoothPermission = {
+                val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    arrayOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN)
+                } else {
+                    arrayOf(Manifest.permission.BLUETOOTH, Manifest.permission.ACCESS_FINE_LOCATION)
+                }
+                bluetoothPermissionLauncher.launch(permissions)
+            },
+            onOpenBluetoothSettings = {
+                runCatching {
+                    context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+                }
+            },
             onPaper = printerViewModel::setPaperWidth,
             onSave = printerViewModel::save,
             onDismiss = printerViewModel::dismissEditor

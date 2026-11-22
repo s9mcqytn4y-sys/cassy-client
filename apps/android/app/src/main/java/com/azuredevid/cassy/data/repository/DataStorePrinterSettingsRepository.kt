@@ -77,19 +77,39 @@ class DataStorePrinterSettingsRepository(
         withContext(ioDispatcher) {
             dataStore.updateData {
                 PrinterConfig(
+                    cashierTransportType = normalizeTransport(config.cashierTransportType),
                     cashierPrinterIp = config.cashierPrinterIp.trim(),
                     cashierPrinterPort = config.cashierPrinterPort.coerceIn(1, 65535),
+                    cashierBluetoothMac = config.cashierBluetoothMac.trim().uppercase(),
+                    barTransportType = normalizeTransport(config.barTransportType),
                     barPrinterIp = config.barPrinterIp.trim(),
                     barPrinterPort = config.barPrinterPort.coerceIn(1, 65535),
+                    barBluetoothMac = config.barBluetoothMac.trim().uppercase(),
+                    kitchenTransportType = normalizeTransport(config.kitchenTransportType),
                     kitchenPrinterIp = config.kitchenPrinterIp.trim(),
                     kitchenPrinterPort = config.kitchenPrinterPort.coerceIn(1, 65535),
+                    kitchenBluetoothMac = config.kitchenBluetoothMac.trim().uppercase(),
+                    expediterTransportType = normalizeTransport(config.expediterTransportType),
                     expediterPrinterIp = config.expediterPrinterIp.trim(),
                     expediterPrinterPort = config.expediterPrinterPort.coerceIn(1, 65535),
-                    paperWidthMm = if (config.paperWidthMm == 58) 58 else 80
+                    expediterBluetoothMac = config.expediterBluetoothMac.trim().uppercase(),
+                    paperWidthMm = if (config.paperWidthMm == 58) 58 else 80,
+                    barCopies = config.barCopies.coerceIn(1, 5),
+                    kitchenCopies = config.kitchenCopies.coerceIn(1, 5),
+                    expediterCopies = config.expediterCopies.coerceIn(1, 5),
+                    receiptCopies = config.receiptCopies.coerceIn(1, 5),
+                    receiptFooter = config.receiptFooter.trim()
                 )
             }
         }
     }
+
+    private fun normalizeTransport(raw: String): String =
+        if (raw.equals(PrinterConfig.TRANSPORT_BLUETOOTH, ignoreCase = true)) {
+            PrinterConfig.TRANSPORT_BLUETOOTH
+        } else {
+            PrinterConfig.TRANSPORT_LAN
+        }
 
     override suspend fun clearConfig() {
         withContext(ioDispatcher) {

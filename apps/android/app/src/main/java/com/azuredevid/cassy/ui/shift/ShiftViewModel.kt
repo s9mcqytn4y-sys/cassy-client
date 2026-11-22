@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azuredevid.cassy.R
+import com.azuredevid.cassy.core.hardware.BluetoothPrinterClient
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
 import com.azuredevid.cassy.core.hardware.ShiftReportThermalBuilder
 import com.azuredevid.cassy.core.security.SessionManager
@@ -32,14 +33,16 @@ class ShiftViewModel(
     private val sessionManager: SessionManager? = null,
     private val printerManager: PrinterPort9100Manager = PrinterPort9100Manager(),
     private val thermalBuilder: ShiftReportThermalBuilder = ShiftReportThermalBuilder(),
-    private val savedStateHandle: SavedStateHandle = SavedStateHandle()
+    private val savedStateHandle: SavedStateHandle = SavedStateHandle(),
+    private val bluetoothPrinter: BluetoothPrinterClient? = null
 ) : ViewModel() {
 
     private val reportPrinter = ShiftReportPrinter(
         printerSettings = printerSettings,
         sessionManager = sessionManager,
         printerManager = printerManager,
-        thermalBuilder = thermalBuilder
+        thermalBuilder = thermalBuilder,
+        bluetoothPrinter = bluetoothPrinter
     )
 
     private val _uiState = MutableStateFlow(

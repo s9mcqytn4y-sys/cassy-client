@@ -11,7 +11,8 @@ data class SplitShare(
     val mode: String,
     val totalAmount: Long,
     val paidAmount: Long,
-    val status: String
+    val status: String,
+    val cashierRequestedAt: String? = null
 ) {
     /** What is still owed on this share, from the server's own amounts. */
     val remainingAmount: Long
@@ -24,6 +25,10 @@ data class SplitShare(
     /** Still collectable: not paid and not cancelled or refunded. */
     val isCollectable: Boolean
         get() = status == STATUS_UNPAID || status == STATUS_PENDING || status == STATUS_PARTIALLY_PAID
+
+    /** True when the guest asked to settle this share at the cashier counter (P-06). */
+    val isCashierRequested: Boolean
+        get() = !cashierRequestedAt.isNullOrBlank() && isCollectable
 
     companion object {
         const val STATUS_UNPAID = "unpaid"

@@ -4,7 +4,12 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azuredevid.cassy.R
+import com.azuredevid.cassy.core.hardware.AndroidBluetoothEscPosManager
+import com.azuredevid.cassy.core.hardware.BluetoothPrinterClient
+import com.azuredevid.cassy.core.hardware.PairedBluetoothDevice
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
+import com.azuredevid.cassy.core.hardware.UnifiedEscPosPrinter
+import com.azuredevid.cassy.domain.repository.PrinterConfig
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
 import com.azuredevid.cassy.domain.repository.StorePrinter
 import com.azuredevid.cassy.domain.repository.StorePrinterInput
@@ -25,9 +30,22 @@ data class PrinterEditor(
     val name: String = "",
     val station: String = "receipt",
     val lanAddress: String = "",
-    val paperWidthMm: Int = 80
+    val paperWidthMm: Int = 80,
+    val transportType: String = PrinterConfig.TRANSPORT_LAN,
+    val bluetoothMac: String = ""
 ) {
-    val canSave: Boolean get() = name.isNotBlank() && (station != "receipt" || lanAddress.isNotBlank())
+    val isBluetooth: Boolean
+        get() = transportType.equals(PrinterConfig.TRANSPORT_BLUETOOTH, ignoreCase = true)
+
+    val isBluetoothMacValid: Boolean
+        get() = AndroidBluetoothEscPosManager.normalizeBluetoothMac(bluetoothMac) != null
+
+    val canSave: Boolean
+        get() = name.isNotBlank() && if (isBluetooth) {
+            isBluetoothMacValid
+        } else {
+            station != "receipt" || lanAddress.isNotBlank()
+        }
 }
 
 @Immutable
@@ -39,7 +57,11 @@ data class PrinterSettingsUiState(
     val isSaving: Boolean = false,
     val testingId: String? = null,
     val messageOk: Boolean? = null,
-    val message: UiText? = null
+    val message: UiText? = null,
+    val pairedBluetoothDevices: List<PairedBluetoothDevice> = emptyList(),
+    val isBluetoothSupported: Boolean = true,
+    val isBluetoothEnabled: Boolean = true,
+    val hasBluetoothPermission: Boolean = true
 )
 
 /**
@@ -50,22 +72,40 @@ data class PrinterSettingsUiState(
 class PrinterSettingsViewModel(
     private val printers: StorePrinterRepository,
     private val printerSettings: PrinterSettingsRepository,
-    private val printerManager: PrinterPort9100Manager
+    private val printerManager: PrinterPort9100Manager,
+    private val bluetoothPrinter: BluetoothPrinterClient? = null
 ) : ViewModel() {
+
+    private val unifiedPrinter = UnifiedEscPosPrinter(printerManager, bluetoothPrinter)
 
     private val _uiState = MutableStateFlow(PrinterSettingsUiState())
     val uiState: StateFlow<PrinterSettingsUiState> = _uiState.asStateFlow()
 
     fun load(canManage: Boolean) {
         _uiState.update { it.copy(canManage = canManage, isLoading = true, message = null) }
+        refreshBluetoothDevices()
         viewModelScope.launch { refresh() }
     }
 
-    fun openNew() = openEditor(PrinterEditor())
+    fun openNew() {
+        refreshBluetoothDevices()
+        openEditor(PrinterEditor())
+    }
 
-    fun openEdit(printer: StorePrinter) = openEditor(
-        PrinterEditor(printer.id, printer.name, printer.station, printer.lanAddress.orEmpty(), printer.paperWidthMm)
-    )
+    fun openEdit(printer: StorePrinter) {
+        refreshBluetoothDevices()
+        openEditor(
+            PrinterEditor(
+                id = printer.id,
+                name = printer.name,
+                station = printer.station,
+                lanAddress = printer.lanAddress.orEmpty(),
+                paperWidthMm = printer.paperWidthMm,
+                transportType = if (printer.isBluetooth) PrinterConfig.TRANSPORT_BLUETOOTH else PrinterConfig.TRANSPORT_LAN,
+                bluetoothMac = printer.bluetoothMac.orEmpty()
+            )
+        )
+    }
 
     fun dismissEditor() {
         if (_uiState.value.isSaving) return
@@ -76,15 +116,75 @@ class PrinterSettingsViewModel(
 
     fun setStation(value: String) = edit { it.copy(station = value) }
 
+    fun setTransportType(value: String) {
+        val normalized = if (value.equals(PrinterConfig.TRANSPORT_BLUETOOTH, ignoreCase = true)) {
+            PrinterConfig.TRANSPORT_BLUETOOTH
+        } else {
+            PrinterConfig.TRANSPORT_LAN
+        }
+        edit { current ->
+            current.copy(
+                transportType = normalized,
+                paperWidthMm = if (normalized == PrinterConfig.TRANSPORT_BLUETOOTH && current.id == null && current.bluetoothMac.isBlank()) {
+                    58
+                } else {
+                    current.paperWidthMm
+                }
+            )
+        }
+        if (normalized == PrinterConfig.TRANSPORT_BLUETOOTH) {
+            refreshBluetoothDevices()
+        }
+    }
+
     fun setLanAddress(value: String) = edit { it.copy(lanAddress = value.filter { ch -> ch.isDigit() || ch == '.' || ch == ':' }) }
 
+    fun setBluetoothMac(value: String) = edit {
+        val cleaned = value.uppercase().filter { ch -> ch in '0'..'9' || ch in 'A'..'F' || ch == ':' }.take(17)
+        it.copy(bluetoothMac = cleaned)
+    }
+
+    fun selectPairedDevice(device: PairedBluetoothDevice) = edit { current ->
+        current.copy(
+            bluetoothMac = device.macAddress,
+            name = current.name.ifBlank { device.name.take(50) }
+        )
+    }
+
     fun setPaperWidth(value: Int) = edit { it.copy(paperWidthMm = value) }
+
+    fun refreshBluetoothDevices() {
+        val bt = bluetoothPrinter ?: return
+        val supported = bt.isBluetoothSupported()
+        val hasPerm = bt.hasConnectPermission()
+        val enabled = bt.isBluetoothEnabled()
+        val devices = if (supported && hasPerm && enabled) {
+            bt.listBondedDevices().getOrDefault(emptyList())
+        } else {
+            emptyList()
+        }
+        _uiState.update {
+            it.copy(
+                isBluetoothSupported = supported,
+                hasBluetoothPermission = hasPerm,
+                isBluetoothEnabled = enabled,
+                pairedBluetoothDevices = devices
+            )
+        }
+    }
 
     fun save() {
         val state = _uiState.value
         val editor = state.editor ?: return
         if (!state.canManage || !editor.canSave || state.isSaving) return
-        val input = StorePrinterInput(editor.name, editor.station, editor.lanAddress, editor.paperWidthMm)
+        val input = StorePrinterInput(
+            name = editor.name,
+            station = editor.station,
+            lanAddress = if (editor.isBluetooth) "" else editor.lanAddress,
+            paperWidthMm = editor.paperWidthMm,
+            transportType = editor.transportType,
+            bluetoothMac = if (editor.isBluetooth) editor.bluetoothMac else ""
+        )
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, message = null) }
             val result = editor.id?.let { printers.update(it, input) } ?: printers.create(input)
@@ -99,14 +199,23 @@ class PrinterSettingsViewModel(
         }
     }
 
-    /** Opens a TCP connection to the printer's port to show whether the tablet can reach it. */
+    /** Probes either LAN TCP Port 9100 or Bluetooth Classic SPP to verify tablet reachability. */
     fun test(printer: StorePrinter) {
-        if (printer.lanAddress == null || _uiState.value.testingId != null) return
+        val endpoint = printer.toEndpointOrNull() ?: return
+        if (_uiState.value.testingId != null) return
         viewModelScope.launch {
             _uiState.update {
-                it.copy(testingId = printer.id, messageOk = null, message = UiText.res(R.string.settings_msg_printer_checking, printer.host, printer.port))
+                it.copy(
+                    testingId = printer.id,
+                    messageOk = null,
+                    message = if (printer.isBluetooth) {
+                        UiText.res(R.string.printer_msg_bt_checking, printer.bluetoothMac.orEmpty())
+                    } else {
+                        UiText.res(R.string.settings_msg_printer_checking, printer.host, printer.port)
+                    }
+                )
             }
-            val result = printerManager.checkPrinterHealth(printer.host, printer.port)
+            val result = unifiedPrinter.checkHealth(endpoint)
             val ok = result.health == PrinterPort9100Manager.PrinterHealth.READY
             _uiState.update {
                 it.copy(

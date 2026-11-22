@@ -6,17 +6,21 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.azuredevid.cassy.R
+import com.azuredevid.cassy.core.hardware.BluetoothPrinterClient
 import com.azuredevid.cassy.core.hardware.PrinterPort9100Manager
+import com.azuredevid.cassy.core.hardware.UnifiedEscPosPrinter
 import com.azuredevid.cassy.core.hardware.TableQrPosterBuilder
 import com.azuredevid.cassy.core.hardware.TableQrPosterCopy
 import com.azuredevid.cassy.core.security.SessionManager
 import com.azuredevid.cassy.core.util.TableTentCardPdfRenderer
 import com.azuredevid.cassy.core.util.TentCardContent
+import com.azuredevid.cassy.data.network.RealtimeEventEnvelope
 import com.azuredevid.cassy.domain.error.DomainException
 import com.azuredevid.cassy.domain.model.QrRotationBlock
 import com.azuredevid.cassy.domain.model.TableDraft
 import com.azuredevid.cassy.domain.model.TableEntry
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
+import com.azuredevid.cassy.domain.repository.RealtimeEventSource
 import com.azuredevid.cassy.domain.repository.TableManagementRepository
 import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import kotlinx.coroutines.CoroutineDispatcher
@@ -89,9 +93,12 @@ class TableManagementViewModel(
     private val printerManager: PrinterPort9100Manager,
     private val posterBuilder: TableQrPosterBuilder = TableQrPosterBuilder(),
     private val tentCardRenderer: TableTentCardPdfRenderer = TableTentCardPdfRenderer(),
+    private val realtime: RealtimeEventSource? = null,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val savedStateHandle: SavedStateHandle = SavedStateHandle()
+    private val savedStateHandle: SavedStateHandle = SavedStateHandle(),
+    private val bluetoothPrinter: BluetoothPrinterClient? = null
 ) : ViewModel() {
+    private val unifiedPrinter = UnifiedEscPosPrinter(printerManager, bluetoothPrinter)
 
     private val _uiState = MutableStateFlow(
         TableManagementUiState(selectedTableId = savedStateHandle.get<String>(KEY_SELECTED_TABLE))
@@ -103,6 +110,20 @@ class TableManagementViewModel(
 
     init {
         refresh()
+        observeRealtime()
+    }
+
+    private fun observeRealtime() {
+        val source = realtime ?: return
+        viewModelScope.launch {
+            source.events.collect { event ->
+                if (event.type in REALTIME_REFRESH_EVENTS ||
+                    event.type.startsWith("table_session.", ignoreCase = true)
+                ) {
+                    refresh()
+                }
+            }
+        }
     }
 
     /** Reloads the board; clears the selection when the selected table is gone (archived elsewhere). */
@@ -242,15 +263,15 @@ class TableManagementViewModel(
         val table = _uiState.value.tables.firstOrNull { it.id == id } ?: return
         viewModelScope.launch {
             val url = qrUrlFor(table) ?: return@launch
-            val printer = printerSettings.getConfig()
-            if (!printer.hasCashierPrinter) {
+            val endpoint = printerSettings.getConfig().cashierEndpoint()
+            if (endpoint == null) {
                 emit(TableMessage.Res(R.string.tables_error_no_printer), CassyToastTone.WARNING)
                 return@launch
             }
             _uiState.update { it.copy(isPrinting = true) }
             val bytes = runCatching { posterBuilder.build(storeName(), table.displayName, table.section, url, copy) }
             val printed = bytes.fold(
-                onSuccess = { printerManager.printRawBytes(printer.cashierPrinterIp, it, printer.cashierPrinterPort) },
+                onSuccess = { unifiedPrinter.printRawBytes(endpoint, it) },
                 onFailure = { Result.failure(it) }
             )
             _uiState.update { it.copy(isPrinting = false) }
@@ -327,6 +348,12 @@ class TableManagementViewModel(
         const val KEY_SELECTED_TABLE = "tables_selected_id"
         const val PERMISSION_TABLE_MANAGE = "table.manage"
         const val PERMISSION_TABLE_QR_MANAGE = "table.qr.manage"
+        val REALTIME_REFRESH_EVENTS = setOf(
+            "order.created",
+            "order.paid",
+            "order.cancelled",
+            RealtimeEventEnvelope.TYPE_RESYNC_REQUIRED
+        )
     }
 }
 

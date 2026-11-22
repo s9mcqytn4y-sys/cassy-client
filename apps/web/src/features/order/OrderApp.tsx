@@ -18,7 +18,7 @@ import { PaymentView } from "./PaymentView";
 import { defaultVariant, ProductCard, ProductRow } from "./MenuItems";
 import { ProductOptionsSheet } from "./ProductOptionsSheet";
 import { moneyTaken, orderPhase, writeActiveOrder } from "./status";
-import type { CatalogProduct, GuestOrderSummary, PayMethod, ServiceMode } from "./types";
+import { isFeatureEnabled, type CatalogProduct, type GuestOrderSummary, type PayMethod, type ServiceMode } from "./types";
 import { SplitView } from "./SplitView";
 import { CallWaiter } from "./CallWaiter";
 import { StoreHeader } from "./StoreHeader";
@@ -37,6 +37,7 @@ export function OrderApp({ token }: { token: string }) {
   const [ordersOpen, setOrdersOpen] = useState(false);
   const [guestOrders, setGuestOrders] = useState<GuestOrderSummary[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [cancellingOrder, setCancellingOrder] = useState(false);
   const [guestName, setGuestName] = useState("");
   const [splitCount, setSplitCount] = useState<number | null>(null);
 
@@ -142,7 +143,8 @@ export function OrderApp({ token }: { token: string }) {
     return () => document.removeEventListener("visibilitychange", apply);
   }, [data, t.table, arrived, arrivedText]);
 
-  const { muted, toggleSound, toast } = useOrderBell(arrived, arrivedText, serviceMode);
+  const bellEnabled = isFeatureEnabled(data?.table.features, "guest_bell_sound_enabled");
+  const { muted, toggleSound, toast } = useOrderBell(bellEnabled && arrived, arrivedText, serviceMode);
   const online = useOnlineStatus(() => void refresh());
   const notices = <Notices toast={cartOpen || optionsFor || ordersOpen ? null : (actionToast ?? toast)} offline={!online} offlineText={t.offline} />;
 
@@ -168,6 +170,24 @@ export function OrderApp({ token }: { token: string }) {
     setHidePoweredBy(Boolean(data?.cms.hide_powered_by_badge));
     return () => setHidePoweredBy(false);
   }, [data?.cms.hide_powered_by_badge, setHidePoweredBy]);
+
+  const handleSelfCancelOrder = useCallback(async () => {
+    if (!order || cancellingOrder) return;
+    setCancellingOrder(true);
+    try {
+      await apiFetch(`/api/v1/public/guest/orders/${encodeURIComponent(order.id)}/cancel`, {
+        method: "POST",
+        body: {}
+      });
+      startOver();
+      notify(t.orderCancelledToast);
+      void refreshGuestOrders();
+    } catch {
+      notify(t.cancelOrderFailed);
+    } finally {
+      setCancellingOrder(false);
+    }
+  }, [order, cancellingOrder, startOver, notify, t.orderCancelledToast, t.cancelOrderFailed, refreshGuestOrders]);
 
   if (state === "loading") {
     return (
@@ -224,6 +244,11 @@ export function OrderApp({ token }: { token: string }) {
           onCheckStatus={refreshTrack}
           serviceMode={serviceMode}
           muted={muted}
+          bellEnabled={bellEnabled}
+          emailReceiptEnabled={isFeatureEnabled(table.features, "guest_email_receipt_enabled")}
+          canSelfCancel={phase === "awaiting" && isFeatureEnabled(table.features, "guest_self_cancel_enabled")}
+          cancelling={cancellingOrder}
+          onCancelOrder={() => void handleSelfCancelOrder()}
           onToggleSound={toggleSound}
           onBack={() => setViewingPayment(false)}
           onOrderAgain={startOver}
@@ -375,16 +400,20 @@ export function OrderApp({ token }: { token: string }) {
           bank={bank}
           onBank={setBank}
           // Shares are paid by QRIS only, so the outlet must have QRIS on as well.
-          splitEnabled={table.split_enabled === true && methods.includes("qris")}
+          splitEnabled={table.split_enabled === true && methods.includes("qris") && isFeatureEnabled(table.features, "guest_split_equal_enabled")}
           splitCount={splitCount}
           onSplitCount={setSplitCount}
           catalogProducts={data.products}
-          onQuickAddPairing={(product) => {
-            dispatch({
-              type: "add",
-              line: { productId: product.id, variantId: defaultVariant(product)?.id, name: product.name, options: [], quantity: 1, notes: "" }
-            });
-          }}
+          onQuickAddPairing={
+            isFeatureEnabled(table.features, "cart_pairing_enabled")
+              ? (product) => {
+                  dispatch({
+                    type: "add",
+                    line: { productId: product.id, variantId: defaultVariant(product)?.id, name: product.name, options: [], quantity: 1, notes: "" }
+                  });
+                }
+              : undefined
+          }
           onPay={checkout}
           onClose={() => setCartOpen(false)}
         />
