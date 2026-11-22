@@ -828,4 +828,14 @@
     <string name="pos_msg_discount_failed">Failed to apply order discount.</string>
     <string name="pos_msg_order_voided">Order voided.</string>
     <string name="pos_msg_order_void_failed">Failed to void order.</string>
+    <string name="tv_queue_title">TV Queue Display</string>
+    <string name="tv_queue_back">Back</string>
+    <string name="tv_queue_refresh">Refresh queue</string>
+    <string name="tv_queue_preparing">Preparing</string>
+    <string name="tv_queue_ready">Ready for Pickup</string>
+    <string name="tv_queue_empty">No active orders</string>
+    <string name="tv_queue_pair_heading">Connect TV Queue Display</string>
+    <string name="tv_queue_token_label">Display Token</string>
+    <string name="tv_queue_connect">Connect Display</string>
+    <string name="tv_queue_load_failed">Failed to load TV queue.</string>
 </resources>

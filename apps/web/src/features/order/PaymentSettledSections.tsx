@@ -89,6 +89,7 @@ export function PaymentPaidSection({
   orderId,
   orderNumber,
   status,
+  estimatedPrepMinutes,
   serviceMode,
   muted,
   onToggleSound,
@@ -97,6 +98,7 @@ export function PaymentPaidSection({
   orderId: string;
   orderNumber?: string;
   status?: string;
+  estimatedPrepMinutes?: number;
   serviceMode: ServiceMode;
   muted: boolean;
   onToggleSound: () => void;
@@ -147,6 +149,11 @@ export function PaymentPaidSection({
           <p className="mt-3 text-4xl font-extrabold tabular-nums tracking-tight text-ink">{orderNumber}</p>
         ) : null}
         <ProgressSteps status={status} mode={serviceMode} />
+        {estimatedPrepMinutes && estimatedPrepMinutes > 0 ? (
+          <p className="mt-3 inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-semibold tabular-nums text-ink">
+            {t.estimatedPrepMinutes.replace("{minutes}", String(estimatedPrepMinutes))}
+          </p>
+        ) : null}
         <button type="button" onClick={onToggleSound} className="btn-secondary mt-4 min-h-[44px] rounded-xl px-4 text-sm font-semibold">
           {muted ? t.unmuteSound : t.muteSound}
         </button>

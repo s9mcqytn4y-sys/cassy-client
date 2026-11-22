@@ -20,6 +20,7 @@ export function PaymentView({
   orderNumber,
   storeName,
   status,
+  estimatedPrepMinutes,
   retrying,
   error,
   methods,
@@ -42,6 +43,7 @@ export function PaymentView({
   orderNumber?: string;
   storeName?: string;
   status?: string;
+  estimatedPrepMinutes?: number;
   retrying: boolean;
   error: string | null;
   methods: PayMethod[];
@@ -115,6 +117,7 @@ export function PaymentView({
         orderId={orderId}
         orderNumber={orderNumber}
         status={status}
+        estimatedPrepMinutes={estimatedPrepMinutes}
         serviceMode={serviceMode}
         muted={muted}
         onToggleSound={onToggleSound}

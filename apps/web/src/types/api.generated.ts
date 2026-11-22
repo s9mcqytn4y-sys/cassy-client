@@ -4366,6 +4366,8 @@ export interface components {
              * @description Deadline timestamp for pending unpaid orders.
              */
             expires_at?: string;
+            /** @description Server-calculated preparation ETA in minutes based on item/station prep configs and active KDS queue load. 0 once ready/served/completed/cancelled. */
+            estimated_prep_minutes?: number;
         };
         TableInput: {
             /** @description Required on create; unique per store among non-archived tables (case-insensitive) */
@@ -4460,7 +4462,7 @@ export interface components {
             label: string;
             ordering_open: boolean;
             /** @enum {string} */
-            closed_reason?: "paused" | "store_closed" | "table_inactive";
+            closed_reason?: "paused" | "store_closed" | "table_inactive" | "outside_operating_hours";
             /** @description Optional per-day store operating hours configured in store CMS settings. */
             operating_hours?: {
                 [key: string]: unknown;
@@ -4852,6 +4854,12 @@ export interface components {
                 type?: "prepared" | "ready_to_serve" | "bundle";
                 /** @enum {string} */
                 prep_station?: "bar" | "kitchen" | "none";
+                /** @description Optional highlight badge for guest catalog cards (e.g. "Favorit", "Rekomendasi Chef"). */
+                badge_label?: string | null;
+                /** @description Optional per-product preparation time override in minutes. */
+                prep_minutes?: number | null;
+                /** @description Ordered list of Smart Pairing product UUIDs recommended with this item. */
+                recommended_product_ids?: string[];
                 image_url?: string | null;
                 available?: boolean;
                 sold_out_reason?: string | null;

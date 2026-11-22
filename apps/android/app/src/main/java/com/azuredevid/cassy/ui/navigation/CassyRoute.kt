@@ -23,4 +23,7 @@ sealed interface CassyRoute {
 
     @Serializable
     data object TableManagement : CassyRoute
+
+    @Serializable
+    data object TvQueueDisplay : CassyRoute
 }

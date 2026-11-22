@@ -212,6 +212,7 @@ export function OrderApp({ token }: { token: string }) {
           orderNumber={tracked?.order_number ?? order.number}
           storeName={table.store_name}
           status={tracked?.status}
+          estimatedPrepMinutes={tracked?.estimated_prep_minutes}
           retrying={placing}
           error={checkoutError}
           methods={methods}
