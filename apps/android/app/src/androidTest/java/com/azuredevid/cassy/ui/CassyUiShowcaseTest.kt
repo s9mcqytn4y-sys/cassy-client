@@ -13,6 +13,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -726,8 +727,16 @@ class CassyUiShowcaseTest {
         } else {
             composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart)).assertIsDisplayed()
             captureScreen("PosLandscape/PosMain", preferFullDisplay = true)
-            composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart)).performClick()
-            composeRule.waitForIdle()
+            // A transient snackbar can sit over the sticky cart bar on phones, so a single tap may
+            // land on it. Keep tapping (a real touch, not a semantics action) until the sheet opens.
+            val viewCart = composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart))
+            val closeCart = context.getString(R.string.pos_mobile_close_cart)
+            composeRule.waitUntil(timeoutMillis = 8_000) {
+                val sheetOpen = composeRule.onAllNodesWithContentDescription(closeCart)
+                    .fetchSemanticsNodes().isNotEmpty()
+                if (!sheetOpen) viewCart.performClick()
+                sheetOpen
+            }
             composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
             captureScreen("PosLandscape/Modals/PosMobileCartSheet", preferFullDisplay = true)
         }
