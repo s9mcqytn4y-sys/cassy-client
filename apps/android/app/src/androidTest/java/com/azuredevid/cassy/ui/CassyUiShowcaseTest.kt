@@ -737,7 +737,10 @@ class CassyUiShowcaseTest {
                     runCatching { composeRule.onNodeWithText(payCash).assertIsDisplayed() }.isSuccess
                 }
             }.onFailure { error ->
-                val roots = composeRule.onAllNodes(isRoot()).fetchSemanticsNodes().size
+                val roots = composeRule.onAllNodes(isRoot()).fetchSemanticsNodes()
+                    .joinToString { "root ${it.boundsInRoot}" } + " | viewCart " +
+                    composeRule.onAllNodesWithText(context.getString(R.string.pos_mobile_view_cart))
+                        .fetchSemanticsNodes().joinToString { "${it.boundsInRoot} clickable=${it.config.contains(androidx.compose.ui.semantics.SemanticsActions.OnClick)}" }
                 val node = composeRule.onAllNodesWithText(payCash, useUnmergedTree = true).printToString(maxDepth = 0)
                 throw AssertionError("DIAG roots=$roots pay cash nodes:\n$node", error)
             }
