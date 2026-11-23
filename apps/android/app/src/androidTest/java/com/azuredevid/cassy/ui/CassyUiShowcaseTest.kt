@@ -727,7 +727,7 @@ class CassyUiShowcaseTest {
             captureScreen("PosLandscape/PosMain", preferFullDisplay = true)
         } else {
             composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart)).assertIsDisplayed()
-            captureScreen("PosLandscape/PosMain", preferFullDisplay = true)
+            captureScreen("PosLandscape/PosMain")
             composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart)).performClick()
             composeRule.waitForIdle()
             // The cart sheet opens in its own window with an expand animation; wait for it.
