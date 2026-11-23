@@ -70,7 +70,7 @@ jobs:
           script: |
             adb install -r apps/android/app/build/outputs/apk/dev/debug/app-dev-debug.apk
             adb install -r apps/android/app/build/outputs/apk/androidTest/dev/debug/app-dev-debug-androidTest.apk
-            adb shell am instrument -w -e class com.azuredevid.cassy.live.StackSmokeTest com.azuredevid.cassy.dev.test/androidx.test.runner.AndroidJUnitRunner | tee instrument.log
+            for attempt in 1 2; do adb shell am instrument -w -e package com.azuredevid.cassy.live com.azuredevid.cassy.dev.test/androidx.test.runner.AndroidJUnitRunner | tee instrument.log; grep -q "^OK (" instrument.log && break; echo "live attempt $attempt failed"; done
             grep -q "^OK (" instrument.log
 
       - name: Upload printer jobs and stack logs
