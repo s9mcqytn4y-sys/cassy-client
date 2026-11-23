@@ -36,7 +36,7 @@ class LiveCashierLifecycleTest {
     private val koin get() = GlobalContext.get()
 
     @Before
-    fun loginAsE2eCashier() = runBlocking {
+    fun loginAsE2eCashier(): Unit = runBlocking {
         koin.get<ServerSettingsRepository>().setBaseUrl("http://$HOST:18080")
         koin.get<AuthRepository>()
             .login(storeSlug = STORE, email = "cashier.e2e@cassy.local", pin = CASHIER_PIN)
@@ -45,7 +45,7 @@ class LiveCashierLifecycleTest {
     }
 
     @Test
-    fun cashAndEdcSettleWithServerTotalsAndPrintFromServerPrinterConfig() = runBlocking {
+    fun cashAndEdcSettleWithServerTotalsAndPrintFromServerPrinterConfig(): Unit = runBlocking {
         val shifts = koin.get<ShiftRepository>()
         val drawer = shifts.getDrawers().getOrThrow().first { it.name == "Laci Uji 1" }
         // OPS-01: open the shift and record a cash-in.
