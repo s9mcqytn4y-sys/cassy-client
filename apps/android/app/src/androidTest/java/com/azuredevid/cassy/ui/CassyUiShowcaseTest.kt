@@ -12,6 +12,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.isRoot
+import androidx.compose.ui.test.printToString
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -728,7 +730,12 @@ class CassyUiShowcaseTest {
             captureScreen("PosLandscape/PosMain", preferFullDisplay = true)
             composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart)).performClick()
             composeRule.waitForIdle()
-            composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
+            runCatching {
+                composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
+            }.onFailure { error ->
+                val tree = composeRule.onAllNodes(isRoot(), useUnmergedTree = true).printToString()
+                throw AssertionError("DIAG pay cash not displayed. Semantics:\n$tree", error)
+            }
             captureScreen("PosLandscape/Modals/PosMobileCartSheet", preferFullDisplay = true)
         }
     }
