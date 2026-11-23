@@ -161,12 +161,16 @@ PY
 
   # Run Compose Showcase instrumentation tests
   adb shell am force-stop com.azuredevid.cassy.dev
+  adb logcat -c || true
   set +e
   INSTR_OUT=$(adb shell am instrument -w -e class "com.azuredevid.cassy.ui.CassyUiShowcaseTest" com.azuredevid.cassy.dev.test/androidx.test.runner.AndroidJUnitRunner 2>&1)
   INSTR_RC=$?
   set -e
   echo "[$form_factor] Instrumentation output:"
   echo "$INSTR_OUT"
+  # captureScreen only logs failures, so keep its log next to the screenshots.
+  adb logcat -d -s CassyShowcase:* > "$OUT_ROOT/ShowcaseLog.txt" 2>&1 || true
+  grep -E "Failed screenshot" "$OUT_ROOT/ShowcaseLog.txt" || true
 
   SHOWCASE_FILES=$(adb shell run-as com.azuredevid.cassy.dev find files/showcase -type f -name '*.png' 2>/dev/null | tr -d '\r' || true)
   for rel in $SHOWCASE_FILES; do
