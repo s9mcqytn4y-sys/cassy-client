@@ -467,6 +467,12 @@
     <string name="pos_msg_store_session_missing">Sesi toko tidak ditemukan. Silakan masuk kembali.</string>
     <string name="msg_catalog_load_failed">Gagal memuat katalog.</string>
     <string name="pos_msg_order_send_failed">Gagal mengirim pesanan ke server.</string>
+    <string name="btn_pay_edc">Kartu (EDC)</string>
+    <string name="modal_edc_title">Pembayaran Kartu (EDC)</string>
+    <string name="modal_edc_prompt">Proses kartu di mesin EDC dulu. Setelah disetujui, catat nomor referensi dari struk EDC.</string>
+    <string name="input_edc_reference_label">Nomor referensi struk EDC</string>
+    <string name="input_edc_reference_help">Contoh: nomor approval atau trace di struk mesin EDC.</string>
+    <string name="pos_msg_edc_failed">Gagal mencatat pembayaran kartu.</string>
     <string name="pos_msg_cash_failed">Gagal memproses pembayaran tunai.</string>
     <string name="pos_msg_qris_order_failed">Gagal membuat pesanan QRIS.</string>
     <string name="pos_msg_qris_bill_failed">Gagal membuat tagihan QRIS.</string>
@@ -505,7 +511,7 @@
     <string name="pos_msg_qris_paid">Pembayaran QRIS #%1$s lunas.</string>
     <string name="pos_msg_lan_printer_unreachable">Printer LAN (%1$s) tidak terjangkau.</string>
     <string name="shift_msg_xreport_printed">X-Report berhasil dicetak</string>
-    <string name="shift_msg_owner_pin_required">PIN Owner 6 digit wajib diisi untuk verifikasi server</string>
+    <string name="shift_msg_owner_pin_required">PIN owner atau manajer 6 digit wajib diisi untuk verifikasi server</string>
     <string name="shift_msg_zreport_printed">Struk Z-Report berhasil dicetak</string>
     <string name="settings_msg_midtrans_verified">Kredensial Midtrans terverifikasi live (%1$s).</string>
     <string name="settings_msg_printer_checking">Memeriksa %1$s:%2$s...</string>
@@ -565,8 +571,8 @@
     <string name="tab_void_reason">Alasan</string>
     <string name="tab_void_reason_hint">Contoh: tamu batal pesan</string>
     <string name="tab_void_pin">PIN kasir</string>
-    <string name="tab_void_owner_pin">PIN owner</string>
-    <string name="tab_void_owner_needed">Nilai item ini di atas batas kasir. Masukkan PIN owner, atau minta owner menyetujui dari HP-nya.</string>
+    <string name="tab_void_owner_pin">PIN owner atau manajer</string>
+    <string name="tab_void_owner_needed">Nilai item ini di atas batas kasir. Masukkan PIN owner atau manajer, atau minta persetujuan dari HP mereka.</string>
     <string name="tab_void_waiting">Menunggu owner menyetujui di HP-nya. Biarkan jendela ini terbuka.</string>
     <string name="tab_void_btn_submit">Batalkan item</string>
     <string name="tab_void_btn_ask_owner">Minta persetujuan owner</string>
@@ -575,7 +581,7 @@
     <string name="tab_void_msg_failed">Item gagal dibatalkan. Coba lagi.</string>
     <string name="tab_void_msg_request_failed">Permintaan ke owner gagal dikirim. Coba lagi.</string>
     <string name="tab_void_msg_rejected">Owner menolak pembatalan ini.</string>
-    <string name="tab_void_msg_expired">Waktu persetujuan habis. Kirim permintaan baru atau pakai PIN owner.</string>
+    <string name="tab_void_msg_expired">Waktu persetujuan habis. Kirim permintaan baru atau pakai PIN owner atau manajer.</string>
     <string name="tab_split_label">Bagi rata</string>
     <string name="tab_split_none">Tidak dibagi</string>
     <plurals name="tab_split_guests">

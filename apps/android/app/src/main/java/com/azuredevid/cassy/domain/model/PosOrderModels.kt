@@ -57,7 +57,9 @@ data class InitiatePosPaymentInput(
     val method: String,
     val cashTenderedAmount: Long? = null,
     val drawerId: String? = null,
-    val splitId: String? = null
+    val splitId: String? = null,
+    /** EDC slip or static QRIS reference; the server requires it for those direct tenders. */
+    val reconciliationRef: String? = null
 )
 
 data class PosPaymentAttempt(

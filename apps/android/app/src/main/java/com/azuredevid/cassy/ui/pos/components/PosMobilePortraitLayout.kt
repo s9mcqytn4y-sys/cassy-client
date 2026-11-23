@@ -103,6 +103,7 @@ fun PosMobilePortraitLayout(
     onSendToKitchen: () -> Unit,
     onOpenCashModal: () -> Unit,
     onOpenQrisModal: () -> Unit,
+    onOpenEdcModal: () -> Unit,
     failoverWarning: String?,
     onReprintStations: () -> Unit,
     tables: List<PosTable> = emptyList(),
@@ -396,6 +397,10 @@ fun PosMobilePortraitLayout(
                     onOpenQrisModal = {
                         showCartSheet = false
                         onOpenQrisModal()
+                    },
+                    onOpenEdcModal = {
+                        showCartSheet = false
+                        onOpenEdcModal()
                     },
                     failoverWarning = failoverWarning,
                     onReprintStations = onReprintStations,

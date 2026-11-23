@@ -234,6 +234,19 @@ fun PosLandscapeScreen(
                         posViewModel.openCashModal()
                     }
                 }
+                val handleOpenEdcModal: () -> Unit = {
+                    if (!shiftState.isShiftOpen) {
+                        scope.launch {
+                            snackbarHostState.showCassySnackbar(
+                                message = context.getString(R.string.shift_required_for_payment),
+                                tone = CassyToastTone.WARNING
+                            )
+                        }
+                        shiftViewModel.openShiftModal()
+                    } else {
+                        posViewModel.openEdcModal()
+                    }
+                }
                 val handleOpenQrisModal: () -> Unit = {
                     if (!shiftState.isShiftOpen) {
                         scope.launch {
@@ -329,6 +342,7 @@ fun PosLandscapeScreen(
                             onSendToKitchen = handleSendToKitchen,
                             onOpenCashModal = handleOpenCashModal,
                             onOpenQrisModal = handleOpenQrisModal,
+                            onOpenEdcModal = handleOpenEdcModal,
                             failoverWarning = posState.failoverAlert?.asString(),
                             onReprintStations = { posViewModel.reprintStations() },
                             tables = posState.tables,
@@ -382,6 +396,7 @@ fun PosLandscapeScreen(
                         onSendToKitchen = handleSendToKitchen,
                         onOpenCashModal = handleOpenCashModal,
                         onOpenQrisModal = handleOpenQrisModal,
+                        onOpenEdcModal = handleOpenEdcModal,
                         failoverWarning = posState.failoverAlert?.asString(),
                         onReprintStations = { posViewModel.reprintStations() },
                         tables = posState.tables,
