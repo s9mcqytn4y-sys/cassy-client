@@ -22,6 +22,12 @@ clone_repo() {
 clone_repo cassy-docker Docker
 clone_repo cassy-backend CassyBackend
 
+# A matching backend branch is not on GHCR yet: build its API image so client and backend PRs test together.
+if [ "$ref" != main ]; then
+  docker build --quiet -f "$WORK/CassyBackend/deploy/docker/Dockerfile" -t cassy-api:branch "$WORK/CassyBackend"
+  export CASSY_API_IMAGE=cassy-api:branch
+fi
+
 CASSY_BACKEND_DIR="$WORK/CassyBackend" docker compose -f "$WORK/Docker/Core/DockerComposeTest.yml" up -d --wait --wait-timeout 300
 docker compose -f "$WORK/Docker/Core/DockerComposeTest.yml" ps
 curl -fsS http://127.0.0.1:18080/api/v1/health
