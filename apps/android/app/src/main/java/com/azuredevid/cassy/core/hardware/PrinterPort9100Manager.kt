@@ -1,5 +1,6 @@
 package com.azuredevid.cassy.core.hardware
 
+import com.azuredevid.cassy.core.coroutines.runCatchingCancellable
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -69,7 +70,7 @@ class PrinterPort9100Manager(
      * Kicks open the cash drawer connected via RJ11 to the thermal receipt printer.
      */
     suspend fun openCashDrawer(printerIp: String, port: Int = 9100): Result<Boolean> = withContext(ioDispatcher) {
-        runCatching {
+        runCatchingCancellable {
             require(printerIp.isNotBlank()) { "IP printer kasir tidak valid" }
             Socket().use { socket ->
                 socket.tcpNoDelay = true
@@ -88,7 +89,7 @@ class PrinterPort9100Manager(
      * Sends raw ESC/POS formatted byte array directly to the printer with strict 2,500ms timeout.
      */
     suspend fun printRawBytes(printerIp: String, payload: ByteArray, port: Int = 9100): Result<Boolean> = withContext(ioDispatcher) {
-        runCatching {
+        runCatchingCancellable {
             require(printerIp.isNotBlank()) { "IP printer tidak boleh kosong" }
             require(payload.isNotEmpty()) { "Payload byte cetak tidak boleh kosong" }
 

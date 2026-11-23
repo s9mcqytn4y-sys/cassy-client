@@ -1,5 +1,6 @@
 package com.azuredevid.cassy.data.repository
 
+import com.azuredevid.cassy.core.coroutines.runCatchingCancellable
 import com.azuredevid.cassy.data.model.CreateOrderItemInputDto
 import com.azuredevid.cassy.data.model.PosOrderDto
 import com.azuredevid.cassy.data.model.PosOrderItemDto
@@ -172,7 +173,7 @@ class KtorTableTabRepository(
                 }
                 if (response.status == HttpStatusCode.Conflict) {
                     // The table already has an open tab: continue that bill instead of opening a second one.
-                    val conflict = runCatching { json.decodeFromString<TabConflictDto>(response.bodyAsText()) }.getOrNull()
+                    val conflict = runCatchingCancellable { json.decodeFromString<TabConflictDto>(response.bodyAsText()) }.getOrNull()
                     if (conflict?.code == "TAB_LABEL_IN_USE" && conflict.existingOrderId.isNotBlank()) {
                         return@withContext getTab(conflict.existingOrderId)
                     }

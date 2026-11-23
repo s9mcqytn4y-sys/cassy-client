@@ -91,7 +91,7 @@ class KtorCatalogRepository(
         val dao = catalogCacheDao ?: return emptyList()
         return runCatchingCancellable {
             dao.getProducts(storeSlug).mapNotNull { entity ->
-                runCatching { cacheJson.decodeFromString<CatalogProduct>(entity.payloadJson) }.getOrNull()
+                runCatchingCancellable { cacheJson.decodeFromString<CatalogProduct>(entity.payloadJson) }.getOrNull()
             }
         }.getOrDefault(emptyList())
     }

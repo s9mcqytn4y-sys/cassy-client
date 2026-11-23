@@ -1,5 +1,6 @@
 package com.azuredevid.cassy.core.hardware
 
+import com.azuredevid.cassy.core.coroutines.runCatchingCancellable
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -55,7 +56,7 @@ class AndroidBluetoothEscPosManager(
     }
 
     @SuppressLint("MissingPermission")
-    override fun listBondedDevices(): Result<List<PairedBluetoothDevice>> = runCatching {
+    override fun listBondedDevices(): Result<List<PairedBluetoothDevice>> = runCatchingCancellable {
         if (!hasConnectPermission()) {
             throw SecurityException("Izin Bluetooth belum diberikan")
         }
@@ -106,7 +107,7 @@ class AndroidBluetoothEscPosManager(
     @SuppressLint("MissingPermission")
     private suspend fun transmit(macAddress: String, payload: ByteArray): Result<Boolean> =
         withContext(ioDispatcher) {
-            runCatching {
+            runCatchingCancellable {
                 val normalizedMac = normalizeBluetoothMac(macAddress)
                     ?: throw IllegalArgumentException("Alamat MAC Bluetooth tidak valid")
                 if (!hasConnectPermission()) {
@@ -122,7 +123,7 @@ class AndroidBluetoothEscPosManager(
                 try {
                     withTimeout(connectTimeoutMs) {
                         if (hasScanPermission() && adapter.isDiscovering) {
-                            runCatching { adapter.cancelDiscovery() }
+                            runCatchingCancellable { adapter.cancelDiscovery() }
                         }
                         socket = device.createRfcommSocketToServiceRecord(SPP_UUID)
                         socket!!.connect()
@@ -136,7 +137,7 @@ class AndroidBluetoothEscPosManager(
                 } catch (e: IOException) {
                     throw IOException("Gagal terhubung ke printer Bluetooth ($normalizedMac): ${e.message}", e)
                 } finally {
-                    runCatching { socket?.close() }
+                    runCatchingCancellable { socket?.close() }
                 }
             }
         }

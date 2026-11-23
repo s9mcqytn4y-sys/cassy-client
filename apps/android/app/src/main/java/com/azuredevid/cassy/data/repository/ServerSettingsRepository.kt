@@ -1,5 +1,6 @@
 package com.azuredevid.cassy.data.repository
 
+import com.azuredevid.cassy.core.coroutines.runCatchingCancellable
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.SharedPreferencesMigration
@@ -99,7 +100,7 @@ class DataStoreServerSettingsRepository(
         private val KEY_AUDIO_CUE_MUTED_PREF = booleanPreferencesKey("audio_cue_muted")
 
         private fun readInitialSeed(context: Context): String {
-            return runCatching {
+            return runCatchingCancellable {
                 val legacyPrefs = context.getSharedPreferences(LEGACY_PREFS_NAME, Context.MODE_PRIVATE)
                 val raw = legacyPrefs.getString(KEY_BASE_URL, null)
                 if (!raw.isNullOrBlank()) normalizeBaseUrl(raw) else normalizeBaseUrl(BuildConfig.BASE_API_URL)

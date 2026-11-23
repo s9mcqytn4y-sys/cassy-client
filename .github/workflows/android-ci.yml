@@ -34,6 +34,15 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: No cancellation-swallowing runCatching in I/O layers (TD-06)
+        working-directory: .
+        run: |
+          # runCatching inside suspend code also catches CancellationException; use runCatchingCancellable.
+          if grep -rn "runCatching {" apps/android/app/src/main/java/com/azuredevid/cassy/core/hardware apps/android/app/src/main/java/com/azuredevid/cassy/data/repository; then
+            echo "Use runCatchingCancellable in core/hardware and data/repository." >&2
+            exit 1
+          fi
+
       - name: Set up JDK 17
         uses: actions/setup-java@v6
         with:
