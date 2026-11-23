@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "codegen:api": "openapi-typescript ../../../CassyBackend/docs/Api/OpenApi.yaml -o src/types/api.generated.ts",
     "test:unit": "node --experimental-strip-types src/features/order/cart.test.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:live": "playwright test --config playwright.live.config.ts"
   },
   "dependencies": {
     "animejs": "^4.5.0",
