@@ -26,6 +26,8 @@ class EscPosReceiptBuilder(
 
     // ESC/POS Command Constants
     companion object {
+        /** Longest order label printed in full; a UUID fallback (36 chars) is cut to its last 12. */
+        private const val MAX_ORDER_LABEL = 20
         val ESC_INIT = byteArrayOf(0x1B, 0x40) // ESC @
         val ESC_ALIGN_LEFT = byteArrayOf(0x1B, 0x61, 0x00) // ESC a 0
         val ESC_ALIGN_CENTER = byteArrayOf(0x1B, 0x61, 0x01) // ESC a 1
@@ -97,6 +99,10 @@ class EscPosReceiptBuilder(
      * Formats two-column text with left and right alignment.
      * Truncates or wraps left column if sum of lengths exceeds total columns.
      */
+    /** Order numbers (E2E-20261124-0007) print in full; only a raw id fallback (UUID) is shortened. */
+    private fun receiptOrderLabel(orderId: String): String =
+        (if (orderId.length > MAX_ORDER_LABEL) orderId.takeLast(12) else orderId).uppercase()
+
     fun row(left: String, right: String): EscPosReceiptBuilder {
         alignLeft()
         val maxCols = paperWidth.columns
@@ -215,7 +221,7 @@ class EscPosReceiptBuilder(
         separator()
         
         alignLeft()
-        row("No. Pesanan:", orderId.takeLast(12).uppercase())
+        row("No. Pesanan:", receiptOrderLabel(orderId))
         row("Meja / Tipe:", tableName)
         row("Kasir:", cashierName)
         row("Waktu:", dateFormat.format(Date()))
@@ -282,7 +288,7 @@ class EscPosReceiptBuilder(
         title(storeName)
         separator()
         alignLeft()
-        row("No. Pesanan:", orderId.takeLast(12).uppercase())
+        row("No. Pesanan:", receiptOrderLabel(orderId))
         row("Meja / Tipe:", tableName)
         row("Kasir:", cashierName)
         row("Waktu:", dateFormat.format(Date()))

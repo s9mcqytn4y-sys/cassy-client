@@ -22,6 +22,7 @@ class EscPosShareReceiptTest {
         )
         val text = String(bytes, Charset.forName("US-ASCII"))
 
+        assertTrue("order number prints in full", text.contains("ORD-20261120-0007"))
         assertTrue(text.contains("BAGIAN 1 DARI 3"))
         assertTrue(text.contains("37.000") || text.contains("37,000"))
         assertTrue(text.contains("Kembalian"))

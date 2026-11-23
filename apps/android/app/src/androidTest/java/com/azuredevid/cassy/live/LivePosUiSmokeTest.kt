@@ -2,7 +2,6 @@ package com.azuredevid.cassy.live
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -63,7 +62,7 @@ class LivePosUiSmokeTest {
 
         sellOne()
         compose.onNodeWithText(context.getString(R.string.btn_pay_edc)).performClick()
-        compose.onNode(hasSetTextAction()).performTextInput("APPR-UI-01")
+        compose.onNodeWithText(context.getString(R.string.input_edc_reference_label)).performTextInput("APPR-UI-01")
         compose.onNodeWithText(context.getString(R.string.btn_complete_and_print)).performClick()
         awaitPrinted("EDC")
     }

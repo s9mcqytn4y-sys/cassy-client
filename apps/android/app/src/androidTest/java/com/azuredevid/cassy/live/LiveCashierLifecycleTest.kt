@@ -65,10 +65,10 @@ class LiveCashierLifecycleTest {
         onMain { vm.submitEdcPayment(reference = "APPR-E2E-01", drawerId = drawer.id) }
         awaitTrue("edc settled") { vm.uiState.value.cart.isEmpty() && !vm.uiState.value.isSubmittingOrder }
 
-        // OPS-11: the receipt printer from the server prints 2 copies with its own footer.
-        val receipts = awaitJobs { jobs -> jobs.count { "Terima kasih - E2E" in it } >= 4 }
-            .filter { "Terima kasih - E2E" in it }
-        assertEquals("2 copies for each of the 2 sales", 4, receipts.size)
+        // OPS-11: the receipt printer from the server prints 2 copies (one job each) with its own footer.
+        val receipts = awaitJobs { jobs -> jobs.count { FOOTER in it } >= 2 }.filter { FOOTER in it }
+        assertEquals("one receipt job per sale", 2, receipts.size)
+        receipts.forEach { assertEquals("2 copies per receipt job", 2, it.split(FOOTER).size - 1) }
         assertTrue(receipts.any { "TUNAI" in it && rupiah(cashTotal) in it })
         assertTrue(receipts.any { "EDC" in it && "Nasi Uji" in it })
         assertTrue("an EDC receipt has no change line", receipts.filter { "EDC" in it }.none { "Kembali" in it })
@@ -115,6 +115,7 @@ class LiveCashierLifecycleTest {
 
     private companion object {
         const val OPENING_FLOAT = 200_000L
+        const val FOOTER = "Terima kasih - E2E"
         const val TIMEOUT_MS = 15_000L
     }
 }
