@@ -1,10 +1,10 @@
 package com.azuredevid.cassy.live
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.azuredevid.cassy.data.repository.ServerSettingsRepository
+import com.azuredevid.cassy.domain.model.CashDrawer
 import com.azuredevid.cassy.domain.model.CashMovementType
-import com.azuredevid.cassy.domain.repository.AuthRepository
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
 import com.azuredevid.cassy.domain.repository.ShiftRepository
 import com.azuredevid.cassy.ui.pos.PosViewModel
@@ -19,8 +19,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.core.context.GlobalContext
-import java.net.HttpURLConnection
-import java.net.URL
+import org.koin.core.parameter.parametersOf
 
 /**
  * S2 cashier lifecycle against the Docker test stack (Docs/PRD/PrdOpsAndPwaClose.md section 10).
@@ -35,24 +34,22 @@ class LiveCashierLifecycleTest {
 
     private val koin get() = GlobalContext.get()
 
+    private lateinit var drawer: CashDrawer
+
     @Before
-    fun loginAsE2eCashier(): Unit = runBlocking {
-        koin.get<ServerSettingsRepository>().setBaseUrl("http://$HOST:18080")
-        koin.get<AuthRepository>()
-            .login(storeSlug = STORE, email = "cashier.e2e@cassy.local", pin = CASHIER_PIN)
-            .getOrThrow()
-        http("DELETE", "$HOST_URL:9101/jobs")
+    fun startClean(): Unit = runBlocking {
+        drawer = LiveStack.startOnDrawer("Laci Uji 1")
+        LiveStack.http("DELETE", LiveStack.PRINTER_JOBS)
     }
 
     @Test
     fun cashAndEdcSettleWithServerTotalsAndPrintFromServerPrinterConfig(): Unit = runBlocking {
         val shifts = koin.get<ShiftRepository>()
-        val drawer = shifts.getDrawers().getOrThrow().first { it.name == "Laci Uji 1" }
         // OPS-01: open the shift and record a cash-in.
         val shift = shifts.openShift(openingFloat = OPENING_FLOAT, drawerId = drawer.id).getOrThrow().shift
         shifts.recordCashMovement(CashMovementType.CASH_IN, 50_000L, "Uang kecil", shift.id, drawer.id).getOrThrow()
 
-        val vm = onMain { koin.get<PosViewModel>() }
+        val vm = onMain { koin.get<PosViewModel> { parametersOf(SavedStateHandle()) } }
         awaitTrue("catalog") { vm.uiState.value.allProducts.any { it.name == "Kopi Uji" } }
         val printers = koin.get<PrinterSettingsRepository>()
         awaitTrue("server printer config") { printers.getConfig().hasCashierPrinter }
@@ -93,7 +90,7 @@ class LiveCashierLifecycleTest {
     private suspend fun awaitJobs(done: (List<String>) -> Boolean): List<String> {
         var texts = emptyList<String>()
         awaitTrue("printer jobs") {
-            val jobs = JSONArray(http("GET", "$HOST_URL:9101/jobs"))
+            val jobs = JSONArray(LiveStack.http("GET", LiveStack.PRINTER_JOBS))
             texts = (0 until jobs.length()).map { jobs.getJSONObject(it).getString("text") }
             done(texts)
         }
@@ -115,23 +112,8 @@ class LiveCashierLifecycleTest {
         return result as T
     }
 
-    private fun http(method: String, url: String): String {
-        val conn = URL(url).openConnection() as HttpURLConnection
-        conn.requestMethod = method
-        conn.connectTimeout = 5_000
-        conn.readTimeout = 5_000
-        return try {
-            conn.inputStream.bufferedReader().use { it.readText() }
-        } finally {
-            conn.disconnect()
-        }
-    }
 
     private companion object {
-        const val HOST = "10.0.2.2"
-        const val HOST_URL = "http://$HOST"
-        const val STORE = "e2e-kasir"
-        const val CASHIER_PIN = "528307"
         const val OPENING_FLOAT = 200_000L
         const val TIMEOUT_MS = 15_000L
     }

@@ -2,18 +2,8 @@ name: Android UI Screenshots & Instrumentation
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main, "feat/**", "fix/**", "chore/**"]
-    paths:
-      - "apps/android/**"
-      - ".github/workflows/android-ui-screenshots.yml"
-      - ".github/scripts/RunAndroidUiScreenshots.sh"
-  pull_request:
-    branches: [main]
-    paths:
-      - "apps/android/**"
-      - ".github/workflows/android-ui-screenshots.yml"
-      - ".github/scripts/RunAndroidUiScreenshots.sh"
+  schedule:
+    - cron: "0 18 * * *" # 01:00 WIB; advisory, not a required check (S2-Q6)
 
 permissions:
   contents: read

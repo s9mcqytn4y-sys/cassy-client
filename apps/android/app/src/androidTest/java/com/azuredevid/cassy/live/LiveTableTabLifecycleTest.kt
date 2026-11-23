@@ -1,10 +1,9 @@
 package com.azuredevid.cassy.live
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.azuredevid.cassy.data.repository.ServerSettingsRepository
+import com.azuredevid.cassy.domain.model.CashDrawer
 import com.azuredevid.cassy.domain.model.CreatePosOrderItemInput
 import com.azuredevid.cassy.domain.model.InitiatePosPaymentInput
-import com.azuredevid.cassy.domain.repository.AuthRepository
 import com.azuredevid.cassy.domain.repository.CatalogRepository
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import com.azuredevid.cassy.domain.repository.ShiftRepository
@@ -29,12 +28,11 @@ class LiveTableTabLifecycleTest {
 
     private val koin get() = GlobalContext.get()
 
+    private lateinit var drawer: CashDrawer
+
     @Before
-    fun loginAsE2eCashier(): Unit = runBlocking {
-        koin.get<ServerSettingsRepository>().setBaseUrl("http://10.0.2.2:18080")
-        koin.get<AuthRepository>()
-            .login(storeSlug = "e2e-kasir", email = "cashier.e2e@cassy.local", pin = CASHIER_PIN)
-            .getOrThrow()
+    fun startClean(): Unit = runBlocking {
+        drawer = LiveStack.startOnDrawer("Laci Uji 2")
     }
 
     @Test
@@ -42,7 +40,6 @@ class LiveTableTabLifecycleTest {
         val shifts = koin.get<ShiftRepository>()
         val tabs = koin.get<TableTabRepository>()
         val orders = koin.get<PosOrderRepository>()
-        val drawer = shifts.getDrawers().getOrThrow().first { it.name == "Laci Uji 2" }
         val shift = shifts.openShift(openingFloat = OPENING_FLOAT, drawerId = drawer.id).getOrThrow().shift
         val products = koin.get<CatalogRepository>().getStaffCatalog().getOrThrow().products.associateBy { it.name }
 
@@ -92,8 +89,8 @@ class LiveTableTabLifecycleTest {
     }
 
     private companion object {
-        const val CASHIER_PIN = "528307"
-        const val MANAGER_PIN = "739164"
+        const val CASHIER_PIN = LiveStack.CASHIER_PIN
+        const val MANAGER_PIN = LiveStack.MANAGER_PIN
         const val OPENING_FLOAT = 100_000L
     }
 }
