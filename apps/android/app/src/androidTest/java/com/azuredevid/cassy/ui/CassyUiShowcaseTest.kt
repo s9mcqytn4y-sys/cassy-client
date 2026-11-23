@@ -11,11 +11,15 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.filterToOne
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isRoot
-import androidx.compose.ui.test.printToString
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -737,12 +741,21 @@ class CassyUiShowcaseTest {
                     runCatching { composeRule.onNodeWithText(payCash).assertIsDisplayed() }.isSuccess
                 }
             }.onFailure { error ->
-                val roots = composeRule.onAllNodes(isRoot()).fetchSemanticsNodes()
-                    .joinToString { "root ${it.boundsInRoot}" } + " | viewCart " +
-                    composeRule.onAllNodesWithText(context.getString(R.string.pos_mobile_view_cart))
-                        .fetchSemanticsNodes().joinToString { "${it.boundsInRoot} clickable=${it.config.contains(androidx.compose.ui.semantics.SemanticsActions.OnClick)}" }
-                val node = composeRule.onAllNodesWithText(payCash, useUnmergedTree = true).printToString(maxDepth = 0)
-                throw AssertionError("DIAG roots=$roots pay cash nodes:\n$node", error)
+                val activePkg = InstrumentationRegistry.getInstrumentation().uiAutomation
+                    .rootInActiveWindow?.packageName
+                val closeCart = context.getString(R.string.pos_mobile_close_cart)
+                val texts = composeRule.onAllNodes(hasText("", substring = true), useUnmergedTree = true)
+                    .fetchSemanticsNodes()
+                    .mapNotNull { node -> node.config.getOrNull(SemanticsProperties.Text)?.joinToString() }
+                    .take(60)
+                composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart))
+                    .performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnClick)
+                composeRule.waitForIdle()
+                val afterAction = composeRule.onAllNodesWithContentDescription(closeCart).fetchSemanticsNodes().size
+                throw AssertionError(
+                    "DIAG activePkg=$activePkg closeCartAfterSemanticsClick=$afterAction texts=$texts",
+                    error
+                )
             }
             captureScreen("PosLandscape/Modals/PosMobileCartSheet", preferFullDisplay = true)
         }
