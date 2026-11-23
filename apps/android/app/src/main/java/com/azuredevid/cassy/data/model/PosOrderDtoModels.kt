@@ -154,7 +154,9 @@ data class InitiatePaymentRequestDto(
     @SerialName("cash_tendered_amount")
     val cashTenderedAmount: Long? = null,
     @SerialName("drawer_id")
-    val drawerId: String? = null
+    val drawerId: String? = null,
+    @SerialName("reconciliation_ref")
+    val reconciliationRef: String? = null
 )
 
 @Serializable

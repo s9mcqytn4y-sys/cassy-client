@@ -85,8 +85,13 @@ internal class PosPaymentCoordinator(
         tenderedAmount: Long,
         drawerId: String?,
         onClearCart: (String) -> Unit,
-        onEffect: suspend (PosUiEffect) -> Unit
+        onEffect: suspend (PosUiEffect) -> Unit,
+        // Non-null settles by EDC (card on the store's own terminal) instead of cash: no tendered amount, no change.
+        edcReference: String? = null
     ) {
+        val isEdc = edcReference != null
+        val paymentLabel = if (isEdc) "EDC" else "TUNAI"
+        val failedMessage = if (isEdc) R.string.pos_msg_edc_failed else R.string.pos_msg_cash_failed
         stateFlow.update { it.copy(isSubmittingOrder = true, settlementError = null) }
         val order = ensureOrderCreated(stateFlow, snapshot, quote).getOrElse { err ->
             stateFlow.update {
@@ -103,10 +108,11 @@ internal class PosPaymentCoordinator(
             InitiatePosPaymentInput(
                 orderId = order.id,
                 idempotencyKey = UUID.randomUUID().toString(),
-                method = "cash",
-                cashTenderedAmount = tenderedAmount,
+                method = if (isEdc) "edc" else "cash",
+                cashTenderedAmount = tenderedAmount.takeUnless { isEdc },
                 drawerId = drawerId,
-                splitId = stateFlow.value.pendingSplitId
+                splitId = stateFlow.value.pendingSplitId,
+                reconciliationRef = edcReference
             )
         ).onSuccess { res ->
             val settledOrder = res.order ?: order
@@ -118,8 +124,8 @@ internal class PosPaymentCoordinator(
             if (!settlesWholeBill(stateFlow.value, settledOrder)) {
                 advanceToNextSplit(
                     stateFlow = stateFlow,
-                    paymentLabel = "TUNAI",
-                    cashTenderedIdr = res.payment.cashTenderedAmount ?: tenderedAmount,
+                    paymentLabel = paymentLabel,
+                    cashTenderedIdr = if (isEdc) null else res.payment.cashTenderedAmount ?: tenderedAmount,
                     changeIdr = res.payment.changeGivenAmount,
                     onEffect = onEffect
                 )
@@ -130,9 +136,9 @@ internal class PosPaymentCoordinator(
                 order = settledOrder,
                 cartSnapshot = snapshot.cart,
                 tableLabel = printDispatcher.resolveTableLabel(snapshot),
-                paymentLabel = "TUNAI",
-                cashTenderedIdr = res.payment.cashTenderedAmount ?: tenderedAmount,
-                changeIdr = res.payment.changeGivenAmount ?: (tenderedAmount - settledOrder.totalAmount).coerceAtLeast(0L),
+                paymentLabel = paymentLabel,
+                cashTenderedIdr = if (isEdc) null else res.payment.cashTenderedAmount ?: tenderedAmount,
+                changeIdr = if (isEdc) null else res.payment.changeGivenAmount ?: (tenderedAmount - settledOrder.totalAmount).coerceAtLeast(0L),
                 roundingIdr = res.payment.roundingAmount ?: 0L,
                 config = config,
                 roundNumber = snapshot.dineInRound
@@ -150,10 +156,10 @@ internal class PosPaymentCoordinator(
             stateFlow.update {
                 it.copy(
                     isSubmittingOrder = false,
-                    settlementError = err.toUiText(R.string.pos_msg_cash_failed)
+                    settlementError = err.toUiText(failedMessage)
                 )
             }
-            onEffect(PosUiEffect.ShowToast(err.toUiText(R.string.pos_msg_cash_failed)))
+            onEffect(PosUiEffect.ShowToast(err.toUiText(failedMessage)))
         }
     }
 
@@ -323,6 +329,7 @@ internal class PosPaymentCoordinator(
                 tabSplits = splits,
                 pendingSplitId = splits.firstOrNull { split -> !split.isPaid }?.id,
                 showCashModal = false,
+                showEdcModal = false,
                 isSubmittingOrder = false,
                 activeQrisPayment = null,
                 isCheckingQrisStatus = false,

@@ -39,6 +39,7 @@ data class PosUiState(
     val isSubmittingOrder: Boolean = false,
     val settlementError: UiText? = null,
     val showCashModal: Boolean = false,
+    val showEdcModal: Boolean = false,
     /** Pay-first order open in the split settlement dialog (PR 9), or null. */
     val splitOrderId: String? = null,
     val pendingOrder: PosOrder? = null,

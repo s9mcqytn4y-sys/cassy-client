@@ -616,6 +616,35 @@ class PosViewModel(
         }
     }
 
+    fun openEdcModal() {
+        if (_uiState.value.cart.isEmpty() || _uiState.value.quote == null) return
+        _uiState.update { it.copy(showEdcModal = true, settlementError = null) }
+    }
+
+    fun closeEdcModal() {
+        if (_uiState.value.isSubmittingOrder) return
+        _uiState.update { it.copy(showEdcModal = false, settlementError = null) }
+    }
+
+    /** Records a card payment already approved on the store's own EDC terminal; [reference] is the slip number. */
+    fun submitEdcPayment(reference: String, drawerId: String? = null) {
+        val snapshot = _uiState.value
+        val quote = snapshot.quote ?: return
+        if (snapshot.cart.isEmpty() || snapshot.isSubmittingOrder || reference.isBlank()) return
+        viewModelScope.launch {
+            paymentCoordinator.submitCashPayment(
+                stateFlow = _uiState,
+                snapshot = snapshot,
+                quote = quote,
+                tenderedAmount = snapshot.payableAmount ?: quote.totalAmount,
+                drawerId = drawerId,
+                onClearCart = { clearCartAfterPayment(lastOrderId = it) },
+                onEffect = { _effects.emit(it) },
+                edcReference = reference.trim()
+            )
+        }
+    }
+
     fun startQrisPayment(drawerId: String? = null) {
         val snapshot = _uiState.value
         val quote = snapshot.quote ?: return
@@ -791,6 +820,7 @@ class PosViewModel(
                 isQuoting = false,
                 dineInRound = 1,
                 showCashModal = false,
+                showEdcModal = false,
                 isSubmittingOrder = false,
                 settlementError = null,
                 pendingOrder = null,

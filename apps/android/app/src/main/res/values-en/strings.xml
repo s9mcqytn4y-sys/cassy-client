@@ -467,6 +467,12 @@
     <string name="pos_msg_store_session_missing">Store session not found. Please sign in again.</string>
     <string name="msg_catalog_load_failed">Could not load the catalog.</string>
     <string name="pos_msg_order_send_failed">Could not send the order to the server.</string>
+    <string name="btn_pay_edc">Card (EDC)</string>
+    <string name="modal_edc_title">Card Payment (EDC)</string>
+    <string name="modal_edc_prompt">Run the card on the EDC terminal first. Once approved, enter the reference from the EDC slip.</string>
+    <string name="input_edc_reference_label">EDC slip reference</string>
+    <string name="input_edc_reference_help">For example the approval or trace number on the EDC slip.</string>
+    <string name="pos_msg_edc_failed">Could not record the card payment.</string>
     <string name="pos_msg_cash_failed">Could not process the cash payment.</string>
     <string name="pos_msg_qris_order_failed">Could not create the QRIS order.</string>
     <string name="pos_msg_qris_bill_failed">Could not create the QRIS bill.</string>

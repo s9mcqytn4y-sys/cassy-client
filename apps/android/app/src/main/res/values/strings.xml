@@ -467,6 +467,12 @@
     <string name="pos_msg_store_session_missing">Sesi toko tidak ditemukan. Silakan masuk kembali.</string>
     <string name="msg_catalog_load_failed">Gagal memuat katalog.</string>
     <string name="pos_msg_order_send_failed">Gagal mengirim pesanan ke server.</string>
+    <string name="btn_pay_edc">Kartu (EDC)</string>
+    <string name="modal_edc_title">Pembayaran Kartu (EDC)</string>
+    <string name="modal_edc_prompt">Proses kartu di mesin EDC dulu. Setelah disetujui, catat nomor referensi dari struk EDC.</string>
+    <string name="input_edc_reference_label">Nomor referensi struk EDC</string>
+    <string name="input_edc_reference_help">Contoh: nomor approval atau trace di struk mesin EDC.</string>
+    <string name="pos_msg_edc_failed">Gagal mencatat pembayaran kartu.</string>
     <string name="pos_msg_cash_failed">Gagal memproses pembayaran tunai.</string>
     <string name="pos_msg_qris_order_failed">Gagal membuat pesanan QRIS.</string>
     <string name="pos_msg_qris_bill_failed">Gagal membuat tagihan QRIS.</string>

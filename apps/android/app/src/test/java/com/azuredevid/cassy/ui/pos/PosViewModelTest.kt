@@ -268,6 +268,48 @@ class PosViewModelTest {
     }
 
     @Test
+    fun submitEdcPayment_sendsEdcWithSlipReferenceAndNoCashTendered() = runTest {
+        val sessionManager = DataStoreSessionManager(InMemorySessionDataStore(), backgroundScope)
+        sessionManager.saveLoginSession(
+            accessToken = "jwt-1",
+            accessTokenExpiresAt = "2026-11-13T21:00:00Z",
+            sessionExpiresAt = "2026-11-14T21:00:00Z",
+            staff = StaffIdentity("u1", "Kasir Budi", "budi@kopi.id", "cashier", "s1", "kopi-senja", "Kopi Senja")
+        )
+        val quoteRepo = object : OrderQuoteRepository {
+            override suspend fun quote(request: OrderQuoteRequest): Result<OrderQuote> =
+                Result.success(OrderQuote(subtotalAmount = 28000L, taxAmount = 2800L, totalAmount = 30800L))
+        }
+        val orderRepo = FakePosOrderRepository()
+        val vm = PosViewModel(
+            StubCatalogRepository { Result.success(CatalogSnapshot(listOf(coffeeCategory), listOf(latte))) },
+            quoteRepo,
+            orderRepo,
+            FakePrinterSettingsRepository(),
+            sessionManager
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+        vm.addProductToCart(latte)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // A blank reference never reaches the server: it would reject EDC without one.
+        vm.submitEdcPayment(reference = "   ", drawerId = "drawer-1")
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertNull(orderRepo.initiatedPaymentInput)
+
+        vm.openEdcModal()
+        vm.submitEdcPayment(reference = " APPR-0042 ", drawerId = "drawer-1")
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val sent = orderRepo.initiatedPaymentInput
+        assertEquals("edc", sent?.method)
+        assertEquals("APPR-0042", sent?.reconciliationRef)
+        assertNull(sent?.cashTenderedAmount)
+        assertTrue(vm.uiState.value.cart.isEmpty())
+        assertFalse(vm.uiState.value.showEdcModal)
+    }
+
+    @Test
     fun qrisCheckout_initiatesQrisModalWithoutFakeComplete() = runTest {
         val sessionManager = DataStoreSessionManager(InMemorySessionDataStore(), backgroundScope)
         sessionManager.saveLoginSession(

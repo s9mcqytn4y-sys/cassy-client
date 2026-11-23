@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.CallSplit
 import androidx.compose.material.icons.automirrored.rounded.ReceiptLong
 import androidx.compose.material.icons.automirrored.rounded.Send
+import androidx.compose.material.icons.rounded.CreditCard
 import androidx.compose.material.icons.rounded.LockOpen
 import androidx.compose.material.icons.rounded.Payments
 import androidx.compose.material.icons.rounded.PointOfSale
@@ -51,6 +52,7 @@ internal fun PosOrderActionButtons(
     onSendToKitchen: () -> Unit,
     onOpenCashModal: () -> Unit,
     onOpenQrisModal: () -> Unit,
+    onOpenEdcModal: () -> Unit,
     onOpenSplitBill: () -> Unit,
     onOpenOpenBills: () -> Unit,
     onReopenClosedTab: () -> Unit,
@@ -117,6 +119,14 @@ internal fun PosOrderActionButtons(
                 modifier = Modifier.weight(1f)
             )
         }
+
+        CassyTonalButton(
+            text = stringResource(R.string.btn_pay_edc),
+            onClick = onOpenEdcModal,
+            enabled = quote != null && cart.isNotEmpty() && !isCartLocked,
+            icon = Icons.Rounded.CreditCard,
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
