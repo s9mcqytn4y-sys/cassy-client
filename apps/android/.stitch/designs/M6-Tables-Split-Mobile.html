@@ -1,0 +1,326 @@
+﻿<!DOCTYPE html>
+
+<html class="h-full" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Denah Meja &amp; Bagi Tagihan</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              surface: '#F7F5F0',
+              container: '#F0EEE9',
+              'container-lowest': '#FFFFFF',
+              'outline-variant': '#E2DDD2',
+              primary: '#1F5F52',
+              'primary-dark': '#16483E',
+              'primary-light': '#E8F3F0',
+              secondary: '#E9A23B',
+              'secondary-container': '#FEF5E7',
+              text: '#17211E',
+              muted: '#56605B',
+              success: '#1E6B34',
+              'success-bg': '#E3F2E6',
+              warn: '#8A5300',
+              'warn-bg': '#FDF0D8',
+              error: '#B3261E',
+              'error-bg': '#FBE7E5'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #F7F5F0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #17211E;
+      font-feature-settings: "tnum";
+    }
+    .custom-scroll::-webkit-scrollbar {
+      display: none;
+    }
+    .custom-scroll {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    }
+    .material-symbols-outlined.fill {
+      font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+</head>
+<body class="bg-brand-surface w-full h-full flex flex-col justify-between overflow-hidden select-none">
+<!-- TOP COMPACT CONNECTION STATUS STRIP (36px) -->
+<header class="w-full bg-[#E3F2E6] border-b border-[#D2EAD9] px-3.5 flex items-center justify-between shrink-0 h-9 z-30">
+<div class="flex items-center space-x-1.5">
+<span class="w-2 h-2 rounded-full bg-[#1E6B34] animate-pulse"></span>
+<span class="text-[11px] font-semibold text-[#1E6B34] tracking-tight">Online : Real-time aktif</span>
+<span class="text-[10px] text-[#56605B] font-mono">(Latensi 26ms)</span>
+</div>
+<div class="flex items-center space-x-1.5 text-[11px] text-brand-muted font-mono">
+<span>POS-01</span>
+<span>â€¢</span>
+<span>v2.5.0</span>
+</div>
+</header>
+<!-- APP BAR & HEADER SECTION -->
+<section class="px-3.5 pt-2.5 pb-2 bg-brand-surface shrink-0 z-20">
+<div class="flex items-center justify-between mb-2">
+<div>
+<div class="flex items-center space-x-2">
+<h1 class="text-lg font-bold tracking-tight text-brand-text">Meja &amp; Tagihan</h1>
+<span class="px-2 py-0.5 rounded-full bg-brand-primary-light text-brand-primary font-bold text-[11px] font-mono">Lantai 1</span>
+</div>
+<p class="text-[11px] text-brand-muted mt-0.5 leading-snug">Kelola sesi meja, pesanan aktif, dan pembagian struk kasir</p>
+</div>
+<button class="w-9 h-9 rounded-xl bg-brand-container border border-brand-outline-variant flex items-center justify-center active:scale-95 transition-transform" title="Pencarian / Refresh">
+<span class="material-symbols-outlined text-[20px] text-brand-text">sync</span>
+</button>
+</div>
+<!-- M3 HORIZONTAL FILTER CHIPS -->
+<div class="flex items-center space-x-2 overflow-x-auto custom-scroll pb-1">
+<button class="px-3 py-1.5 rounded-full bg-brand-primary text-white text-xs font-semibold shrink-0 shadow-xs">
+        Semua (16)
+      </button>
+<button class="px-3 py-1.5 rounded-full bg-white text-brand-text border border-brand-outline-variant text-xs font-medium shrink-0 flex items-center space-x-1.5 active:bg-brand-container">
+<span class="w-2 h-2 rounded-full bg-brand-secondary"></span>
+<span>Terisi (4)</span>
+</button>
+<button class="px-3 py-1.5 rounded-full bg-white text-brand-text border border-brand-outline-variant text-xs font-medium shrink-0 flex items-center space-x-1.5 active:bg-brand-container">
+<span class="w-2 h-2 rounded-full bg-brand-success"></span>
+<span>Tersedia (8)</span>
+</button>
+<button class="px-3 py-1.5 rounded-full bg-white text-brand-text border border-brand-outline-variant text-xs font-medium shrink-0 flex items-center space-x-1.5 active:bg-brand-container">
+<span class="w-2 h-2 rounded-full bg-brand-warn"></span>
+<span>Tagihan Siap (3)</span>
+</button>
+<button class="px-3 py-1.5 rounded-full bg-white text-brand-text border border-brand-outline-variant text-xs font-medium shrink-0 flex items-center space-x-1.5 active:bg-brand-container">
+<span>Lantai 2 (4)</span>
+</button>
+</div>
+</section>
+<!-- TABLE GRID WORKSPACE (SCROLLABLE 2 COLUMNS) -->
+<main class="flex-1 overflow-y-auto px-3.5 py-1.5 custom-scroll space-y-2.5 pb-3">
+<div class="grid grid-cols-2 gap-2.5">
+<!-- CARD 1: M-01 TERSEDIA -->
+<div class="bg-white rounded-2xl p-3 border border-brand-outline-variant shadow-xs flex flex-col justify-between h-[126px] active:scale-[0.98] transition-all">
+<div class="flex items-start justify-between">
+<div>
+<div class="font-mono text-base font-bold text-brand-text tracking-tight">M-01</div>
+<div class="text-[11px] text-brand-muted mt-0.5">Kapasitas 4 Org</div>
+</div>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-brand-success-bg text-brand-success border border-[#C5E8CC]">
+            Tersedia
+          </span>
+</div>
+<div class="pt-2 border-t border-[#F0ECE2] flex items-center justify-between">
+<span class="text-[11px] text-brand-muted">Bebas Reservasi</span>
+<span class="text-xs font-bold text-brand-primary font-mono">+ Buka</span>
+</div>
+</div>
+<!-- CARD 2: M-04 TERISI (DIPILIH) -->
+<div class="bg-white rounded-2xl p-3 border-2 border-brand-secondary ring-1 ring-brand-secondary/30 shadow-sm flex flex-col justify-between h-[126px] relative bg-gradient-to-br from-[#FFFDF8] to-white active:scale-[0.98] transition-all">
+<div class="absolute -top-2 right-2.5 bg-brand-secondary text-brand-text font-bold text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs flex items-center space-x-0.5">
+<span class="material-symbols-outlined text-[12px] leading-none text-brand-text">check</span>
+<span>DIPILIH</span>
+</div>
+<div>
+<div class="flex items-start justify-between">
+<div class="font-mono text-base font-bold text-brand-text tracking-tight">M-04</div>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-brand-secondary-container text-brand-warn border border-[#FAD7A0]">
+              Terisi (42 mnt)
+            </span>
+</div>
+<div class="text-[11px] text-brand-muted mt-0.5 font-mono">Order #A-041 â€¢ 2 Tamu</div>
+</div>
+<div class="pt-2 border-t border-[#F0ECE2] flex items-center justify-between">
+<div>
+<div class="text-[9px] text-brand-muted leading-tight">Total Tagihan</div>
+<div class="text-xs font-bold text-brand-primary font-mono">Rp 84.700</div>
+</div>
+<div class="w-6 h-6 rounded-full bg-brand-primary text-white flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- CARD 3: M-07 GABUNG MEJA (M-07 + M-08) -->
+<div class="bg-white rounded-2xl p-3 border border-brand-outline-variant shadow-xs flex flex-col justify-between h-[126px] active:scale-[0.98] transition-all">
+<div>
+<div class="flex items-start justify-between">
+<div class="font-mono text-base font-bold text-brand-text tracking-tight">M-07 + M-08</div>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-[#EAF2FB] text-[#1B64B0] border border-[#CDE1F7]">
+              Gabung Meja
+            </span>
+</div>
+<div class="text-[11px] text-brand-muted mt-0.5 font-mono">Kapasitas 8 Tamu (18 mnt)</div>
+</div>
+<div class="pt-2 border-t border-[#F0ECE2] flex items-center justify-between">
+<div>
+<div class="text-[9px] text-brand-muted leading-tight">Total Tagihan</div>
+<div class="text-xs font-bold text-brand-primary font-mono">Rp 142.000</div>
+</div>
+<span class="text-[10px] text-brand-muted font-medium bg-brand-container px-1.5 py-0.5 rounded">
+            5 Item
+          </span>
+</div>
+</div>
+<!-- CARD 4: M-09 MENUNGGU BAYAR -->
+<div class="bg-white rounded-2xl p-3 border border-brand-outline-variant shadow-xs flex flex-col justify-between h-[126px] active:scale-[0.98] transition-all">
+<div>
+<div class="flex items-start justify-between">
+<div class="font-mono text-base font-bold text-brand-text tracking-tight">M-09</div>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-[#FFF3E8] text-[#C45E00] border border-[#FFE0C2]">
+              Tunggu Bayar
+            </span>
+</div>
+<div class="text-[11px] text-brand-muted mt-0.5 font-mono">Order #A-039 â€¢ 3 Tamu</div>
+</div>
+<div class="pt-2 border-t border-[#F0ECE2] flex items-center justify-between">
+<div>
+<div class="text-[9px] text-brand-muted leading-tight">Cetak Struk Selesai</div>
+<div class="text-xs font-bold text-brand-primary font-mono">Rp 96.500</div>
+</div>
+<span class="text-[10px] text-brand-secondary font-bold font-mono">QRIS Aktif</span>
+</div>
+</div>
+<!-- CARD 5: M-02 TERSEDIA -->
+<div class="bg-white rounded-2xl p-3 border border-brand-outline-variant shadow-xs flex flex-col justify-between h-[126px] active:scale-[0.98] transition-all">
+<div class="flex items-start justify-between">
+<div>
+<div class="font-mono text-base font-bold text-brand-text tracking-tight">M-02</div>
+<div class="text-[11px] text-brand-muted mt-0.5">Kapasitas 2 Org</div>
+</div>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-brand-success-bg text-brand-success border border-[#C5E8CC]">
+            Tersedia
+          </span>
+</div>
+<div class="pt-2 border-t border-[#F0ECE2] flex items-center justify-between">
+<span class="text-[11px] text-brand-muted">Sofa Bar</span>
+<span class="text-xs font-bold text-brand-primary font-mono">+ Buka</span>
+</div>
+</div>
+<!-- CARD 6: M-03 TERSEDIA -->
+<div class="bg-white rounded-2xl p-3 border border-brand-outline-variant shadow-xs flex flex-col justify-between h-[126px] active:scale-[0.98] transition-all">
+<div class="flex items-start justify-between">
+<div>
+<div class="font-mono text-base font-bold text-brand-text tracking-tight">M-03</div>
+<div class="text-[11px] text-brand-muted mt-0.5">Kapasitas 4 Org</div>
+</div>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-brand-success-bg text-brand-success border border-[#C5E8CC]">
+            Tersedia
+          </span>
+</div>
+<div class="pt-2 border-t border-[#F0ECE2] flex items-center justify-between">
+<span class="text-[11px] text-brand-muted">Dekat Jendela</span>
+<span class="text-xs font-bold text-brand-primary font-mono">+ Buka</span>
+</div>
+</div>
+</div>
+</main>
+<!-- SELECTED TABLE ACTION SHEET PREVIEW (DOCKED BOTTOM DRAWER) -->
+<section class="bg-white rounded-t-2xl border-t border-brand-outline-variant shadow-[0_-6px_20px_rgba(0,0,0,0.06)] px-3.5 pt-2 pb-2.5 z-30 shrink-0">
+<!-- DRAWER PILL DRAG BAR -->
+<div class="w-10 h-1 bg-brand-outline-variant rounded-full mx-auto mb-2"></div>
+<!-- ACTION SHEET HEADER -->
+<div class="flex items-center justify-between mb-2.5">
+<div class="flex items-center space-x-2">
+<div class="w-8 h-8 rounded-lg bg-brand-secondary-container text-brand-warn font-bold font-mono text-xs flex items-center justify-center border border-[#FAD7A0]">
+          M-04
+        </div>
+<div>
+<div class="flex items-center space-x-1.5">
+<h2 class="text-xs font-bold text-brand-text leading-none">Meja M-04</h2>
+<span class="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-brand-secondary-container text-brand-warn">Terisi 42 mnt</span>
+</div>
+<p class="text-[10px] text-brand-muted font-mono mt-0.5">Order #A-041 â€¢ 2 Tamu â€¢ Bpk Herman</p>
+</div>
+</div>
+<div class="text-right">
+<div class="text-[9px] text-brand-muted">Tagihan Aktif</div>
+<div class="text-xs font-bold text-brand-primary font-mono">Rp 84.700</div>
+</div>
+</div>
+<!-- ACTION BUTTONS GRID -->
+<div class="space-y-1.5">
+<!-- ROW 1: PRIMARY ACTION & SPLIT BILL -->
+<div class="grid grid-cols-2 gap-2">
+<button class="h-10 rounded-xl bg-brand-primary text-white font-semibold text-xs flex items-center justify-center space-x-1.5 shadow-xs active:bg-brand-primary-dark transition-colors">
+<span class="material-symbols-outlined text-[17px]">receipt_long</span>
+<span>Buka Tagihan</span>
+</button>
+<button class="h-10 rounded-xl bg-brand-secondary text-brand-text font-bold text-xs flex items-center justify-center space-x-1.5 shadow-xs active:brightness-95 transition-all">
+<span class="material-symbols-outlined text-[17px]">call_split</span>
+<span class="tracking-tight">Bagi Tagihan (Split)</span>
+</button>
+</div>
+<!-- ROW 2: CETAK POSTER QR & GUARDED ROTASI QR -->
+<div class="grid grid-cols-2 gap-2">
+<button class="h-10 rounded-xl bg-brand-container border border-brand-outline-variant text-brand-text font-semibold text-xs flex items-center justify-center space-x-1.5 active:bg-brand-outline-variant transition-colors">
+<span class="material-symbols-outlined text-[17px] text-brand-primary">print</span>
+<span>Cetak Poster QR</span>
+</button>
+<!-- GUARDED ROTASI QR (TERKUNCI KARENA MEJA TERISI) -->
+<button class="h-10 rounded-xl bg-[#F2EFE9] border border-dashed border-[#D5D0C4] text-[#8C877C] font-medium text-xs flex flex-col items-center justify-center cursor-not-allowed opacity-90 leading-tight" disabled="">
+<div class="flex items-center space-x-1 text-[#6F6A60]">
+<span class="material-symbols-outlined text-[13px] text-[#A39D91]">lock</span>
+<span class="font-semibold text-[10px]">Rotasi QR Meja</span>
+</div>
+<span class="text-[8px] text-[#A39D91] leading-none">(Terkunci: Meja terisi)</span>
+</button>
+</div>
+</div>
+</section>
+<!-- MATERIAL DESIGN 3 BOTTOM NAVIGATION BAR (FIXED BOTTOM, 58px) -->
+<nav class="w-full h-14 bg-brand-container border-t border-brand-outline-variant px-1.5 flex items-center justify-around shrink-0 z-40">
+<!-- TAB 1: KASIR -->
+<a class="flex flex-col items-center justify-center py-1 px-2.5 text-brand-muted hover:text-brand-text active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">point_of_sale</span>
+<span class="text-[10px] font-medium mt-0.5">Kasir</span>
+</a>
+<!-- TAB 2: MEJA (ACTIVE M3 PILL INDICATOR) -->
+<a class="flex flex-col items-center justify-center py-1 px-2.5 active:scale-95 transition-all" href="#">
+<div class="px-4 py-0.5 rounded-full bg-brand-primary text-white flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-[18px]">table_restaurant</span>
+</div>
+<span class="text-[10px] font-bold text-brand-primary mt-0.5">Meja</span>
+</a>
+<!-- TAB 3: DAPUR -->
+<a class="flex flex-col items-center justify-center py-1 px-2.5 text-brand-muted hover:text-brand-text active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">skillet</span>
+<span class="text-[10px] font-medium mt-0.5">Dapur</span>
+</a>
+<!-- TAB 4: KATALOG -->
+<a class="flex flex-col items-center justify-center py-1 px-2.5 text-brand-muted hover:text-brand-text active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">menu_book</span>
+<span class="text-[10px] font-medium mt-0.5">Katalog</span>
+</a>
+<!-- TAB 5: LAINNYA -->
+<a class="flex flex-col items-center justify-center py-1 px-2.5 text-brand-muted hover:text-brand-text active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+<span class="text-[10px] font-medium mt-0.5">Lainnya</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,276 @@
+﻿<!DOCTYPE html>
+
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Cassy M5 Bagi Tagihan - SplitView</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              surface: '#F7F5F0',
+              container: '#FFFFFF',
+              containerLow: '#F0ECE1',
+              pandan: '#1F5F52',
+              pandanHover: '#17493F',
+              pandanLight: '#E8F2EF',
+              kunyit: '#E9A23B',
+              kunyitLight: '#FEF5E7',
+              tinta: '#17211E',
+              tintaMuted: '#56605B',
+              border: '#E2DDD2',
+              errorBg: '#FCEBEA',
+              errorText: '#B3261E',
+            }
+          },
+          fontFamily: {
+            display: ['"Bricolage Grotesque"', 'sans-serif'],
+            body: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #F7F5F0;
+      color: #17211E;
+      -webkit-font-smoothing: antialiased;
+    }
+    .num-tabular {
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum";
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#F7F5F0] text-brand-tinta flex selection:bg-brand-pandan selection:text-white">
+<!-- Mobile Viewport Container: 390px Edge-to-Edge -->
+<main class="w-full min-h-screen bg-[#F7F5F0] flex flex-col justify-between relative pb-8">
+<!-- Top App Navigation / Header Bar -->
+<header class="sticky top-0 z-30 bg-[#F7F5F0]/95 backdrop-blur-md px-4 pt-3 pb-3 border-b border-brand-border">
+<div class="flex items-center justify-between mb-3">
+<a class="w-10 h-10 rounded-xl bg-white border border-brand-border flex items-center justify-center text-brand-tinta hover:bg-brand-containerLow transition-colors focus:outline-none focus:ring-2 focus:ring-brand-pandan" href="#menu">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24">
+<path d="M15 18l-6-6 6-6"></path>
+</svg>
+</a>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-pandanLight text-brand-pandan border border-brand-pandan/20">
+<span class="w-1.5 h-1.5 rounded-full bg-brand-pandan mr-1.5 animate-pulse"></span>
+            Meja A1 Indoor
+          </span>
+<div class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-kunyitLight text-[#935B0D] border border-brand-kunyit/30 num-tabular">
+<svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="10"></circle>
+<polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+            14:20
+          </div>
+</div>
+</div>
+<!-- Title & Progress -->
+<div>
+<div class="flex items-center justify-between">
+<h1 class="font-display text-2xl font-bold text-brand-tinta tracking-tight">Bagi Tagihan</h1>
+<span class="px-2 py-0.5 rounded-md bg-white border border-brand-border text-[11px] font-semibold text-brand-tintaMuted">
+            Bagi Rata (2 Orang)
+          </span>
+</div>
+<div class="mt-2.5">
+<div class="flex items-center justify-between text-xs mb-1.5">
+<span class="font-medium text-brand-tintaMuted">Progres Pembayaran</span>
+<span class="font-semibold text-brand-pandan num-tabular">1 dari 2 bagian lunas (50%)</span>
+</div>
+<div class="w-full h-2 rounded-full bg-brand-border/70 overflow-hidden">
+<div class="h-full bg-brand-pandan rounded-full transition-all duration-500" style="width: 50%;"></div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<div class="px-4 py-4 space-y-4 flex-1">
+<!-- Total Order Banner -->
+<section class="bg-white rounded-2xl p-3.5 border border-brand-border flex items-center justify-between shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+<div>
+<p class="text-[11px] font-medium uppercase tracking-wider text-brand-tintaMuted">Total Tagihan Pesanan</p>
+<p class="text-xs font-mono font-semibold text-brand-tintaMuted mt-0.5">ORD-20261122-0014</p>
+</div>
+<div class="text-right">
+<p class="font-display text-xl font-bold text-brand-tinta num-tabular">Rp 36.960</p>
+<p class="text-[11px] text-brand-tintaMuted font-medium">Termasuk PB1 10%</p>
+</div>
+</section>
+<!-- Share 1 Card (Paid) -->
+<section class="bg-white rounded-2xl p-4 border border-brand-border shadow-[0_1px_3px_rgba(0,0,0,0.02)] relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-brand-pandan text-white font-bold text-xs flex items-center justify-center font-display">1</span>
+<h2 class="font-display text-lg font-bold text-brand-tinta">Bagian 1</h2>
+</div>
+<p class="text-xs text-brand-tintaMuted mt-0.5 font-medium">Pemesanan Utama (Meja A1)</p>
+</div>
+<div class="text-right">
+<p class="font-display text-lg font-bold text-brand-tinta num-tabular">Rp 18.480</p>
+<span class="inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-pandan text-white">
+<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24">
+<polyline points="20 6 9 17 4 12"></polyline>
+</svg>
+              Lunas via QRIS
+            </span>
+</div>
+</div>
+<!-- Paid Receipt Breakdown Detail (Compact) -->
+<div class="mt-3.5 pt-3 border-t border-brand-border/60 flex items-center justify-between text-xs text-brand-tintaMuted">
+<span class="inline-flex items-center gap-1.5 font-mono text-[11px]">
+<svg class="w-3.5 h-3.5 text-brand-pandan" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<rect height="11" rx="2" ry="2" width="18" x="3" y="11"></rect>
+<path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+</svg>
+            PYM-RANI-01
+          </span>
+<span class="text-brand-pandan font-medium">Terverifikasi Otomatis</span>
+</div>
+</section>
+<!-- Share 2 Card (Unpaid) -->
+<section class="bg-white rounded-2xl p-4 border-2 border-brand-kunyit/40 shadow-sm relative">
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="w-6 h-6 rounded-full bg-brand-kunyit text-brand-tinta font-bold text-xs flex items-center justify-center font-display">2</span>
+<h2 class="font-display text-lg font-bold text-brand-tinta">Bagian 2</h2>
+</div>
+<p class="text-xs text-brand-tintaMuted mt-0.5 font-medium">Teman Meja A1</p>
+</div>
+<div class="text-right">
+<p class="font-display text-lg font-bold text-brand-tinta num-tabular">Rp 18.480</p>
+<span class="inline-flex items-center gap-1 mt-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-kunyit text-brand-tinta">
+<span class="w-1.5 h-1.5 rounded-full bg-brand-tinta animate-ping mr-0.5"></span>
+              Belum dibayar
+            </span>
+</div>
+</div>
+<!-- Public Share Token Link Row -->
+<div class="mt-3 p-2.5 rounded-xl bg-brand-surface border border-brand-border flex items-center justify-between gap-2">
+<div class="overflow-hidden">
+<p class="text-[10px] font-medium text-brand-tintaMuted uppercase">Tautan Patungan Publik</p>
+<p class="text-xs font-mono font-medium text-brand-tinta truncate">cassy.id/bagian/shr-02a1</p>
+</div>
+<button class="px-2.5 py-1.5 rounded-lg bg-white border border-brand-border text-xs font-semibold text-brand-tinta hover:bg-brand-containerLow transition-colors flex items-center gap-1 flex-shrink-0" type="button">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<rect height="13" rx="2" ry="2" width="13" x="9" y="9"></rect>
+<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+</svg>
+            Salin
+          </button>
+</div>
+<!-- Payment Method Selector Chips -->
+<div class="mt-3.5">
+<p class="text-xs font-medium text-brand-tintaMuted mb-2">Metode Settle Bagian 2:</p>
+<div class="grid grid-cols-3 gap-2">
+<button class="py-2 px-1 text-center rounded-xl bg-brand-pandan text-white font-semibold text-xs border border-brand-pandan flex items-center justify-center gap-1 shadow-sm" type="button">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<rect height="7" width="7" x="3" y="3"></rect>
+<rect height="7" width="7" x="14" y="3"></rect>
+<rect height="7" width="7" x="14" y="14"></rect>
+<rect height="7" width="7" x="3" y="14"></rect>
+</svg>
+              QRIS
+            </button>
+<button class="py-2 px-1 text-center rounded-xl bg-brand-surface text-brand-tinta font-semibold text-xs border border-brand-border hover:bg-brand-containerLow transition-colors flex items-center justify-center gap-1" type="button">
+<svg class="w-3.5 h-3.5 text-brand-tintaMuted" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<rect height="14" rx="2" width="20" x="2" y="5"></rect>
+<line x1="2" x2="22" y1="10" y2="10"></line>
+</svg>
+              VA
+            </button>
+<button class="py-2 px-1 text-center rounded-xl bg-brand-surface text-brand-tinta font-semibold text-xs border border-brand-border hover:bg-brand-containerLow transition-colors flex items-center justify-center gap-1" type="button">
+<svg class="w-3.5 h-3.5 text-brand-tintaMuted" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+<line x1="3" x2="21" y1="6" y2="6"></line>
+<path d="M16 10a4 4 0 0 1-8 0"></path>
+</svg>
+              Kasir
+            </button>
+</div>
+</div>
+<!-- 48px Action Buttons: Bayar Bagian Ini (Pandan) & Share Actions -->
+<div class="mt-4 space-y-2.5">
+<!-- Primary CTA (min-h-[48px]) -->
+<button class="w-full min-h-[48px] rounded-xl bg-brand-pandan text-white font-semibold text-sm hover:bg-brand-pandanHover active:scale-[0.99] transition-all flex items-center justify-between px-4 shadow-[0_2px_8px_rgba(31,95,82,0.25)]" type="button">
+<span class="flex items-center gap-2">
+<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<rect height="16" rx="2" ry="2" width="22" x="1" y="4"></rect>
+<line x1="1" x2="23" y1="10" y2="10"></line>
+</svg>
+              Bayar Bagian Ini
+            </span>
+<span class="font-display font-bold text-base num-tabular text-white">Rp 18.480</span>
+</button>
+<!-- 48px Secondary Actions Row: Bagikan Tautan & Unduh QR -->
+<div class="grid grid-cols-2 gap-2.5">
+<button class="min-h-[48px] rounded-xl bg-brand-surface border border-brand-border text-brand-tinta font-semibold text-xs hover:bg-brand-containerLow transition-colors flex items-center justify-center gap-1.5 px-2" type="button">
+<svg class="w-4 h-4 text-brand-pandan" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="18" cy="5" r="3"></circle>
+<circle cx="6" cy="12" r="3"></circle>
+<circle cx="18" cy="19" r="3"></circle>
+<line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line>
+<line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line>
+</svg>
+              Bagikan Tautan
+            </button>
+<button class="min-h-[48px] rounded-xl bg-brand-surface border border-brand-border text-brand-tinta font-semibold text-xs hover:bg-brand-containerLow transition-colors flex items-center justify-center gap-1.5 px-2" type="button">
+<svg class="w-4 h-4 text-brand-pandan" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+<polyline points="7 10 12 15 17 10"></polyline>
+<line x1="12" x2="12" y1="15" y2="3"></line>
+</svg>
+              Unduh QR
+            </button>
+</div>
+</div>
+</section>
+<!-- Split Explanation Banner -->
+<section class="bg-brand-containerLow/60 rounded-xl p-3 border border-brand-border/60 text-xs text-brand-tintaMuted leading-relaxed">
+<p class="font-semibold text-brand-tinta mb-0.5">Cara Kerja Bagi Rata</p>
+        Tiap tamu dapat memindai atau membuka tautan bagian masing-masing untuk menyelesaikan pembayaran secara terpisah. Pesanan otomatis diteruskan ke dapur setelah kedua bagian diselesaikan.
+      </section>
+</div>
+<!-- Bottom Actions Container: Fixed to 48px touch targets -->
+<footer class="px-4 pt-2 space-y-2.5 border-t border-brand-border/60 mt-auto bg-[#F7F5F0]">
+<!-- 48px Outline: Kembali ke Menu -->
+<a class="w-full min-h-[48px] rounded-xl bg-white border border-brand-border text-brand-tinta font-semibold text-sm hover:bg-brand-containerLow transition-colors flex items-center justify-center gap-2" href="#katalog">
+<svg class="w-4 h-4 text-brand-tintaMuted" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+<polyline points="9 22 9 12 15 12 15 22"></polyline>
+</svg>
+        Kembali ke Menu
+      </a>
+<!-- 48px Ghost Destructive: Batalkan Pesanan (unpaid only) -->
+<button class="w-full min-h-[48px] rounded-xl bg-brand-errorBg/60 text-brand-errorText font-semibold text-sm hover:bg-brand-errorBg transition-colors flex items-center justify-center gap-2" type="button">
+<svg class="w-4 h-4 text-brand-errorText" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<polyline points="3 6 5 6 21 6"></polyline>
+<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+</svg>
+        Batalkan Pesanan
+      </button>
+<!-- Trust Microcopy & Legal -->
+<div class="text-center pt-2">
+<p class="text-[11px] text-brand-tintaMuted leading-tight">
+          Ditenagai Cassy oleh AzureDevID . Sesi Meja A1 Terenkripsi
+        </p>
+</div>
+</footer>
+</main>
+</body>
+</html>
+

@@ -1,0 +1,411 @@
+﻿<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_blank" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      "colors": {
+        "on-error-container": "#93000a",
+        "inverse-on-surface": "#f2f1ec",
+        "error-container": "#FBE7E5",
+        "on-surface-variant": "#3f4946",
+        "secondary-fixed": "#ffddb6",
+        "on-primary-fixed-variant": "#095044",
+        "on-secondary-fixed": "#2a1800",
+        "primary-container": "#1f5f52",
+        "on-tertiary-container": "#fdbe6e",
+        "on-secondary-container": "#714800",
+        "on-background": "#1b1c19",
+        "surface-container": "#f0eee9",
+        "background": "#fbf9f4",
+        "on-secondary": "#ffffff",
+        "surface-container-lowest": "#FFFFFF",
+        "tertiary-fixed": "#ffddb7",
+        "inverse-surface": "#30312e",
+        "primary-fixed": "#b0efde",
+        "surface-container-highest": "#e4e2dd",
+        "secondary-container": "#ffb54d",
+        "secondary": "#E9A23B",
+        "on-error": "#ffffff",
+        "surface-container-low": "#f5f3ee",
+        "on-surface": "#1b1c19",
+        "error": "#B3261E",
+        "surface-variant": "#e4e2dd",
+        "outline-variant": "#E2DDD2",
+        "on-tertiary": "#ffffff",
+        "surface": "#F7F5F0",
+        "primary": "#1F5F52",
+        "on-primary-fixed": "#00201a",
+        "on-secondary-fixed-variant": "#643f00",
+        "outline": "#8C877C",
+        "tertiary-container": "#784b00",
+        "on-tertiary-fixed-variant": "#653e00",
+        "tertiary-fixed-dim": "#fabb6b",
+        "surface-container-high": "#eae8e3",
+        "secondary-fixed-dim": "#ffb959",
+        "on-tertiary-fixed": "#2a1700",
+        "surface-dim": "#dbdad5",
+        "on-primary-container": "#98d7c6",
+        "tertiary": "#8A5A12",
+        "primary-fixed-dim": "#94d3c2",
+        "on-primary": "#FFFFFF",
+        "surface-tint": "#2a685b",
+        "surface-bright": "#fbf9f4",
+        "inverse-primary": "#94d3c2"
+      },
+      "borderRadius": {
+        "DEFAULT": "0.125rem",
+        "lg": "0.25rem",
+        "xl": "0.5rem",
+        "full": "0.75rem"
+      },
+      "spacing": {
+        "space-sm": "0.5rem",
+        "gutter": "1.5rem",
+        "space-md": "1rem",
+        "margin": "2rem",
+        "space-lg": "1.5rem",
+        "space-xl": "2.5rem",
+        "space-xs": "0.25rem"
+      },
+      "fontFamily": {
+        "headline-md": ["Newsreader"],
+        "body-md": ["Inter"],
+        "headline-lg": ["Newsreader"],
+        "label-md": ["Inter"],
+        "headline-sm": ["Newsreader"],
+        "body-lg": ["Inter"],
+        "headline-lg-mobile": ["Newsreader"]
+      },
+      "fontSize": {
+        "headline-md": ["28px", {"lineHeight": "36px", "fontWeight": "400"}],
+        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+        "headline-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500"}],
+        "headline-sm": ["22px", {"lineHeight": "28px", "fontWeight": "400"}],
+        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+        "headline-lg-mobile": ["28px", {"lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "400"}]
+      }
+    }
+  }
+}</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><main class="w-full min-h-screen bg-surface"><div class="flex flex-col w-full">
+<div class="w-full h-screen overflow-hidden flex flex-row bg-surface text-on-surface select-none">
+<!-- LEFT PANE: 65% Catalog & Table Context -->
+<section class="w-[65%] h-screen bg-surface flex flex-col overflow-hidden relative">
+<!-- Store Header -->
+<header class="w-full px-6 py-4 bg-surface border-b border-outline-variant flex items-center justify-between gap-4 z-20 shrink-0">
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-3">
+<h1 class="font-headline-md text-headline-sm font-semibold text-on-surface tracking-tight truncate">Cassy Roastery Senopati</h1>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/25 text-primary text-xs font-semibold tracking-wide shrink-0">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+              Meja A1 Indoor
+            </span>
+</div>
+<p class="font-body-md text-label-md text-on-surface-variant flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">location_on</span>
+            Jl. Senopati No. 42, Jakarta Selatan
+          </p>
+</div>
+<div class="flex items-center gap-2.5 shrink-0">
+<!-- Language Toggle -->
+<div class="inline-flex items-center rounded-full border border-outline-variant bg-surface-container-lowest px-3 py-1.5 text-xs font-semibold text-on-surface-variant shadow-xs">
+<span class="text-primary font-bold">ID</span>
+<span class="mx-1.5 text-outline">|</span>
+<span class="text-on-surface-variant hover:text-on-surface cursor-pointer">EN</span>
+</div>
+<!-- Panggil Pelayan -->
+<button class="min-h-[44px] px-3.5 rounded-xl border border-secondary text-secondary hover:bg-secondary-container/20 active:scale-95 transition-all flex items-center gap-2 text-xs font-semibold" type="button">
+<span class="material-symbols-outlined text-[18px]">notifications</span>
+<span>Panggil Pelayan</span>
+</button>
+<!-- Active Session Drawer Pill -->
+<button class="min-h-[44px] px-3.5 rounded-xl bg-surface-container border border-outline-variant text-on-surface hover:bg-surface-container-high transition-all flex items-center gap-2 text-xs font-medium" type="button">
+<span class="material-symbols-outlined text-[18px] text-primary">receipt_long</span>
+<span>Pesanan (1)</span>
+</button>
+</div>
+</header>
+<!-- Category Navigation Capsule Bar -->
+<nav class="sticky top-0 z-10 w-full px-6 py-3 bg-surface/95 backdrop-blur-md border-b border-outline-variant flex items-center gap-2.5 overflow-x-auto shrink-0">
+<button class="px-4 py-2 rounded-full bg-primary text-on-primary font-body-md text-xs font-semibold shadow-xs shrink-0 flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[16px]">coffee</span>
+          Signature &amp; Kopi
+        </button>
+<button class="px-4 py-2 rounded-full bg-surface-container-lowest text-on-surface border border-outline-variant hover:bg-surface-container font-body-md text-xs font-medium shrink-0 flex items-center gap-1.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">local_cafe</span>
+          Non-Kopi &amp; Teh
+        </button>
+<button class="px-4 py-2 rounded-full bg-surface-container-lowest text-on-surface border border-outline-variant hover:bg-surface-container font-body-md text-xs font-medium shrink-0 flex items-center gap-1.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">bakery_dining</span>
+          Pastry &amp; Kue
+        </button>
+<button class="px-4 py-2 rounded-full bg-surface-container-lowest text-on-surface border border-outline-variant hover:bg-surface-container font-body-md text-xs font-medium shrink-0 flex items-center gap-1.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">restaurant</span>
+          Makanan &amp; Camilan
+        </button>
+</nav>
+<!-- Catalog Grid: 3 columns, scrollable -->
+<main class="flex-1 overflow-y-auto p-6">
+<div class="grid grid-cols-3 gap-4 pb-6">
+<!-- Card 1 -->
+<article class="rounded-2xl bg-surface-container-lowest border border-outline-variant p-3 flex flex-col justify-between hover:shadow-md transition-shadow group">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Glass of artisanal iced latte with layered fresh espresso and oat milk, condensation on clear glass, dark natural lighting, editorial cafe photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmIMn4pFGQQW1yUtB9suDpFS7r_eztMs8BUu-bfgh1j5D-uSOMUPm8CY8djBEYdn2juhH4RBDYjWHOFX6Tx8d8xB47hEC1vCpXcy6mJiS8WzdHGaDAknui-72xrCPnumnRQyfggbKfHxvLiXCjhhKVpikNLq65NI9rDL41mKneSH9p33SxXr5EF2RhRel1ID6ZS_-NhHwQMFxHWyUAkCEaDepjlkyyT_kV3_8r7VlYVmlXq-dcBSB59vsqKV2LT3uWIpaFGgU9BHEi"/>
+<span class="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-primary text-white text-[11px] font-semibold tracking-wide shadow-xs">
+                Favorit
+              </span>
+</div>
+<div class="mt-3 flex flex-col flex-1">
+<h3 class="font-headline-md text-body-lg font-medium text-on-surface leading-tight">Classic Iced Latte</h3>
+<p class="font-body-md text-label-md text-on-surface-variant mt-1 line-clamp-1">Reguler, Oat Milk / Susu Sapi</p>
+<div class="mt-4 pt-2 flex items-center justify-between border-t border-outline-variant/60">
+<span class="font-body-md text-body-lg font-semibold tabular-nums text-on-surface">Rp 28.000</span>
+<button aria-label="Tambah Classic Iced Latte" class="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center hover:bg-primary-container active:scale-95 transition-all shadow-xs" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="rounded-2xl bg-surface-container-lowest border border-outline-variant p-3 flex flex-col justify-between hover:shadow-md transition-shadow group">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Traditional Indonesian iced coffee with palm sugar and fresh milk, rich brown sugar gradient at bottom, minimalist cafe ambiance" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3yZURWQIhlnvFxVAExD71kRQDN6uhNQIugATwqTwMI1PBlDhcGH84bE7YjmsMZCCSZh6y-4xGqgscyYJUgzf6gwj5zNwHK-DezU0NmaafKjiMHuyNyiEumr2CJyXieRmMZ5Fjq8gAf0bYIE6MejdKciW_QRXauvO0CUbdMn2O6e5e0GAVyX3rKcD2mh7b5p-ssIahisY7RrJy32Aw3nW1aNYweNNvz62sER8PwpgPQDujxNGgXaDhgHAbLcdyd2O0ZeguxhhK1x8Y"/>
+<span class="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-primary text-white text-[11px] font-semibold tracking-wide shadow-xs">
+                Favorit
+              </span>
+</div>
+<div class="mt-3 flex flex-col flex-1">
+<h3 class="font-headline-md text-body-lg font-medium text-on-surface leading-tight">Es Kopi Susu Aren</h3>
+<p class="font-body-md text-label-md text-on-surface-variant mt-1 line-clamp-1">Gula aren organik Jawa Barat</p>
+<div class="mt-4 pt-2 flex items-center justify-between border-t border-outline-variant/60">
+<span class="font-body-md text-body-lg font-semibold tabular-nums text-on-surface">Rp 26.000</span>
+<button aria-label="Tambah Es Kopi Susu Aren" class="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center hover:bg-primary-container active:scale-95 transition-all shadow-xs" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 3 -->
+<article class="rounded-2xl bg-surface-container-lowest border border-outline-variant p-3 flex flex-col justify-between hover:shadow-md transition-shadow group">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Clear tumbler of cold brew coffee infused with pandan, garnished with a fragrant green pandan leaf strip, bright warm morning sunlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYCdu2feeBQ_i5lMPRXGIcOzpa8v8HZIX2BZqkzAQ917fgYEPs1RqAkVGS_VgWYsGxyCllWqfrmWQjyjgf8LO6OKJYAzfv4IuCNk3FR7InlBFckVbALaAISHZdwIno-isE7GCpQsr6gOn0G0ug7e_BEfkof9CMVBNXHjzE1sFCBoJW86DCNkRf5f8FN1pLfOP4MdTZTjwBuFR8DzPz6JqEIOfm62BLSttg9Rnt7ZV1y_1Wkgl5fhIDdVbg_cg35Bzg5IybDEIwyVmR"/>
+<span class="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-secondary text-on-surface text-[11px] font-semibold tracking-wide shadow-xs">
+                Baru
+              </span>
+</div>
+<div class="mt-3 flex flex-col flex-1">
+<h3 class="font-headline-md text-body-lg font-medium text-on-surface leading-tight">Pandan Cold Brew</h3>
+<p class="font-body-md text-label-md text-on-surface-variant mt-1 line-clamp-1">Single origin Flores fermented</p>
+<div class="mt-4 pt-2 flex items-center justify-between border-t border-outline-variant/60">
+<span class="font-body-md text-body-lg font-semibold tabular-nums text-on-surface">Rp 34.000</span>
+<button aria-label="Tambah Pandan Cold Brew" class="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center hover:bg-primary-container active:scale-95 transition-all shadow-xs" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 4 -->
+<article class="rounded-2xl bg-surface-container-lowest border border-outline-variant p-3 flex flex-col justify-between hover:shadow-md transition-shadow group">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Golden crisp artisan French butter croissant freshly baked on natural parchment paper, flaky golden pastry texture, warm editorial light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGbUSxZdOm1D8pUNa336JliflgELdL1zF-5jmGPdTMMbihhOq-UZNPzUOIxAezqs4lwuFdpSwvU2tSMa20n3DSEl9szYTGWv86rjO769kLGKYKvzS_cQWXvJC0T3qbuiRd6jpfXs_FMkE5LXBTiRc6fFvnWUCybgvjUEYNKW8InPUy6Y8HvqoHU2J5tbu_OGP8NMDVZA0l6qXreUPg8YChwNG7SPQKk3S9bh6VWXphfRqiVT-mS-q-gd5-T5hjJOGMTlh9L1rA8KD7"/>
+<span class="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-primary text-white text-[11px] font-semibold tracking-wide shadow-xs">
+                Favorit
+              </span>
+</div>
+<div class="mt-3 flex flex-col flex-1">
+<h3 class="font-headline-md text-body-lg font-medium text-on-surface leading-tight">Butter Croissant Artisan</h3>
+<p class="font-body-md text-label-md text-on-surface-variant mt-1 line-clamp-1">Freshly baked, butter AOP</p>
+<div class="mt-4 pt-2 flex items-center justify-between border-t border-outline-variant/60">
+<span class="font-body-md text-body-lg font-semibold tabular-nums text-on-surface">Rp 20.000</span>
+<button aria-label="Tambah Butter Croissant Artisan" class="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center hover:bg-primary-container active:scale-95 transition-all shadow-xs" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 5 -->
+<article class="rounded-2xl bg-surface-container-lowest border border-outline-variant p-3 flex flex-col justify-between hover:shadow-md transition-shadow group">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Pain au chocolat pastry slice showing rich melted Belgian dark chocolate ribbons inside golden laminated layers, rustic wooden table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuyOv7tKFv2oCSobJaBggLlxMGN1JxhEFHRW782lf834fvKcy5BrveALcz8X3HzaxTo6mAfCNg9NQ2h_p7CXqxLYI5S90-NLEVqDyQKBG1G-KiORUGUejpoilP71pm4MHi0wfAYZnwtpdTGZssK75rW7kKf_fgd8b2NfH4oMSvmdUvQcjRdcKSetxqMgHLj_gf1OrU9vmYAbI9h1UTigHI73iNysJ2ysGUpzMxkueLA1BipkfI38J6WbM9wcjc3jxQuwa5R4RR75gL"/>
+<span class="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-secondary text-on-surface text-[11px] font-semibold tracking-wide shadow-xs">
+                Pilihan Barista
+              </span>
+</div>
+<div class="mt-3 flex flex-col flex-1">
+<h3 class="font-headline-md text-body-lg font-medium text-on-surface leading-tight">Pain au Chocolat</h3>
+<p class="font-body-md text-label-md text-on-surface-variant mt-1 line-clamp-1">Belgian dark chocolate 60%</p>
+<div class="mt-4 pt-2 flex items-center justify-between border-t border-outline-variant/60">
+<span class="font-body-md text-body-lg font-semibold tabular-nums text-on-surface">Rp 26.000</span>
+<button aria-label="Tambah Pain au Chocolat" class="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center hover:bg-primary-container active:scale-95 transition-all shadow-xs" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 6 -->
+<article class="rounded-2xl bg-surface-container-lowest border border-outline-variant p-3 flex flex-col justify-between hover:shadow-md transition-shadow group">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Slice of Basque burnt cheesecake with caramelized dark top and creamy molten custard center on handmade ceramic dish, high end bakery style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFTrl5EOujmSFhIxAywWWllcbpOzmq_hO19xmATp3zMvFZmhOGGlhteEz2oW6qNdItW2cR3PmNGmsk77gN6S-kJuxKjcqSh8IvBu05imhMheZ_CW0RNqN91ebqscdRtSTPJ0sp9JBG2_evAVdHDyYaU5ZqLQE4ht3-cNGkcf4ZejMPyyn2iAJuw1S9WEGNUtKC1osMH5zri7jXmCHwui2Nua97StxTTNkRXKBML-eCTbs1B4wbJcjKaP3wo6eL7u_OYmef_ufRR44b"/>
+</div>
+<div class="mt-3 flex flex-col flex-1">
+<h3 class="font-headline-md text-body-lg font-medium text-on-surface leading-tight">Basque Burnt Cheesecake</h3>
+<p class="font-body-md text-label-md text-on-surface-variant mt-1 line-clamp-1">Krim keju Spanyol lembut</p>
+<div class="mt-4 pt-2 flex items-center justify-between border-t border-outline-variant/60">
+<span class="font-body-md text-body-lg font-semibold tabular-nums text-on-surface">Rp 42.000</span>
+<button aria-label="Tambah Basque Burnt Cheesecake" class="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center hover:bg-primary-container active:scale-95 transition-all shadow-xs" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</article>
+</div>
+</main>
+</section>
+<!-- RIGHT PANE: 35% Fixed Cart Panel -->
+<aside class="w-[35%] h-screen bg-surface-container-lowest border-l border-outline-variant flex flex-col justify-between shadow-xl z-30">
+<!-- Cart Header & Split Bill Segments -->
+<div class="p-5 border-b border-outline-variant shrink-0 bg-surface-container-lowest">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<h2 class="font-headline-md text-headline-sm font-semibold text-on-surface tracking-tight">Keranjang Pesanan</h2>
+<span class="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-body-md text-xs font-semibold tabular-nums">2 item</span>
+</div>
+<button class="text-on-surface-variant hover:text-error transition-colors p-1" title="Hapus semua item" type="button">
+<span class="material-symbols-outlined text-[20px]">delete_sweep</span>
+</button>
+</div>
+<p class="font-body-md text-label-md text-on-surface-variant mt-0.5">Sesi Meja A1 . Kalkulasi Resmi Server</p>
+<!-- Segmented Control for Split Bill Modes -->
+<div class="mt-4 bg-surface-container p-1 rounded-xl flex border border-outline-variant">
+<button class="bg-surface-container-lowest text-on-surface font-semibold shadow-xs rounded-lg py-1.5 flex-1 text-center text-xs transition-all" type="button">
+            Bayar Penuh
+          </button>
+<button class="text-on-surface-variant hover:text-on-surface py-1.5 flex-1 text-center text-xs font-medium transition-colors" type="button">
+            Bagi Rata
+          </button>
+<button class="text-on-surface-variant hover:text-on-surface py-1.5 flex-1 text-center text-xs font-medium transition-colors" type="button">
+            Per Item
+          </button>
+</div>
+</div>
+<!-- Scrollable Middle: Cart Items + Recommendations -->
+<div class="flex-1 overflow-y-auto p-5 space-y-4">
+<!-- Cart Items List -->
+<div class="space-y-3">
+<!-- Item 1 -->
+<div class="p-3 rounded-xl bg-surface border border-outline-variant flex gap-3 items-start">
+<div class="w-12 h-12 rounded-xl overflow-hidden bg-surface-container shrink-0">
+<img class="w-full h-full object-cover" data-alt="Artisanal iced latte with layered foam thumbnail close up" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNuCzal4ak8rUF7nY_22wu9Lvvx3vwwE3UvT5tfhiY1gInrSNgRhEVlSwjkuIhQP2biFbq7De-WwTOOWqDF-gLTQYFX1B4zXZLY-rfaZqIBd1lnXsoSPFfwLhKwmI2zMDjk47c5nwFIvO_bU5IOKH0uiSBWGLvma6KYAuqfW7pp7BSn12iQGv56-dRfLh8YDJuZ0IBxaLqAnx2xeYQQ-WHmHfN0huCbLNWVwE3TiUfk6faxQ1GYfVuERh7HruI2-b75FhKH9M0WnLJ"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-start justify-between gap-2">
+<h4 class="font-body-lg text-body-md font-semibold text-on-surface truncate">Classic Iced Latte</h4>
+<span class="font-body-md text-body-md font-semibold text-on-surface tabular-nums shrink-0">Rp 36.000</span>
+</div>
+<p class="font-body-md text-label-md text-on-surface-variant mt-0.5 leading-snug">Oat Milk Barista (+Rp 8.000), Less Sugar 50%</p>
+<div class="mt-2.5 flex items-center justify-between">
+<button class="text-label-md text-primary font-medium hover:underline flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[14px]">edit_note</span> Ubah opsi
+                </button>
+<div class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant rounded-lg p-0.5">
+<button aria-label="Kurangi" class="w-7 h-7 rounded-md text-on-surface hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">remove</span>
+</button>
+<span class="font-body-md text-xs font-semibold tabular-nums px-1.5">1</span>
+<button aria-label="Tambah" class="w-7 h-7 rounded-md text-on-surface hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="p-3 rounded-xl bg-surface border border-outline-variant flex gap-3 items-start">
+<div class="w-12 h-12 rounded-xl overflow-hidden bg-surface-container shrink-0">
+<img class="w-full h-full object-cover" data-alt="Freshly baked artisan butter croissant thumbnail close up" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqUTpcUk5_XFbMU0b87tGNkjZ17R06GkW1A9NEV-WldqjKFzbEom5Nes8eKPmSTKOwjSw6TQxmZ_wzizVOoW6jWQUjuehCczWiZxE1oZVW7eA4zeV3wRbJfTP9qLv1Ic8NGSAsuI1rxPIxs2Euc64n15rGUOWIPWmftkrzSnlEiq2YzA2Ph0OHX-y5h5PtgUkIS11FTfvp16ZY7q5KiVS0CwhWFq1APGSS6KEddH53X9LchfND3K5lcyS367__VjaatC8qqBnBqdtp"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-start justify-between gap-2">
+<h4 class="font-body-lg text-body-md font-semibold text-on-surface truncate">Butter Croissant Artisan</h4>
+<span class="font-body-md text-body-md font-semibold text-on-surface tabular-nums shrink-0">Rp 20.000</span>
+</div>
+<p class="font-body-md text-label-md text-on-surface-variant mt-0.5 leading-snug">Hangat baru dipanggang</p>
+<div class="mt-2.5 flex items-center justify-between">
+<button class="text-label-md text-primary font-medium hover:underline flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[14px]">edit_note</span> Catatan
+                </button>
+<div class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant rounded-lg p-0.5">
+<button aria-label="Kurangi" class="w-7 h-7 rounded-md text-on-surface hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">remove</span>
+</button>
+<span class="font-body-md text-xs font-semibold tabular-nums px-1.5">1</span>
+<button aria-label="Tambah" class="w-7 h-7 rounded-md text-on-surface hover:bg-surface-container flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Cocok Dipesan Bersama recommendation -->
+<div class="pt-2">
+<div class="flex items-center justify-between mb-2">
+<span class="font-body-md text-xs font-semibold text-on-surface tracking-wide uppercase text-on-surface-variant">Cocok Dipesan Bersama</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">auto_awesome</span>
+</div>
+<div class="p-2.5 rounded-xl bg-surface-container-low border border-outline-variant flex items-center justify-between gap-3">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-10 h-10 rounded-lg overflow-hidden bg-surface-container shrink-0">
+<img class="w-full h-full object-cover" data-alt="Pain au chocolat flaky pastry small square thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtp8UwSX-7KRMlkFz6ON39wwSLVKTpMP3k4OpUJynsfnioo9GM-Yzbfk7B1W29HNY9kz6f9MOAkNjBQkZTekaBB9JyMTdu1qOoCjQ88G3TFTDOSAikJxDJzPb7Zhbhy7AbBNvifrJX2aXTApX6rCL9gnm-Y8AItB9fOeqMXE-59d4a5e-YCUnm1JlNpyccUxwaQKBwMZAkvI5eOAHY2dQdQnrBHomsfhYi18kxEdTmf2o4MJ4brBEgjZ07plUaGukYvy-Sz3d4SD9f"/>
+</div>
+<div class="min-w-0">
+<h5 class="font-body-md text-xs font-semibold text-on-surface truncate">Pain au Chocolat</h5>
+<p class="font-body-md text-label-md text-on-surface-variant tabular-nums">Rp 26.000</p>
+</div>
+</div>
+<button class="px-2.5 py-1.5 rounded-lg bg-surface-container-lowest border border-outline-variant hover:bg-surface text-primary font-semibold text-xs transition-colors shrink-0 flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[14px]">add</span> Tambah
+            </button>
+</div>
+</div>
+</div>
+<!-- Server-Quoted Summary & Sticky Bottom CTA -->
+<footer class="p-5 border-t border-outline-variant bg-surface-container-lowest shrink-0 space-y-3">
+<!-- Summary Breakdown -->
+<div class="space-y-1.5 text-xs font-body-md">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span>Subtotal (2 item)</span>
+<span class="tabular-nums font-medium text-on-surface">Rp 56.000</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant">
+<span>Biaya Layanan (5%)</span>
+<span class="tabular-nums font-medium text-on-surface">Rp 2.800</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant">
+<span>Pajak Restoran PB1 (10%)</span>
+<span class="tabular-nums font-medium text-on-surface">Rp 5.880</span>
+</div>
+<div class="h-px w-full bg-outline-variant my-1"></div>
+<div class="flex items-baseline justify-between pt-1">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Total Pembayaran</span>
+<span class="font-headline-md text-headline-sm font-bold text-on-surface tabular-nums">Rp 64.680</span>
+</div>
+</div>
+<!-- Primary Pay Button -->
+<button class="w-full min-h-[56px] px-5 rounded-xl bg-primary hover:bg-primary-container active:scale-[0.99] transition-all text-on-primary font-semibold text-sm flex items-center justify-between shadow-md" type="button">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+<span>Bayar Sekarang (QRIS Instan)</span>
+</div>
+<span class="tabular-nums text-base font-bold">Rp 64.680</span>
+</button>
+<!-- Footer Microcopy -->
+<p class="font-body-md text-[11px] text-center text-outline leading-tight">
+          Ditenagai Cassy oleh AzureDevID . Transaksi terenkripsi &amp; bebas komisi
+        </p>
+</footer>
+</aside>
+</div>
+</div></main></body></html>

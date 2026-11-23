@@ -1,0 +1,308 @@
+﻿<!DOCTYPE html>
+
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=412, height=915, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>KDS Dapur - Cassy POS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            surface: '#F7F5F0',
+            'surface-container': '#EFECE4',
+            'surface-lowest': '#FFFFFF',
+            'on-surface': '#17211E',
+            'on-surface-variant': '#56605B',
+            outline: '#8C877C',
+            'outline-variant': '#E2DDD2',
+            primary: '#1F5F52',
+            'on-primary': '#FFFFFF',
+            secondary: '#E9A23B',
+            'on-secondary': '#17211E',
+            'error-red': '#B3261E',
+            'error-bg': '#FBE7E5',
+            'status-green-bg': '#E3F2E6',
+            'status-green': '#1E6B34',
+            'status-amber-bg': '#FDF0D8',
+            'status-amber': '#8A5300'
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background-color: #F7F5F0;
+      color: #17211E;
+      width: 412px;
+      height: 915px;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      user-select: none;
+    }
+    .tnum {
+      font-feature-settings: 'tnum' on, 'lnum' on;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      display: none;
+    }
+    .custom-scroll {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="flex flex-col h-[915px] bg-surface relative select-none w-full" style="width: 100%; min-height: 100vh; max-width: 100vw;">
+<!-- Status Bar Android System (40dp) -->
+<header class="w-full h-10 px-4 bg-[#EBE7DF] border-b border-outline-variant/60 flex items-center justify-between text-xs font-semibold text-on-surface select-none shrink-0 z-20">
+<div class="flex items-center space-x-2">
+<span class="font-mono text-[13px] tracking-tight">14:28</span>
+<span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-surface font-mono font-bold text-on-surface-variant border border-outline-variant">POS-01</span>
+</div>
+<div class="flex items-center space-x-2.5">
+<div class="flex items-center space-x-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-green animate-pulse"></span>
+<span class="text-[11px] font-medium text-status-green">LAN 24ms</span>
+</div>
+<div class="flex items-center space-x-1.5 text-on-surface">
+<!-- Wi-Fi Icon -->
+<svg class="w-3.5 h-3.5" fill="currentColor" viewbox="0 0 24 24">
+<path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98A16.88 16.88 0 0 0 12 4zm0 3.25c3.62 0 6.94 1.34 9.47 3.56L12 19.34 2.53 10.81A14.28 14.28 0 0 1 12 7.25z"></path>
+</svg>
+<!-- Battery Icon -->
+<svg class="w-4 h-4" fill="currentColor" viewbox="0 0 24 24">
+<path d="M17 5v14c0 .55-.45 1-1 1H8c-.55 0-1-.45-1-1V5c0-.55.45-1 1-1h2V2h4v2h2c.55 0 1 .45 1 1zm-2 1H9v12h6V6z"></path>
+</svg>
+</div>
+</div>
+</header>
+<!-- Non-blocking Top WebSocket Connection Strip (32dp) -->
+<div class="w-full h-8 px-4 bg-status-green-bg text-status-green flex items-center justify-between text-xs font-medium border-b border-[#CBE5D2] shrink-0">
+<div class="flex items-center space-x-2">
+<span class="w-2 h-2 rounded-full bg-[#1E6B34]"></span>
+<span class="font-semibold text-[11px] tracking-wide">WebSocket KDS Terhubung</span>
+</div>
+<div class="flex items-center space-x-1 text-[11px]">
+<span class="text-on-surface-variant font-mono">ID: KDS-02</span>
+<span class="text-on-surface-variant/40">|</span>
+<span class="font-mono font-bold">Sinkron Otomatis</span>
+</div>
+</div>
+<!-- App Header & Station Selector (56dp) -->
+<div class="w-full px-4 pt-2.5 pb-2 bg-surface flex items-center justify-between shrink-0">
+<div class="flex items-center space-x-2.5">
+<div class="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center shadow-sm">
+<!-- Kitchen Pan / Flame Icon -->
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343a7.975 7.975 0 012.344 5.657c0 2.052-.773 4.02-2.343 5.657z" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div>
+<h1 class="text-base font-bold text-on-surface leading-tight tracking-tight">KDS Antrean Dapur</h1>
+<p class="text-[11px] text-on-surface-variant leading-none mt-0.5">Kedai Cassy Sudirman</p>
+</div>
+</div>
+<!-- Station Toggle Buttons (M3 Segmented Pill) -->
+<div class="inline-flex p-1 bg-surface-container rounded-xl border border-outline-variant/70">
+<button class="px-2.5 py-1 text-xs font-semibold rounded-lg text-on-surface-variant hover:text-on-surface transition-colors">
+        Barista
+      </button>
+<button class="px-3 py-1 text-xs font-bold rounded-lg bg-primary text-on-primary shadow-sm">
+        Dapur Panas
+      </button>
+</div>
+</div>
+<!-- M3 Segmented Status Tabs (Height 48dp) -->
+<div class="px-4 py-1.5 shrink-0">
+<div class="w-full h-11 bg-surface-container rounded-2xl p-1 flex items-center justify-between border border-outline-variant/60">
+<button class="flex-1 h-full rounded-xl text-xs font-medium text-on-surface-variant flex items-center justify-center space-x-1 hover:bg-surface/50 transition">
+<span>Antre</span>
+<span class="w-5 h-5 rounded-full bg-surface-lowest text-on-surface-variant text-[11px] font-bold flex items-center justify-center border border-outline-variant">1</span>
+</button>
+<button class="flex-1 h-full rounded-xl bg-surface-lowest text-on-surface text-xs font-bold flex items-center justify-center space-x-1.5 shadow-sm border border-outline-variant/80">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-primary font-bold">Diproses</span>
+<span class="w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] font-mono font-bold flex items-center justify-center">1</span>
+</button>
+<button class="flex-1 h-full rounded-xl text-xs font-medium text-on-surface-variant flex items-center justify-center space-x-1 hover:bg-surface/50 transition">
+<span>Siap</span>
+<span class="w-5 h-5 rounded-full bg-surface-lowest text-on-surface-variant text-[11px] font-bold flex items-center justify-center border border-outline-variant">1</span>
+</button>
+</div>
+</div>
+<!-- Main Scrollable Feed / Ticket Cards (Clipped exactly inside 915px height) -->
+<div class="flex-1 overflow-y-auto px-4 pt-1.5 pb-2 custom-scroll space-y-3">
+<!-- Active Ticket Card 1 (Large Readable Card from 2m distance) -->
+<article class="w-full bg-surface-lowest rounded-2xl border-2 border-primary/25 shadow-sm overflow-hidden flex flex-col">
+<!-- Top Ticket Header Strip -->
+<div class="bg-[#FAF8F5] px-4 py-2.5 border-b border-outline-variant flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary/10 text-primary uppercase tracking-wider font-mono">Dine In</span>
+<span class="text-xs font-bold text-on-surface">Meja M-07</span>
+<span class="text-xs text-on-surface-variant/50">|</span>
+<span class="text-xs text-on-surface-variant font-medium">Kasir: Siti</span>
+</div>
+<!-- Alert Badge: 12 mnt terlambat -->
+<div class="px-2.5 py-1 rounded-full bg-error-bg text-error-red border border-error-red/20 flex items-center space-x-1.5">
+<!-- Warning Icon -->
+<svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewbox="0 0 20 20">
+<path clip-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" fill-rule="evenodd"></path>
+</svg>
+<span class="text-[11px] font-bold tracking-tight">12 mnt, terlambat</span>
+</div>
+</div>
+<!-- Ticket Body with Giant Order Code -->
+<div class="p-4 flex flex-col">
+<div class="flex items-baseline justify-between mb-3 border-b border-dashed border-outline-variant pb-3">
+<div>
+<div class="text-[11px] uppercase tracking-wider text-on-surface-variant font-semibold">Nomor Pesanan</div>
+<div class="text-4xl font-extrabold font-mono text-on-surface tracking-tight tnum mt-0.5 leading-none">A-042</div>
+</div>
+<div class="text-right">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-status-amber-bg text-status-amber border border-status-amber/30">
+              Sedang Dipanggang
+            </span>
+<div class="text-[11px] font-mono text-on-surface-variant mt-1">Dipesan: 14:16 WIB</div>
+</div>
+</div>
+<!-- Order Items Detail List -->
+<div class="space-y-3">
+<!-- Item 1: Ayam Bakar Madu with Red Note -->
+<div class="p-3 rounded-xl bg-surface/70 border border-outline-variant/80">
+<div class="flex items-start justify-between">
+<div class="flex items-start space-x-2.5">
+<span class="w-6 h-6 rounded-md bg-primary text-white font-mono font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1x</span>
+<div>
+<h3 class="text-[15px] font-bold text-on-surface leading-snug">Paket Ayam Bakar Madu</h3>
+<div class="text-xs text-on-surface-variant mt-0.5 font-medium">Porsi: Reguler | Sambal: Terasi Matang</div>
+</div>
+</div>
+<span class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-surface-container text-on-surface-variant">Dapur Utama</span>
+</div>
+<!-- Red Custom Notes Box -->
+<div class="mt-2.5 px-3 py-1.5 rounded-lg bg-error-bg text-error-red border border-error-red/30 flex items-center space-x-2">
+<svg class="w-4 h-4 shrink-0 text-error-red" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-xs font-bold leading-tight tracking-tight">Catatan Khusus: Tanpa acar, sambal dipisah wadah</span>
+</div>
+</div>
+<!-- Item 2: Nasi Goreng Spesial -->
+<div class="p-3 rounded-xl bg-surface/70 border border-outline-variant/80">
+<div class="flex items-start justify-between">
+<div class="flex items-start space-x-2.5">
+<span class="w-6 h-6 rounded-md bg-primary text-white font-mono font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1x</span>
+<div>
+<h3 class="text-[15px] font-bold text-on-surface leading-snug">Nasi Goreng Spesial</h3>
+<div class="text-xs text-on-surface-variant mt-0.5 font-medium">Level: Pedas Sedang | Telur: Mata Sapi Matang</div>
+</div>
+</div>
+<span class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-surface-container text-on-surface-variant">Dapur Utama</span>
+</div>
+<div class="mt-2 px-2.5 py-1 text-[11px] font-medium text-on-surface-variant bg-surface-container/70 rounded-md">
+              Keterangan: Kerupuk udang tambahan sudah disiapkan
+            </div>
+</div>
+</div>
+<!-- Big 56dp Pandan CTA Button -->
+<button class="mt-4 w-full h-14 bg-primary text-on-primary rounded-xl font-bold text-base flex items-center justify-center space-x-2 shadow hover:bg-[#184d43] active:scale-[0.99] transition-all">
+<!-- Checkmark Icon -->
+<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="tracking-wide">Tandai Siap Saji</span>
+</button>
+</div>
+</article>
+<!-- Second Ticket Preview (Collapsed / Queued) -->
+<article class="w-full bg-surface-lowest rounded-2xl border border-outline-variant shadow-sm overflow-hidden flex flex-col opacity-90">
+<div class="bg-[#FAF8F5] px-4 py-2 border-b border-outline-variant flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-secondary/15 text-tertiary uppercase tracking-wider font-mono">Take Away</span>
+<span class="text-xs font-bold text-on-surface">Bungkus #03</span>
+</div>
+<div class="px-2.5 py-0.5 rounded-full bg-status-amber-bg text-status-amber border border-status-amber/20 text-[11px] font-bold">
+          4 mnt lalu
+        </div>
+</div>
+<div class="p-3.5 flex items-center justify-between">
+<div>
+<div class="text-2xl font-bold font-mono text-on-surface leading-tight">A-043</div>
+<div class="text-xs text-on-surface-variant font-medium mt-0.5">2x Paket Iga Bakar Madu (Pedas)</div>
+</div>
+<button class="px-3.5 py-2 bg-surface-container text-primary font-bold text-xs rounded-xl border border-outline-variant hover:bg-surface">
+          Detail Tiket
+        </button>
+</div>
+</article>
+</div>
+<!-- M3 Bottom NavigationBar (64dp height, standard Material 3) -->
+<nav class="w-full h-16 bg-surface-container border-t border-outline-variant flex items-center justify-around px-2 shrink-0 z-20">
+<!-- Item 1: Kasir -->
+<button class="flex flex-col items-center justify-center flex-1 h-full text-on-surface-variant hover:text-on-surface transition-colors">
+<div class="w-12 h-7 rounded-full flex items-center justify-center">
+<!-- Cashier register icon -->
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<span class="text-[11px] font-medium tracking-tight mt-0.5">Kasir</span>
+</button>
+<!-- Item 2: Meja -->
+<button class="flex flex-col items-center justify-center flex-1 h-full text-on-surface-variant hover:text-on-surface transition-colors">
+<div class="w-12 h-7 rounded-full flex items-center justify-center">
+<!-- Table icon -->
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M4 6h16M4 10h16M4 14h16M4 18h16M7 6v14M17 6v14" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<span class="text-[11px] font-medium tracking-tight mt-0.5">Meja</span>
+</button>
+<!-- Item 3: Dapur (ACTIVE with M3 Primary Pill Container) -->
+<button class="flex flex-col items-center justify-center flex-1 h-full text-primary">
+<div class="w-14 h-7 rounded-full bg-primary/20 flex items-center justify-center">
+<!-- Pot / Chef Pan icon -->
+<svg class="w-5 h-5 text-primary" fill="currentColor" viewbox="0 0 24 24">
+<path d="M19 19H5a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1zM2 13h20v2H2zM8 5h8v2H8zM6 8h12v2H6z"></path>
+</svg>
+</div>
+<span class="text-[11px] font-bold text-primary tracking-tight mt-0.5">Dapur</span>
+</button>
+<!-- Item 4: Katalog -->
+<button class="flex flex-col items-center justify-center flex-1 h-full text-on-surface-variant hover:text-on-surface transition-colors">
+<div class="w-12 h-7 rounded-full flex items-center justify-center">
+<!-- Book / Catalog icon -->
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<span class="text-[11px] font-medium tracking-tight mt-0.5">Katalog</span>
+</button>
+<!-- Item 5: Lainnya -->
+<button class="flex flex-col items-center justify-center flex-1 h-full text-on-surface-variant hover:text-on-surface transition-colors">
+<div class="w-12 h-7 rounded-full flex items-center justify-center">
+<!-- Dots more icon -->
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<span class="text-[11px] font-medium tracking-tight mt-0.5">Lainnya</span>
+</button>
+</nav>
+</body>
+</html>
+

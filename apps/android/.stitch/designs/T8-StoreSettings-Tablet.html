@@ -1,0 +1,741 @@
+﻿<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "primary-container": "#1f5f52",
+          "error-container": "#FBE7E5",
+          "primary-fixed": "#b0efde",
+          "surface-container-low": "#f5f3ee",
+          "on-error-container": "#93000a",
+          "tertiary": "#8A5A12",
+          "on-tertiary-fixed-variant": "#653e00",
+          "outline-variant": "#bfc9c4",
+          "on-primary": "#ffffff",
+          "secondary-fixed": "#ffddb6",
+          "tertiary-fixed": "#ffddb7",
+          "on-tertiary": "#ffffff",
+          "on-secondary": "#17211E",
+          "surface-dim": "#dbdad5",
+          "on-background": "#1b1c19",
+          "tertiary-fixed-dim": "#fabb6b",
+          "surface-container-highest": "#e4e2dd",
+          "surface": "#F7F5F0",
+          "surface-variant": "#e4e2dd",
+          "on-primary-fixed-variant": "#095044",
+          "on-surface-variant": "#56605B",
+          "inverse-primary": "#94d3c2",
+          "error": "#B3261E",
+          "inverse-on-surface": "#f2f1ec",
+          "on-secondary-container": "#714800",
+          "on-secondary-fixed-variant": "#643f00",
+          "primary-fixed-dim": "#94d3c2",
+          "on-secondary-fixed": "#2a1800",
+          "on-tertiary-container": "#fdbe6e",
+          "surface-container": "#EFECE4",
+          "surface-container-high": "#eae8e3",
+          "on-primary-fixed": "#00201a",
+          "primary": "#1F5F52",
+          "on-surface": "#1b1c19",
+          "outline": "#8C877C",
+          "background": "#fbf9f4",
+          "surface-container-lowest": "#FFFFFF",
+          "surface-bright": "#fbf9f4",
+          "secondary-container": "#ffb54d",
+          "surface-tint": "#2a685b",
+          "on-tertiary-fixed": "#2a1700",
+          "tertiary-container": "#784b00",
+          "on-primary-container": "#98d7c6",
+          "inverse-surface": "#30312e",
+          "on-error": "#ffffff",
+          "secondary-fixed-dim": "#ffb959",
+          "secondary": "#E9A23B"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.25rem",
+          "lg": "0.5rem",
+          "xl": "0.75rem",
+          "full": "9999px"
+        },
+        "spacing": {
+          "space-sm": "0.5rem",
+          "space-lg": "1.5rem",
+          "space-xs": "0.25rem",
+          "space-xl": "2rem",
+          "space-md": "1rem",
+          "margin": "1rem",
+          "gutter": "1rem"
+        },
+        "fontFamily": {
+          "tabular-nums": [
+            "Plus Jakarta Sans"
+          ],
+          "label-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "body-md": [
+            "Plus Jakarta Sans"
+          ],
+          "body-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "label-md": [
+            "Plus Jakarta Sans"
+          ],
+          "title-md": [
+            "Plus Jakarta Sans"
+          ],
+          "display-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-md": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-sm": [
+            "Plus Jakarta Sans"
+          ]
+        },
+        "fontSize": {
+          "tabular-nums": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "600"
+            }
+          ],
+          "label-lg": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "500"
+            }
+          ],
+          "body-md": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "400"
+            }
+          ],
+          "body-lg": [
+            "16px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-md": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "500"
+            }
+          ],
+          "title-md": [
+            "16px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "500"
+            }
+          ],
+          "display-lg": [
+            "44px",
+            {
+              "lineHeight": "52px",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-md": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-lg": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-sm": [
+            "20px",
+            {
+              "lineHeight": "26px",
+              "fontWeight": "600"
+            }
+          ]
+        }
+      },
+    },
+  }</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-[88px] bg-surface-container-low z-40 flex flex-col items-center py-space-md justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col items-center gap-space-md w-full"><div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-sm"><span class="material-symbols-outlined text-[26px]">point_of_sale</span></div><nav class="flex flex-col items-center gap-space-sm w-full px-space-xs" data-active-classes="bg-primary-container text-on-primary font-title-md"><a class="w-16 h-14 rounded-xl flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all group" data-path="pos-register" href="#"><span class="material-symbols-outlined text-[22px]">storefront</span><span class="font-label-md text-label-md leading-none">Register</span></a><a class="w-16 h-14 rounded-xl flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all group" data-path="kitchen-display" href="#"><span class="material-symbols-outlined text-[22px]">skillet</span><span class="font-label-md text-label-md leading-none">Kitchen</span></a><a class="w-16 h-14 rounded-xl flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all group" data-path="order-history" href="#"><span class="material-symbols-outlined text-[22px]">receipt_long</span><span class="font-label-md text-label-md leading-none">Orders</span></a><a class="w-16 h-14 rounded-xl flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all group" data-path="shift-reconciliation" href="#"><span class="material-symbols-outlined text-[22px]">payments</span><span class="font-label-md text-label-md leading-none">Shift</span></a><a aria-current="page" class="w-16 h-14 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all group bg-primary-container text-on-primary font-title-md" data-path="pos-settings" href="#"><span class="material-symbols-outlined text-[22px]">settings</span><span class="font-label-md text-label-md leading-none">Config</span></a></nav></div><div class="flex flex-col items-center gap-space-sm w-full"><div class="w-2 h-2 rounded-full bg-primary"></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></aside><div class="pl-[88px]"><header class="fixed top-0 left-[88px] right-0 h-14 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-30 flex items-center justify-between px-space-md"><div class="flex items-center gap-space-sm"><span class="font-title-md text-title-md text-on-surface tracking-tight font-semibold">Cassy POS</span><span class="inline-flex items-center px-space-xs py-0.5 rounded-full font-label-md text-label-md bg-surface-container-high text-on-surface-variant">Terminal 01 â€¢ Main Bar</span></div><nav class="hidden sm:flex items-center gap-space-md" data-active-classes="text-primary font-semibold"><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors" data-path="pos-register" href="#">Terminal</a><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors" data-path="kitchen-display" href="#">KDS Screen</a><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors" data-path="order-history" href="#">Transactions</a><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors" data-path="shift-reconciliation" href="#">Cash Drawer</a><a aria-current="page" class="transition-colors text-primary font-semibold" data-path="pos-settings" href="#">Preferences</a></nav><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs text-on-surface-variant"><span class="material-symbols-outlined text-[18px] text-primary">wifi</span><span class="font-label-md text-label-md text-on-surface-variant">Online</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-14 bg-surface min-h-screen"><div class="flex flex-col w-full">
+<!-- Top Context Header Area -->
+<div class="px-space-lg pt-space-lg pb-space-md">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div>
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-md text-label-md tracking-wider uppercase mb-1">
+<span class="inline-block w-2 h-2 rounded-full bg-primary"></span>
+<span>Konfigurasi Sistem POS â€¢ Terminal 01</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight font-bold">
+          Pengaturan Gerai &amp; Perangkat Kasir
+        </h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 max-w-3xl">
+          Konfigurasi integrasi payment gateway, printer thermal LAN, dan sinkronisasi fitur Guest PWA v4.
+        </p>
+</div>
+<div class="flex items-center gap-space-sm shrink-0">
+<div class="flex items-center gap-2 bg-surface-container px-3 py-2 rounded-lg">
+<span class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label-md text-label-md text-on-surface font-medium">Sync Broker: Aktif (20ms)</span>
+</div>
+<button class="h-10 px-3.5 bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg rounded-lg flex items-center gap-1.5 transition-colors" id="btn-export-env">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Ekspor JSON</span>
+</button>
+</div>
+</div>
+<!-- M3 6-Tab Navigation Bar -->
+<div class="mt-space-lg overflow-x-auto no-scrollbar bg-surface-container-low p-1.5 rounded-xl shadow-sm">
+<div class="flex items-center gap-1 min-w-max">
+<button class="tab-trigger px-space-md py-2.5 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-2" data-tab="midtrans">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+<span>Midtrans BYOK</span>
+</button>
+<button class="tab-trigger px-space-md py-2.5 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-2" data-tab="branding">
+<span class="material-symbols-outlined text-[18px]">palette</span>
+<span>Branding Tamu</span>
+</button>
+<button class="tab-trigger px-space-md py-2.5 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-2" data-tab="layanan">
+<span class="material-symbols-outlined text-[18px]">room_service</span>
+<span>Mode Layanan</span>
+</button>
+<button class="tab-trigger px-space-md py-2.5 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-2" data-tab="printer">
+<span class="material-symbols-outlined text-[18px]">print</span>
+<span>Printer LAN</span>
+</button>
+<button class="tab-trigger px-space-md py-2.5 rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-2" data-tab="antrean">
+<span class="material-symbols-outlined text-[18px]">tv</span>
+<span>Layar Antrean</span>
+</button>
+<!-- Active Highlighted Tab 6 -->
+<button class="tab-trigger active relative px-space-md py-2.5 rounded-lg font-title-md text-title-md text-on-primary bg-primary shadow-sm flex items-center gap-2 transition-all" data-tab="fitur-tamu">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">tune</span>
+<span>Fitur Tamu</span>
+<span class="ml-1 px-2 py-0.5 rounded-full font-label-md text-label-md bg-secondary text-on-secondary font-bold" id="active-feature-badge">
+            6 Aktif
+          </span>
+<span class="absolute -bottom-1.5 left-3 right-3 h-[3px] bg-secondary rounded-full"></span>
+</button>
+</div>
+</div>
+</div>
+<!-- Main Tablet Workspace Grid -->
+<div class="px-space-lg pb-24 grid grid-cols-1 xl:grid-cols-12 gap-space-lg">
+<!-- Left / Center 8 Columns: Feature Flags Section (Tab 6 Content) -->
+<div class="xl:col-span-8 flex flex-col gap-space-md">
+<!-- Section Header Card -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[22px]">hub</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Store Feature Flags</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+              Sinkronisasi real-time instan ke browser pelanggan via WebSocket Redis channel.
+            </p>
+</div>
+</div>
+<div class="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-lg self-start sm:self-auto">
+<span class="material-symbols-outlined text-primary text-[18px]">sync</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Kanal: <span class="font-mono text-on-surface font-medium">cassy_flag_v4</span></span>
+</div>
+</div>
+<!-- Feature Flag Switch Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md" id="feature-flags-container">
+<!-- Switch Card 1 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div>
+<div class="flex items-start justify-between gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]">cancel_schedule_send</span>
+</div>
+<!-- M3 Switch Component (48dp target) -->
+<label class="relative inline-flex items-center justify-center w-12 h-12 cursor-pointer touch-manipulation select-none">
+<input checked="" class="feature-toggle sr-only peer" data-flag="guest_self_cancel_enabled" type="checkbox"/>
+<span class="w-12 h-7 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:bg-primary transition-colors"></span>
+<span class="absolute left-1 top-3.5 w-4 h-4 bg-on-surface-variant rounded-full transition-all peer-checked:translate-x-5 peer-checked:bg-on-primary"></span>
+</label>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold mt-3">Batal Mandiri Tamu (Unpaid)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 leading-snug">
+              Izinkan tamu membatalkan pesanan mandiri sebelum status diproses kasir.
+            </p>
+</div>
+<div class="mt-4 pt-3 bg-surface-container-low -mx-space-md -mb-space-md px-space-md py-2 rounded-b-xl flex items-center justify-between">
+<span class="font-mono text-xs text-on-surface-variant">guest_self_cancel_enabled</span>
+<span class="flag-status font-label-md text-label-md text-primary font-semibold">ON</span>
+</div>
+</div>
+<!-- Switch Card 2 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div>
+<div class="flex items-start justify-between gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]">call_split</span>
+</div>
+<label class="relative inline-flex items-center justify-center w-12 h-12 cursor-pointer touch-manipulation select-none">
+<input checked="" class="feature-toggle sr-only peer" data-flag="guest_split_equal_enabled" type="checkbox"/>
+<span class="w-12 h-7 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:bg-primary transition-colors"></span>
+<span class="absolute left-1 top-3.5 w-4 h-4 bg-on-surface-variant rounded-full transition-all peer-checked:translate-x-5 peer-checked:bg-on-primary"></span>
+</label>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold mt-3">Bagi Tagihan Rata (2-20 Orang)</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 leading-snug">
+              Pembagian bill nominal sama rata otomatis di smartphone tamu.
+            </p>
+</div>
+<div class="mt-4 pt-3 bg-surface-container-low -mx-space-md -mb-space-md px-space-md py-2 rounded-b-xl flex items-center justify-between">
+<span class="font-mono text-xs text-on-surface-variant">guest_split_equal_enabled</span>
+<span class="flag-status font-label-md text-label-md text-primary font-semibold">ON</span>
+</div>
+</div>
+<!-- Switch Card 3 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div>
+<div class="flex items-start justify-between gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]">restaurant_menu</span>
+</div>
+<label class="relative inline-flex items-center justify-center w-12 h-12 cursor-pointer touch-manipulation select-none">
+<input checked="" class="feature-toggle sr-only peer" data-flag="guest_split_by_item_enabled" type="checkbox"/>
+<span class="w-12 h-7 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:bg-primary transition-colors"></span>
+<span class="absolute left-1 top-3.5 w-4 h-4 bg-on-surface-variant rounded-full transition-all peer-checked:translate-x-5 peer-checked:bg-on-primary"></span>
+</label>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold mt-3">Bagi Tagihan Per Item</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 leading-snug">
+              Tamu memilih item piring masing-masing via QR code meja.
+            </p>
+</div>
+<div class="mt-4 pt-3 bg-surface-container-low -mx-space-md -mb-space-md px-space-md py-2 rounded-b-xl flex items-center justify-between">
+<span class="font-mono text-xs text-on-surface-variant">guest_split_by_item_enabled</span>
+<span class="flag-status font-label-md text-label-md text-primary font-semibold">ON</span>
+</div>
+</div>
+<!-- Switch Card 4 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div>
+<div class="flex items-start justify-between gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+</div>
+<label class="relative inline-flex items-center justify-center w-12 h-12 cursor-pointer touch-manipulation select-none">
+<input checked="" class="feature-toggle sr-only peer" data-flag="guest_split_multi_payment_enabled" type="checkbox"/>
+<span class="w-12 h-7 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:bg-primary transition-colors"></span>
+<span class="absolute left-1 top-3.5 w-4 h-4 bg-on-surface-variant rounded-full transition-all peer-checked:translate-x-5 peer-checked:bg-on-primary"></span>
+</label>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold mt-3">Multi-Pembayaran Split</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 leading-snug">
+              Setiap porsi split dapat dibayar dengan metode berbeda (QRIS, VA, atau Kasir).
+            </p>
+</div>
+<div class="mt-4 pt-3 bg-surface-container-low -mx-space-md -mb-space-md px-space-md py-2 rounded-b-xl flex items-center justify-between">
+<span class="font-mono text-xs text-on-surface-variant">guest_split_multi_payment_enabled</span>
+<span class="flag-status font-label-md text-label-md text-primary font-semibold">ON</span>
+</div>
+</div>
+<!-- Switch Card 5 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div>
+<div class="flex items-start justify-between gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]">notifications_active</span>
+</div>
+<label class="relative inline-flex items-center justify-center w-12 h-12 cursor-pointer touch-manipulation select-none">
+<input checked="" class="feature-toggle sr-only peer" data-flag="guest_bell_sound_enabled" type="checkbox"/>
+<span class="w-12 h-7 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:bg-primary transition-colors"></span>
+<span class="absolute left-1 top-3.5 w-4 h-4 bg-on-surface-variant rounded-full transition-all peer-checked:translate-x-5 peer-checked:bg-on-primary"></span>
+</label>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold mt-3">Notifikasi Suara Bel Pesanan Siap</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 leading-snug">
+              Putar chimes audio 'Ding-Dong' saat status pesanan siap diambil.
+            </p>
+</div>
+<div class="mt-4 pt-3 bg-surface-container-low -mx-space-md -mb-space-md px-space-md py-2 rounded-b-xl flex items-center justify-between">
+<span class="font-mono text-xs text-on-surface-variant">guest_bell_sound_enabled</span>
+<span class="flag-status font-label-md text-label-md text-primary font-semibold">ON</span>
+</div>
+</div>
+<!-- Switch Card 6 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+<div>
+<div class="flex items-start justify-between gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]">fastfood</span>
+</div>
+<label class="relative inline-flex items-center justify-center w-12 h-12 cursor-pointer touch-manipulation select-none">
+<input checked="" class="feature-toggle sr-only peer" data-flag="cart_pairing_enabled" type="checkbox"/>
+<span class="w-12 h-7 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:bg-primary transition-colors"></span>
+<span class="absolute left-1 top-3.5 w-4 h-4 bg-on-surface-variant rounded-full transition-all peer-checked:translate-x-5 peer-checked:bg-on-primary"></span>
+</label>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold mt-3">Rekomendasi Pairing di Keranjang</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 leading-snug">
+              Tampilkan upsell dinamis (contoh: Kopi + Croissant) di keranjang tamu.
+            </p>
+</div>
+<div class="mt-4 pt-3 bg-surface-container-low -mx-space-md -mb-space-md px-space-md py-2 rounded-b-xl flex items-center justify-between">
+<span class="font-mono text-xs text-on-surface-variant">cart_pairing_enabled</span>
+<span class="flag-status font-label-md text-label-md text-primary font-semibold">ON</span>
+</div>
+</div>
+<!-- Switch Card 7 (Default OFF) -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow md:col-span-2">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="w-9 h-9 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[20px]">mark_email_read</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">Kirim Struk ke Email Tamu</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">
+                  Formulir input email receipt digital otomatis saat transaksi sukses di layar smartphone tamu.
+                </p>
+</div>
+</div>
+<label class="relative inline-flex items-center justify-center w-12 h-12 cursor-pointer touch-manipulation select-none shrink-0 self-end sm:self-center">
+<input class="feature-toggle sr-only peer" data-flag="guest_email_receipt_enabled" type="checkbox"/>
+<span class="w-12 h-7 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:bg-primary transition-colors"></span>
+<span class="absolute left-1 top-3.5 w-4 h-4 bg-on-surface-variant rounded-full transition-all peer-checked:translate-x-5 peer-checked:bg-on-primary"></span>
+</label>
+</div>
+<div class="mt-4 pt-3 bg-surface-container-low -mx-space-md -mb-space-md px-space-md py-2 rounded-b-xl flex items-center justify-between">
+<span class="font-mono text-xs text-on-surface-variant">guest_email_receipt_enabled</span>
+<span class="flag-status font-label-md text-label-md text-on-surface-variant font-semibold">OFF</span>
+</div>
+</div>
+</div>
+<!-- Quick Status Strip -->
+<div class="bg-surface-container p-space-md rounded-xl flex flex-wrap items-center justify-between gap-space-sm text-on-surface-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">verified_user</span>
+<span class="font-body-md text-body-md">Hash Konfigurasi SHA256: <span class="font-mono text-xs text-on-surface">d8f1e09c2a...4b7e</span></span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Revisi v4.2.1-prod</span>
+</div>
+</div>
+<!-- Right 4 Columns: Compact Quick Cards & Interactive Mobile Preview (412x915 Simulation) -->
+<div class="xl:col-span-4 flex flex-col gap-space-md">
+<!-- Quick Card Tab 1: Midtrans BYOK -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">credit_card</span>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">Tab 1: Midtrans BYOK</h3>
+</div>
+<span class="px-2 py-0.5 rounded-full font-label-md text-label-md bg-surface-container-high text-primary font-semibold">
+            Terverifikasi Live
+          </span>
+</div>
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant">Server Key:</span>
+<span class="font-mono text-xs text-on-surface font-semibold bg-surface-container px-2 py-0.5 rounded">Mid-server-8f9xâ€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant">Merchant ID:</span>
+<span class="font-mono text-xs text-on-surface">G1020039182741</span>
+</div>
+</div>
+</div>
+<!-- Quick Card Tab 3: Mode Layanan -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">table_bar</span>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">Tab 3: Mode Layanan</h3>
+</div>
+<span class="font-label-md text-label-md text-primary font-medium">Auto-dispatch</span>
+</div>
+<div class="grid grid-cols-2 gap-2 mb-3">
+<button class="py-2 px-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-semibold text-center shadow-sm">
+            Antar ke Meja
+          </button>
+<button class="py-2 px-3 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md text-center transition-colors">
+            Ambil di Bar
+          </button>
+</div>
+<button class="w-full py-2.5 px-3 rounded-lg bg-error-container text-on-error-container hover:opacity-90 font-label-md text-label-md font-semibold flex items-center justify-center gap-2 transition-all" id="btn-pause-qr">
+<span class="material-symbols-outlined text-[18px]">pause_circle</span>
+<span>Jeda Pemesanan QR Tamu</span>
+</button>
+</div>
+<!-- Quick Card Tab 4: Printer LAN 9100 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">local_printshop</span>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold">Tab 4: Printer LAN</h3>
+</div>
+<span class="inline-flex items-center gap-1 font-label-md text-label-md text-primary font-semibold">
+<span class="w-2 h-2 rounded-full bg-primary"></span> Siap (ESC/POS 80mm)
+          </span>
+</div>
+<div class="flex items-center justify-between bg-surface-container-low p-2.5 rounded-lg mb-3">
+<span class="font-label-md text-label-md text-on-surface-variant">Alamat Soket:</span>
+<span class="font-mono text-xs font-bold text-on-surface">192.168.1.50:9100</span>
+</div>
+<button class="w-full py-2.5 px-3 rounded-lg bg-secondary text-on-secondary hover:brightness-105 font-label-md text-label-md font-bold flex items-center justify-center gap-2 transition-all shadow-sm" id="btn-test-print">
+<span class="material-symbols-outlined text-[18px]">receipt</span>
+<span>Uji Cetak 80mm (Test Ticket)</span>
+</button>
+</div>
+<!-- Compact Mobile Preview Window (Simulates 412x915 Portrait Layout) -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">smartphone</span>
+<span class="font-title-md text-title-md text-on-surface font-semibold">Preview Guest PWA (412px)</span>
+</div>
+<span class="font-label-md text-label-md text-primary font-semibold">Live Mirror</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant text-xs mb-3">
+          Simulasi interaktif tampilan menu tamu di layar HP dengan optimasi sentuhan satu tangan.
+        </p>
+<!-- Phone Shell Container -->
+<div class="w-full bg-[#1b1c19] p-2.5 rounded-2xl shadow-inner mx-auto max-w-[340px]">
+<!-- Phone Screen Frame -->
+<div class="bg-surface rounded-xl overflow-hidden flex flex-col text-on-surface h-[380px] relative select-none">
+<!-- Simulated Mobile App Top Bar -->
+<div class="h-10 bg-primary px-3 flex items-center justify-between text-on-primary shrink-0">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">coffee</span>
+<span class="font-bold text-xs">Cassy Guest</span>
+</div>
+<span class="font-mono text-[10px] bg-primary-container px-1.5 py-0.5 rounded">Meja 04</span>
+</div>
+<!-- Mobile Subheader -->
+<div class="p-2.5 bg-surface-container-low shrink-0">
+<div class="flex items-center justify-between text-xs">
+<span class="font-bold text-on-surface">Pilihan Pembayaran</span>
+<span class="text-[10px] text-primary font-medium">4 Tamu Aktif</span>
+</div>
+</div>
+<!-- Mobile Scrollable Body Content -->
+<div class="p-2.5 flex-1 overflow-y-auto space-y-2 text-xs">
+<!-- Dynamic Feature: Split Equal -->
+<div class="p-2 bg-surface-container-lowest rounded-lg shadow-sm border border-transparent" id="preview-split-box">
+<div class="flex items-center justify-between font-semibold">
+<span class="text-on-surface text-[11px]">Bagi Tagihan Rata</span>
+<span class="font-mono text-[11px] text-primary">Rp 45.000 / org</span>
+</div>
+<div class="flex gap-1 mt-1.5">
+<span class="px-2 py-0.5 bg-surface-container text-[10px] rounded">4 Orang</span>
+<span class="px-2 py-0.5 bg-surface-container text-[10px] rounded">Total: Rp 180.000</span>
+</div>
+</div>
+<!-- Dynamic Feature: Self Cancel Badge -->
+<div class="p-2 bg-surface-container-lowest rounded-lg shadow-sm flex items-center justify-between" id="preview-cancel-box">
+<div>
+<div class="font-medium text-[11px] text-on-surface">Status: Menunggu Pembayaran</div>
+<div class="text-[10px] text-on-surface-variant">Pesanan #402</div>
+</div>
+<button class="px-2 py-1 bg-surface-container text-[10px] text-error font-semibold rounded">Batal</button>
+</div>
+<!-- Dynamic Feature: Pairing Upsell -->
+<div class="p-2 bg-secondary/15 rounded-lg shadow-sm" id="preview-pairing-box">
+<div class="flex items-center gap-1.5 text-tertiary font-bold text-[11px]">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+<span>Rekomendasi Hemat</span>
+</div>
+<div class="text-[10px] text-on-surface mt-1 flex justify-between">
+<span>Kopi Susu + Butter Croissant</span>
+<span class="font-bold text-primary">+Rp 18.000</span>
+</div>
+</div>
+<!-- Sound Chimes Indicator -->
+<div class="p-2 bg-surface-container-lowest rounded-lg shadow-sm flex items-center gap-2" id="preview-bell-box">
+<span class="material-symbols-outlined text-primary text-[14px]">volume_up</span>
+<span class="text-[10px] text-on-surface-variant">Chimes Bel 'Ding-Dong' aktif di browser</span>
+</div>
+</div>
+<!-- Sticky Bottom Checkout Preview -->
+<div class="p-2 bg-surface-container-lowest shrink-0 shadow-md">
+<button class="w-full py-2 bg-primary text-on-primary rounded font-label-md text-label-md font-semibold text-center text-xs">
+                Bayar Sekarang (QRIS)
+              </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Bottom Action Bar (56dp height) -->
+<div class="fixed bottom-0 left-[88px] right-0 h-14 bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_-2px_10px_rgba(0,0,0,0.06)] z-30 px-space-lg flex items-center justify-between">
+<div class="flex items-center gap-space-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-[20px]">cloud_done</span>
+<span class="font-body-md text-body-md hidden sm:inline">Perubahan lokal belum disimpan ke gerai cloud</span>
+<span class="font-mono text-xs text-on-surface sm:hidden">Rev: 0.9b</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="h-10 px-4 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg font-semibold flex items-center gap-1.5 transition-colors" id="btn-sync-guest">
+<span class="material-symbols-outlined text-[18px]">sync</span>
+<span class="hidden md:inline">Sinkronisasi Ulang ke Guest PWA</span>
+<span class="md:hidden">Sync PWA</span>
+</button>
+<button class="h-10 px-5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-semibold flex items-center gap-2 shadow-sm transition-all" id="btn-save-settings">
+<span class="material-symbols-outlined text-[20px]">save</span>
+<span>Simpan Pengaturan Gerai</span>
+</button>
+</div>
+</div>
+<!-- Non-intrusive Toast Notification Container -->
+<div class="fixed top-16 right-6 z-50 transform translate-y-[-100px] opacity-0 transition-all duration-300 pointer-events-none bg-inverse-surface text-inverse-on-surface px-4 py-3 rounded-xl shadow-lg flex items-center gap-3" id="toast">
+<span class="material-symbols-outlined text-primary-fixed text-[20px]">check_circle</span>
+<span class="font-body-md text-body-md font-medium" id="toast-text">Pengaturan berhasil diperbarui</span>
+</div>
+</div>
+<script>
+  (function initStoreSettings() {
+    const toggles = document.querySelectorAll('.feature-toggle');
+    const badge = document.getElementById('active-feature-badge');
+    const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toast-text');
+    const btnSave = document.getElementById('btn-save-settings');
+    const btnSync = document.getElementById('btn-sync-guest');
+    const btnPause = document.getElementById('btn-pause-qr');
+    const btnTestPrint = document.getElementById('btn-test-print');
+
+    // Mobile preview elements
+    const previewSplit = document.getElementById('preview-split-box');
+    const previewCancel = document.getElementById('preview-cancel-box');
+    const previewPairing = document.getElementById('preview-pairing-box');
+    const previewBell = document.getElementById('preview-bell-box');
+
+    function showToast(message) {
+      if (!toast || !toastText) return;
+      toastText.textContent = message;
+      toast.classList.remove('translate-y-[-100px]', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-[-100px]', 'opacity-0');
+      }, 2600);
+    }
+
+    function updateActiveCount() {
+      let activeCount = 0;
+      toggles.forEach(toggle => {
+        const card = toggle.closest('div.bg-surface-container-lowest');
+        const statusSpan = card ? card.querySelector('.flag-status') : null;
+        const flagName = toggle.getAttribute('data-flag');
+
+        if (toggle.checked) {
+          activeCount++;
+          if (statusSpan) {
+            statusSpan.textContent = 'ON';
+            statusSpan.className = 'flag-status font-label-md text-label-md text-primary font-semibold';
+          }
+        } else {
+          if (statusSpan) {
+            statusSpan.textContent = 'OFF';
+            statusSpan.className = 'flag-status font-label-md text-label-md text-on-surface-variant font-semibold';
+          }
+        }
+
+        // Mirror toggles to Mobile Preview
+        if (flagName === 'guest_split_equal_enabled' && previewSplit) {
+          previewSplit.style.display = toggle.checked ? 'block' : 'none';
+        }
+        if (flagName === 'guest_self_cancel_enabled' && previewCancel) {
+          previewCancel.style.display = toggle.checked ? 'flex' : 'none';
+        }
+        if (flagName === 'cart_pairing_enabled' && previewPairing) {
+          previewPairing.style.display = toggle.checked ? 'block' : 'none';
+        }
+        if (flagName === 'guest_bell_sound_enabled' && previewBell) {
+          previewBell.style.display = toggle.checked ? 'flex' : 'none';
+        }
+      });
+
+      if (badge) {
+        badge.textContent = `${activeCount} Aktif`;
+      }
+    }
+
+    toggles.forEach(toggle => {
+      toggle.addEventListener('change', () => {
+        updateActiveCount();
+        const flagName = toggle.getAttribute('data-flag');
+        showToast(`Fitur '${flagName}' diubah.`);
+      });
+    });
+
+    if (btnSave) {
+      btnSave.addEventListener('click', () => {
+        btnSave.disabled = true;
+        btnSave.classList.add('opacity-75');
+        showToast('Menyimpan konfigurasi gerai & hardware...');
+        setTimeout(() => {
+          btnSave.disabled = false;
+          btnSave.classList.remove('opacity-75');
+          showToast('Pengaturan gerai tersimpan dan broadcast ke Redis.');
+        }, 600);
+      });
+    }
+
+    if (btnSync) {
+      btnSync.addEventListener('click', () => {
+        showToast('Push konfigurasi ke 18 sesi Guest PWA aktif...');
+      });
+    }
+
+    if (btnPause) {
+      let isPaused = false;
+      btnPause.addEventListener('click', () => {
+        isPaused = !isPaused;
+        if (isPaused) {
+          btnPause.classList.remove('bg-error-container', 'text-on-error-container');
+          btnPause.classList.add('bg-primary', 'text-on-primary');
+          btnPause.innerHTML = '<span class="material-symbols-outlined text-[18px]">play_circle</span><span>Lanjutkan Pemesanan QR Tamu</span>';
+          showToast('Pemesanan QR Meja DIJEDA sementara.');
+        } else {
+          btnPause.classList.add('bg-error-container', 'text-on-error-container');
+          btnPause.classList.remove('bg-primary', 'text-on-primary');
+          btnPause.innerHTML = '<span class="material-symbols-outlined text-[18px]">pause_circle</span><span>Jeda Pemesanan QR Tamu</span>';
+          showToast('Pemesanan QR Meja aktif kembali.');
+        }
+      });
+    }
+
+    if (btnTestPrint) {
+      btnTestPrint.addEventListener('click', () => {
+        showToast('Mengirim ESC/POS byte-stream ke 192.168.1.50:9100...');
+      });
+    }
+
+    // Tabs switching micro-interaction
+    const tabTriggers = document.querySelectorAll('.tab-trigger');
+    tabTriggers.forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        const target = e.currentTarget.getAttribute('data-tab');
+        if (target !== 'fitur-tamu') {
+          showToast(`Membuka panel: ${e.currentTarget.textContent.trim()}...`);
+        }
+      });
+    });
+
+    updateActiveCount();
+  })();
+</script></main></div></body></html>

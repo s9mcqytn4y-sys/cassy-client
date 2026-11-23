@@ -1,0 +1,363 @@
+﻿<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_blank" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"surface-container-low":"#f5f3ee","on-surface":"#1b1c19","outline-variant":"#bfc9c4","surface-container":"#f0eee9","background":"#fbf9f4","on-secondary":"#17211E","on-error":"#ffffff","on-secondary-fixed-variant":"#643f00","inverse-surface":"#30312e","secondary-container":"#ffb54d","on-surface-variant":"#56605B","surface-container-high":"#eae8e3","secondary-fixed":"#ffddb6","surface-container-lowest":"#ffffff","primary-fixed-dim":"#94d3c2","primary-container":"#1f5f52","surface-tint":"#2a685b","inverse-on-surface":"#f2f1ec","error-container":"#FBE7E5","error":"#B3261E","surface":"#F7F5F0","tertiary-container":"#784b00","on-primary":"#FFFFFF","tertiary-fixed-dim":"#fabb6b","primary-fixed":"#b0efde","on-primary-container":"#98d7c6","on-secondary-container":"#714800","on-tertiary-fixed":"#2a1700","primary":"#1F5F52","surface-container-highest":"#e4e2dd","tertiary-fixed":"#ffddb7","on-tertiary-fixed-variant":"#653e00","on-tertiary-container":"#fdbe6e","on-background":"#1b1c19","outline":"#8C877C","on-tertiary":"#ffffff","surface-variant":"#e4e2dd","surface-dim":"#dbdad5","surface-bright":"#fbf9f4","tertiary":"#8A5A12","inverse-primary":"#94d3c2","on-primary-fixed":"#00201a","secondary-fixed-dim":"#ffb959","secondary":"#E9A23B","on-secondary-fixed":"#2a1800","on-error-container":"#93000a","on-primary-fixed-variant":"#095044"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-xl":"2rem","space-md":"1rem","space-xs":"0.25rem","space-lg":"1.5rem","margin":"1rem","space-sm":"0.5rem","gutter":"1rem"},"fontFamily":{"body-lg":["Plus Jakarta Sans"],"tabular-nums":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"title-md":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"],"display-lg":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"label-md":["Plus Jakarta Sans"]},"fontSize":{"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"tabular-nums":["14px",{"lineHeight":"20px","fontWeight":"600"}],"headline-sm":["20px",{"lineHeight":"26px","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"32px","fontWeight":"600"}],"title-md":["16px",{"lineHeight":"24px","fontWeight":"500"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"label-lg":["14px",{"lineHeight":"20px","fontWeight":"500"}],"display-lg":["44px",{"lineHeight":"52px","fontWeight":"700"}],"headline-lg":["32px",{"lineHeight":"40px","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","fontWeight":"500"}]}}}};</script></head><body class="bg-surface font-body-md text-body-md text-on-surface min-h-screen"><main class="w-full min-h-screen bg-surface"><div class="flex flex-col w-full text-on-surface select-none">
+<!-- TOP CONNECTION STRIP (Non-blocking status, 40dp height) -->
+<header class="w-full h-10 bg-[#E3F2E6] border-b border-[#C3E6CB] text-[#1E6B34] text-xs font-semibold px-4 flex items-center justify-between shrink-0 z-20">
+<div class="flex items-center gap-2">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1E6B34] opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#1E6B34]"></span>
+</span>
+<span>Online: Sinkronisasi real-time gerai aktif (Latensi 42 ms)</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-on-surface-variant font-medium">Terakhir sinkron: 14:48 WIB</span>
+<span class="text-[#C3E6CB]">|</span>
+<span class="font-bold">Mode: Hybrid Server</span>
+</div>
+</header>
+<!-- MAIN VIEWPORT CONTAINER (Tablet Expanded Layout 1280x800) -->
+<div class="flex flex-row w-full h-[calc(100vh-40px)] overflow-hidden bg-surface">
+<!-- 1. LEFT NAVIGATION RAIL (88dp width) -->
+<nav class="w-[88px] min-w-[88px] max-w-[88px] h-full bg-surface-container border-r border-outline-variant flex flex-col items-center py-4 justify-between shrink-0 select-none">
+<div class="flex flex-col items-center gap-6 w-full">
+<!-- Monogram Brand Mark -->
+<div class="w-12 h-12 rounded-2xl bg-primary text-on-primary font-bold flex items-center justify-center text-xl shadow-sm tracking-wider">
+          CY
+        </div>
+<!-- Vertical Rail Nav Items (Min 64dp Touch Target) -->
+<div class="flex flex-col items-center gap-2 w-full px-2">
+<!-- Active Kasir Tab -->
+<button class="w-full h-16 rounded-2xl bg-primary text-on-primary flex flex-col items-center justify-center gap-0.5 transition-all shadow-sm" type="button">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">point_of_sale</span>
+<span class="text-[11px] font-bold tracking-tight">Kasir</span>
+</button>
+<!-- Inactive: Meja -->
+<button class="w-full h-16 rounded-2xl text-on-surface-variant hover:bg-surface-container-high flex flex-col items-center justify-center gap-0.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-2xl">table_restaurant</span>
+<span class="text-[11px] font-medium tracking-tight">Meja</span>
+</button>
+<!-- Inactive: Dapur -->
+<button class="w-full h-16 rounded-2xl text-on-surface-variant hover:bg-surface-container-high flex flex-col items-center justify-center gap-0.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-2xl">soup_kitchen</span>
+<span class="text-[11px] font-medium tracking-tight">Dapur</span>
+</button>
+<!-- Inactive: Katalog -->
+<button class="w-full h-16 rounded-2xl text-on-surface-variant hover:bg-surface-container-high flex flex-col items-center justify-center gap-0.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-2xl">inventory_2</span>
+<span class="text-[11px] font-medium tracking-tight">Katalog</span>
+</button>
+<!-- Inactive: Pengaturan -->
+<button class="w-full h-16 rounded-2xl text-on-surface-variant hover:bg-surface-container-high flex flex-col items-center justify-center gap-0.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-2xl">settings</span>
+<span class="text-[11px] font-medium tracking-tight">Pengaturan</span>
+</button>
+</div>
+</div>
+<!-- Bottom Hardware Status Pill -->
+<div class="h-10 px-2 rounded-full bg-[#E3F2E6] border border-[#C3E6CB] text-[#1E6B34] text-[11px] font-bold flex items-center gap-1.5 shadow-sm">
+<span class="inline-block w-2 h-2 rounded-full bg-[#1E6B34]"></span>
+<span>Printer siap</span>
+</div>
+</nav>
+<!-- 2. CENTER CATALOG WORKSPACE -->
+<section class="flex-1 bg-surface p-4 flex flex-col gap-3 min-w-0 overflow-hidden">
+<!-- Compact Shift Banner -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-3 flex items-center justify-between shadow-sm shrink-0">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-lg">badge</span>
+</div>
+<div class="text-xs truncate">
+<span class="font-bold text-on-surface">Shift #01: Raka Pratama</span>
+<span class="text-outline-variant mx-1.5 font-bold">|</span>
+<span class="text-on-surface-variant">Kas Awal:</span>
+<span class="font-tabular-nums text-tabular-nums font-semibold text-on-surface">Rp 264.000</span>
+<span class="text-outline-variant mx-1.5 font-bold">|</span>
+<span class="text-on-surface-variant">Saldo Kasir:</span>
+<span class="font-tabular-nums text-tabular-nums font-bold text-primary">Rp 1.482.000</span>
+</div>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<button class="min-h-[48px] px-3.5 rounded-lg border border-outline-variant text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-base">summarize</span>
+<span>X-Report</span>
+</button>
+<button class="min-h-[48px] px-3.5 rounded-lg border border-outline-variant text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-base">payments</span>
+<span>Mutasi Kas</span>
+</button>
+<button class="min-h-[48px] px-3.5 rounded-lg bg-[#FBE7E5] border border-[#F5C2C0] text-[#B3261E] text-xs font-bold hover:bg-error-container transition-colors flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-base text-[#B3261E]">lock</span>
+<span>Tutup Shift</span>
+</button>
+</div>
+</div>
+<!-- Search & Category Filter Bar -->
+<div class="flex items-center gap-3 shrink-0">
+<!-- Search Input Capped at 360dp -->
+<div class="relative w-full max-w-[360px]">
+<span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-xl pointer-events-none">search</span>
+<input class="w-full h-12 rounded-xl bg-surface-container-lowest border border-outline-variant pl-10 pr-3 text-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-secondary transition-all" placeholder="Cari menu atau kode SKU..." type="text"/>
+</div>
+<!-- M3 Filter Chips Horizon -->
+<div class="flex items-center gap-2 overflow-x-auto py-1 scrollbar-none">
+<button class="h-11 px-4 rounded-xl bg-primary text-on-primary text-xs font-bold shrink-0 flex items-center gap-1.5 shadow-sm" type="button">
+<span>Semua (24)</span>
+</button>
+<button class="h-11 px-4 rounded-xl bg-surface-container text-on-surface text-xs font-semibold hover:bg-surface-container-high shrink-0 transition-colors" type="button">
+<span>Makanan Utama (12)</span>
+</button>
+<button class="h-11 px-4 rounded-xl bg-surface-container text-on-surface text-xs font-semibold hover:bg-surface-container-high shrink-0 transition-colors" type="button">
+<span>Minuman &amp; Teh (8)</span>
+</button>
+<button class="h-11 px-4 rounded-xl bg-surface-container text-on-surface text-xs font-semibold hover:bg-surface-container-high shrink-0 transition-colors" type="button">
+<span>Roti &amp; Kue (4)</span>
+</button>
+</div>
+</div>
+<!-- Product Grid (Adaptive cells 168dp capped at 200dp) -->
+<div class="flex-1 overflow-y-auto grid grid-cols-[repeat(auto-fill,minmax(168px,200px))] gap-3 pr-1 content-start auto-rows-max">
+<!-- Card 1: Paket Nasi Ayam Bakar -->
+<div class="group relative bg-surface-container-lowest rounded-xl border border-outline-variant p-2 flex flex-col justify-between hover:border-secondary transition-all shadow-sm cursor-pointer select-none active:scale-[0.98]">
+<div>
+<div class="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-surface-container mb-2">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Appetizing Indonesian charcoal grilled chicken served with warm steamed white rice, sliced fresh cucumber, and aromatic sambal matah on authentic rustic banana leaf tableware under soft warm studio lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2b4qlPFqR0-M2o05VDRaoQL5rERljKIrSNlGReut1NtYRHMnVWvEt_3QA_UJ3krl2IZum4m-TlXeu03PLpm_GOJ-EB82iwFB1iWQTat5Bk61-K2MidOyofBmyfumcnqeTqdLRPpR_NL5uBZXNgwdbcHapreEkCZF8epA-J4HGbnoaQoyjDc0W0x0FLo-tnyw7NA93FVBseLNk2HYtO9Du50L62pkYrZVTd4kKGHqWLYjm5xlAWLbeFdTlcmdfa3RYQDUz1GBv1GAb"/>
+<span class="absolute top-1.5 left-1.5 bg-[#FFF3E0] text-[#B25E02] text-[10px] font-bold px-2 py-0.5 rounded shadow-sm tracking-wider">
+                DAPUR
+              </span>
+</div>
+<h3 class="text-xs font-bold text-on-surface line-clamp-2 leading-tight">Paket Nasi Ayam Bakar</h3>
+</div>
+<div class="mt-2 pt-2 border-t border-outline-variant flex items-center justify-between">
+<span class="font-tabular-nums text-sm font-bold text-primary">Rp 32.000</span>
+<span class="w-6 h-6 rounded-md bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-base">add</span>
+</span>
+</div>
+</div>
+<!-- Card 2: Es Pandan Latte -->
+<div class="group relative bg-surface-container-lowest rounded-xl border border-outline-variant p-2 flex flex-col justify-between hover:border-secondary transition-all shadow-sm cursor-pointer select-none active:scale-[0.98]">
+<div>
+<div class="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-surface-container mb-2">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Distinct layers of vibrant green pandan essence, cold fresh milk, and rich espresso crema in a crystal-clear tumbler with ice cubes, presented on an earthy terrazzo counter." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeWpTKc0w1bhBlAe29z1NJOouJqY1jjRshL63HM4yiC-uY-gKwTxWxp5zLM5QbPBRQb7HViyGX1sdUwVYiyQztsXfxLX54y8IfCdR9MfK4o8su_Km3xShbOxWTX-wpPAbSXzPCMZbsdQSV38StGNnlUxsTlw6qEGY5ly_OASasLZn5DYc215logtwJGy-5I8y5L3f4YK0Reg--wNJBwTqRW5sJeLZPY5yZCBwb7Yi5pF72MOnsuQAd3OYxt4ecdvY3hj9L2ayN5hMZ"/>
+<span class="absolute top-1.5 left-1.5 bg-[#E8F5E9] text-[#1E6B34] text-[10px] font-bold px-2 py-0.5 rounded shadow-sm tracking-wider">
+                BAR
+              </span>
+</div>
+<h3 class="text-xs font-bold text-on-surface line-clamp-2 leading-tight">Es Pandan Latte</h3>
+</div>
+<div class="mt-2 pt-2 border-t border-outline-variant flex items-center justify-between">
+<span class="font-tabular-nums text-sm font-bold text-primary">Rp 26.000</span>
+<span class="w-6 h-6 rounded-md bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-base">add</span>
+</span>
+</div>
+</div>
+<!-- Card 3: Nasi Goreng Spesial -->
+<div class="group relative bg-surface-container-lowest rounded-xl border border-outline-variant p-2 flex flex-col justify-between hover:border-secondary transition-all shadow-sm cursor-pointer select-none active:scale-[0.98]">
+<div>
+<div class="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-surface-container mb-2">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Smoky Indonesian special fried rice tossed with chicken chunks, topped with a crisp sunny-side up egg with runny yolk and shrimp crackers on a deep ceramic dish." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOSCz6C6h06oksOZljwEOnXF2asuuCY7u2KG88YbLkqat6XwDiPbYttpCDMm4L43I-GRnXY18sSPE1CzT6IhINxYWRl1LSDOIPl_gl0J7GJvcuLLK0yGHAUUi1zb4BoU1pm4xaqAqg-FFs33mRfKQVAsFO84exXwRiRZ1KY440Terc1fAHYII4DATQOphcgnI2WdSU5feL292KffyhRr_jQ7Asv1yvesLRh27NuuPr2Nc4mC9B6Y1E5w9V3_sU-cPPMK-62xvod319"/>
+<span class="absolute top-1.5 left-1.5 bg-[#FFF3E0] text-[#B25E02] text-[10px] font-bold px-2 py-0.5 rounded shadow-sm tracking-wider">
+                DAPUR
+              </span>
+</div>
+<h3 class="text-xs font-bold text-on-surface line-clamp-2 leading-tight">Nasi Goreng Spesial</h3>
+</div>
+<div class="mt-2 pt-2 border-t border-outline-variant flex items-center justify-between">
+<span class="font-tabular-nums text-sm font-bold text-on-surface">Rp 35.000</span>
+<span class="w-6 h-6 rounded-md bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-base">add</span>
+</span>
+</div>
+</div>
+<!-- Card 4: Kopi Susu Gula Aren -->
+<div class="group relative bg-surface-container-lowest rounded-xl border border-outline-variant p-2 flex flex-col justify-between hover:border-secondary transition-all shadow-sm cursor-pointer select-none active:scale-[0.98]">
+<div>
+<div class="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-surface-container mb-2">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Signature Indonesian iced palm sugar milk coffee showing rich caramel gradients blending into fresh milk and dark roast espresso topped with condensed droplets on glass surface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQrtGESnyJTA8GjG8UGAHwa8OyCruWyfULaaUAU6DrEVJOBYzpkQNlqrR66Tet1D42_5A1gdVj7ZBSwwrHsxulkMxpjcPf2-Ca8MDGR6aMvAgarFe0VTuBoW9nsuSCS79tmGgCY_r2dhTd9jfWfQmse6CnKz9rwgHsrPV0mnJvfRYIAh7IzgWDaDbae_XHdSQZV5yMXPtQZDbWjtpQnz2o_MmGzgLN8snu_pJmFkwjQ4xuStvVkddSVbnynyrtZJKMtfZ5f5LnNN9I"/>
+<span class="absolute top-1.5 left-1.5 bg-[#E8F5E9] text-[#1E6B34] text-[10px] font-bold px-2 py-0.5 rounded shadow-sm tracking-wider">
+                BAR
+              </span>
+</div>
+<h3 class="text-xs font-bold text-on-surface line-clamp-2 leading-tight">Kopi Susu Gula Aren</h3>
+</div>
+<div class="mt-2 pt-2 border-t border-outline-variant flex items-center justify-between">
+<span class="font-tabular-nums text-sm font-bold text-on-surface">Rp 22.000</span>
+<span class="w-6 h-6 rounded-md bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-base">add</span>
+</span>
+</div>
+</div>
+<!-- Card 5: Croissant Mentega (OUT OF STOCK / HABIS) -->
+<div class="relative bg-surface-container-lowest rounded-xl border border-outline-variant p-2 flex flex-col justify-between opacity-60 cursor-not-allowed select-none">
+<div>
+<div class="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-surface-container mb-2">
+<img class="w-full h-full object-cover grayscale" data-alt="Flaky golden brown French butter croissant freshly baked with delicate layered honeycomb pastry texture resting on baker parchment paper." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCzvtIIa-sEozyuLwoXDPLVtnNZR-JbFwBffJPrlP6f9kkn4XccPCYKzg2tQ96blpuggytSsqM9-Xu_0q739IFgiXe15PvfL1book_P13jT6cDJXrZQYzm5FNREolAChUznhq6QTvnHv9IePd4woOg3uN9lBYsL1oD-8pMhivlh2bfkeIaU5OozDeSCMukEDoFQJP3oS1OE9AtdInksjpwkIMEnIH48b412RPQoyE5IxpxL4QSgqn1EwtL2MaHsy8RFXtgGhdRtnLv"/>
+<span class="absolute top-1.5 left-1.5 bg-[#E8F5E9] text-[#1E6B34] text-[10px] font-bold px-2 py-0.5 rounded shadow-sm tracking-wider">
+                BAR
+              </span>
+<span class="absolute inset-0 bg-surface-container-highest/60 flex items-center justify-center">
+<span class="bg-[#FBE7E5] text-[#B3261E] font-bold text-xs px-2.5 py-1 rounded-md border border-[#F5C2C0] shadow-sm tracking-wider">
+                  HABIS
+                </span>
+</span>
+</div>
+<h3 class="text-xs font-bold text-on-surface-variant line-clamp-2 leading-tight">Croissant Mentega</h3>
+</div>
+<div class="mt-2 pt-2 border-t border-outline-variant flex items-center justify-between">
+<span class="font-tabular-nums text-sm font-bold text-on-surface-variant">Rp 28.000</span>
+<span class="text-[10px] font-bold text-[#B3261E]">Kosong</span>
+</div>
+</div>
+<!-- Card 6: Teh Tarik Aceh -->
+<div class="group relative bg-surface-container-lowest rounded-xl border border-outline-variant p-2 flex flex-col justify-between hover:border-secondary transition-all shadow-sm cursor-pointer select-none active:scale-[0.98]">
+<div>
+<div class="relative w-full aspect-[4/3] rounded-lg overflow-hidden bg-surface-container mb-2">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" data-alt="Traditional frothy pulled milk tea poured high into an authentic glass mug with dense creamy foam crown, captured in cozy cafe warm ambient lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBW23zmt7kcy7f5GMq-Pzym7I0VI5zz0j6bkujkKUV14Bx3QsystpY4iaYRyIMoqt6_uzGI7trzV9EmPruSKb-tIwsfRlqsOT2XObsjHuxH9EwTfQqU7O-ovikxAPeZYL6WQu5O73GxdiuE9jJCgpSKNgkXtLATSCuAjd4BeAL8d7Lgumxym4tp27wrUiNNQUovDl2-FISZr7CudM9iIEpz3CmlGIlZ45Zj25FEyx5DdeJaNteq6n6V2czYxWWitRsNBIpMvAA9bXDx"/>
+<span class="absolute top-1.5 left-1.5 bg-[#E8F5E9] text-[#1E6B34] text-[10px] font-bold px-2 py-0.5 rounded shadow-sm tracking-wider">
+                BAR
+              </span>
+</div>
+<h3 class="text-xs font-bold text-on-surface line-clamp-2 leading-tight">Teh Tarik Aceh</h3>
+</div>
+<div class="mt-2 pt-2 border-t border-outline-variant flex items-center justify-between">
+<span class="font-tabular-nums text-sm font-bold text-on-surface">Rp 18.000</span>
+<span class="w-6 h-6 rounded-md bg-surface-container flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-base">add</span>
+</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. FIXED 420dp RIGHT ORDER SUMMARY PANEL -->
+<aside class="w-[420px] min-w-[420px] max-w-[420px] bg-surface-container-lowest border-l border-outline-variant flex flex-col justify-between shadow-xl h-full z-10 shrink-0">
+<!-- Panel Header: Table Meta & Action -->
+<div class="p-4 border-b border-outline-variant flex items-center justify-between bg-surface-container-lowest shrink-0">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="font-mono text-base font-extrabold text-on-surface tracking-tight">Meja M-04: Dine-In</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="bg-[#FDF0D8] text-[#8A5300] font-bold text-[11px] px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#8A5300]"></span>
+<span>Panggilan Tamu (2)</span>
+</span>
+</div>
+</div>
+<button class="min-h-[48px] h-10 px-3.5 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-base">sync_alt</span>
+<span>Ganti Meja</span>
+</button>
+</div>
+<!-- Order Item List (Flex 1, Scrollable) -->
+<div class="flex-1 overflow-y-auto p-4 space-y-3">
+<!-- Ticket Item 1 -->
+<div class="p-3 rounded-xl bg-surface-container-low border border-outline-variant flex flex-col gap-2">
+<div class="flex items-start justify-between gap-2">
+<div class="min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-[#B25E02]"></span>
+<h4 class="text-xs font-bold text-on-surface truncate">Paket Nasi Ayam Bakar</h4>
+</div>
+<p class="text-[11px] text-on-surface-variant italic mt-0.5">Sambal matah terpisah, nasi pulen</p>
+</div>
+<span class="font-tabular-nums text-xs font-bold text-on-surface shrink-0">Rp 32.000</span>
+</div>
+<div class="flex items-center justify-between pt-1 border-t border-outline-variant/60">
+<span class="text-[11px] text-on-surface-variant font-medium">1x @ Rp 32.000</span>
+<!-- 48dp stepper buttons -->
+<div class="flex items-center gap-1 bg-surface-container-lowest rounded-lg border border-outline-variant p-0.5">
+<button class="w-10 h-10 rounded flex items-center justify-center text-on-surface hover:bg-surface-container active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-base">remove</span>
+</button>
+<span class="w-8 text-center font-tabular-nums text-xs font-bold">1</span>
+<button class="w-10 h-10 rounded flex items-center justify-center text-primary hover:bg-surface-container active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-base">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Ticket Item 2 -->
+<div class="p-3 rounded-xl bg-surface-container-low border border-outline-variant flex flex-col gap-2">
+<div class="flex items-start justify-between gap-2">
+<div class="min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-[#1E6B34]"></span>
+<h4 class="text-xs font-bold text-on-surface truncate">Es Pandan Latte</h4>
+</div>
+<p class="text-[11px] text-on-surface-variant italic mt-0.5">Less ice (50%), normal sugar</p>
+</div>
+<span class="font-tabular-nums text-xs font-bold text-on-surface shrink-0">Rp 26.000</span>
+</div>
+<div class="flex items-center justify-between pt-1 border-t border-outline-variant/60">
+<span class="text-[11px] text-on-surface-variant font-medium">1x @ Rp 26.000</span>
+<!-- 48dp stepper buttons -->
+<div class="flex items-center gap-1 bg-surface-container-lowest rounded-lg border border-outline-variant p-0.5">
+<button class="w-10 h-10 rounded flex items-center justify-center text-on-surface hover:bg-surface-container active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-base">remove</span>
+</button>
+<span class="w-8 text-center font-tabular-nums text-xs font-bold">1</span>
+<button class="w-10 h-10 rounded flex items-center justify-center text-primary hover:bg-surface-container active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-base">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Server-Quoted Summary (Sticky Bottom-Up) -->
+<div class="bg-surface p-4 border-t border-outline-variant rounded-t-2xl space-y-2 shrink-0">
+<div class="flex justify-between items-center text-xs text-on-surface-variant">
+<span>Subtotal (2 item)</span>
+<span class="font-tabular-nums text-on-surface font-semibold">Rp 58.000</span>
+</div>
+<div class="flex justify-between items-center text-xs text-on-surface-variant">
+<span>Pajak PB1 (10%)</span>
+<span class="font-tabular-nums text-on-surface font-semibold">Rp 5.800</span>
+</div>
+<div class="flex justify-between items-center text-xs text-on-surface-variant">
+<span>Pembulatan Kasir</span>
+<span class="font-tabular-nums text-on-surface font-semibold">Rp 0</span>
+</div>
+<div class="h-px bg-outline-variant my-1"></div>
+<div class="flex justify-between items-baseline pt-1">
+<span class="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Total Tagihan</span>
+<span class="font-tabular-nums text-[28px] font-black text-on-surface leading-none">Rp 63.800</span>
+</div>
+</div>
+<!-- Secondary Action Grid (48dp height minimum touch buttons) -->
+<div class="grid grid-cols-2 gap-2 px-4 py-2 bg-surface-container-lowest shrink-0">
+<button class="h-12 min-h-[48px] rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container text-xs font-bold text-on-surface transition-colors flex items-center justify-center gap-1.5 shadow-sm" type="button">
+<span class="material-symbols-outlined text-base">meeting_room</span>
+<span>Buka Laci</span>
+</button>
+<button class="h-12 min-h-[48px] rounded-xl border border-primary text-primary bg-[#EBF4F1] hover:bg-primary hover:text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-sm" type="button">
+<span class="material-symbols-outlined text-base">send</span>
+<span>Kirim ke Dapur</span>
+</button>
+<button class="h-12 min-h-[48px] rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container text-xs font-bold text-on-surface transition-colors flex items-center justify-center gap-1.5 shadow-sm" type="button">
+<span class="material-symbols-outlined text-base">call_split</span>
+<span>Bagi Tagihan</span>
+</button>
+<button class="h-12 min-h-[48px] rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container text-xs font-bold text-on-surface transition-colors flex items-center justify-center gap-1.5 shadow-sm" type="button">
+<span class="material-symbols-outlined text-base">receipt_long</span>
+<span>Tagihan Terbuka</span>
+</button>
+</div>
+<!-- Primary Payment CTAs (64dp height ergonomic trigger) -->
+<div class="p-4 pt-1 grid grid-cols-2 gap-3 bg-surface-container-lowest shrink-0">
+<button class="h-16 min-h-[64px] rounded-xl bg-primary hover:bg-[#184d42] active:scale-[0.98] text-white font-bold text-base shadow-md flex items-center justify-center gap-2 transition-all" type="button">
+<span class="material-symbols-outlined text-2xl">payments</span>
+<span>Bayar Tunai</span>
+</button>
+<button class="h-16 min-h-[64px] rounded-xl bg-[#E9A23B] hover:bg-[#d8932e] active:scale-[0.98] text-[#17211E] font-extrabold text-base shadow-md flex items-center justify-center gap-2 transition-all" type="button">
+<span class="material-symbols-outlined text-2xl">qr_code_scanner</span>
+<span>QRIS Dinamis</span>
+</button>
+</div>
+</aside>
+</div>
+</div></main></body></html>
