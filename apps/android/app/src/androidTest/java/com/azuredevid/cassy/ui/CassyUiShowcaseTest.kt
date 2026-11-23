@@ -11,15 +11,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.filterToOne
-import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.hasClickAction
-import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -731,32 +726,18 @@ class CassyUiShowcaseTest {
             captureScreen("PosLandscape/PosMain", preferFullDisplay = true)
         } else {
             composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart)).assertIsDisplayed()
-            captureScreen("PosLandscape/PosMain")
-            composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart)).performClick()
-            composeRule.waitForIdle()
-            // The cart sheet opens in its own window with an expand animation; wait for it.
-            val payCash = context.getString(R.string.btn_pay_cash)
-            runCatching {
-                composeRule.waitUntil(timeoutMillis = 5_000) {
-                    runCatching { composeRule.onNodeWithText(payCash).assertIsDisplayed() }.isSuccess
-                }
-            }.onFailure { error ->
-                val activePkg = InstrumentationRegistry.getInstrumentation().uiAutomation
-                    .rootInActiveWindow?.packageName
-                val closeCart = context.getString(R.string.pos_mobile_close_cart)
-                val texts = composeRule.onAllNodes(hasText("", substring = true), useUnmergedTree = true)
-                    .fetchSemanticsNodes()
-                    .mapNotNull { node -> node.config.getOrNull(SemanticsProperties.Text)?.joinToString() }
-                    .take(60)
-                composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart))
-                    .performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnClick)
-                composeRule.waitForIdle()
-                val afterAction = composeRule.onAllNodesWithContentDescription(closeCart).fetchSemanticsNodes().size
-                throw AssertionError(
-                    "DIAG activePkg=$activePkg closeCartAfterSemanticsClick=$afterAction texts=$texts",
-                    error
-                )
+            captureScreen("PosLandscape/PosMain", preferFullDisplay = true)
+            // A transient snackbar can sit over the sticky cart bar on phones, so a single tap may
+            // land on it. Keep tapping (a real touch, not a semantics action) until the sheet opens.
+            val viewCart = composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart))
+            val closeCart = context.getString(R.string.pos_mobile_close_cart)
+            composeRule.waitUntil(timeoutMillis = 8_000) {
+                val sheetOpen = composeRule.onAllNodesWithContentDescription(closeCart)
+                    .fetchSemanticsNodes().isNotEmpty()
+                if (!sheetOpen) viewCart.performClick()
+                sheetOpen
             }
+            composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
             captureScreen("PosLandscape/Modals/PosMobileCartSheet", preferFullDisplay = true)
         }
     }
