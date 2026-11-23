@@ -730,11 +730,16 @@ class CassyUiShowcaseTest {
             captureScreen("PosLandscape/PosMain", preferFullDisplay = true)
             composeRule.onNodeWithText(context.getString(R.string.pos_mobile_view_cart)).performClick()
             composeRule.waitForIdle()
+            // The cart sheet opens in its own window with an expand animation; wait for it.
+            val payCash = context.getString(R.string.btn_pay_cash)
             runCatching {
-                composeRule.onNodeWithText(context.getString(R.string.btn_pay_cash)).assertIsDisplayed()
+                composeRule.waitUntil(timeoutMillis = 5_000) {
+                    runCatching { composeRule.onNodeWithText(payCash).assertIsDisplayed() }.isSuccess
+                }
             }.onFailure { error ->
-                val tree = composeRule.onAllNodes(isRoot(), useUnmergedTree = true).printToString()
-                throw AssertionError("DIAG pay cash not displayed. Semantics:\n$tree", error)
+                val roots = composeRule.onAllNodes(isRoot()).fetchSemanticsNodes().size
+                val node = composeRule.onAllNodesWithText(payCash, useUnmergedTree = true).printToString(maxDepth = 0)
+                throw AssertionError("DIAG roots=$roots pay cash nodes:\n$node", error)
             }
             captureScreen("PosLandscape/Modals/PosMobileCartSheet", preferFullDisplay = true)
         }
