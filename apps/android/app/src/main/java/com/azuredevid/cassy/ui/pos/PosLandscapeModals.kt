@@ -25,6 +25,7 @@ import com.azuredevid.cassy.ui.designsystem.CassyPrimaryButton
 import com.azuredevid.cassy.ui.designsystem.CassySecondaryButton
 import com.azuredevid.cassy.ui.designsystem.CassyTextField
 import com.azuredevid.cassy.ui.pos.components.PosCashModal
+import com.azuredevid.cassy.ui.pos.components.PosEdcModal
 import com.azuredevid.cassy.ui.pos.components.PosItemSplitDialog
 import com.azuredevid.cassy.ui.pos.components.PosQrisModal
 import com.azuredevid.cassy.ui.pos.components.PosServiceRequestPill
@@ -79,6 +80,22 @@ internal fun BoxScope.PosLandscapeModals(
             onConfirmCashPayment = { tenderedLong, _ ->
                 posViewModel.submitCashPayment(
                     tenderedAmount = tenderedLong,
+                    drawerId = shiftState.currentShift?.drawerId
+                )
+            }
+        )
+    }
+
+    if (posState.showEdcModal && pricedQuote != null) {
+        PosEdcModal(
+            grandTotal = posState.payableAmount ?: pricedQuote.totalAmount,
+            rupiahFormat = rupiahFormat,
+            isSubmitting = posState.isSubmittingOrder,
+            errorMessage = posState.settlementError?.asString(),
+            onDismiss = { posViewModel.closeEdcModal() },
+            onConfirmEdcPayment = { reference ->
+                posViewModel.submitEdcPayment(
+                    reference = reference,
                     drawerId = shiftState.currentShift?.drawerId
                 )
             }

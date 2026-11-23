@@ -189,7 +189,8 @@ class KtorPosOrderRepository(
                 splitId = input.splitId?.takeIf { it.isNotBlank() },
                 method = input.method,
                 cashTenderedAmount = input.cashTenderedAmount,
-                drawerId = input.drawerId?.takeIf { it.isNotBlank() }
+                drawerId = input.drawerId?.takeIf { it.isNotBlank() },
+                reconciliationRef = input.reconciliationRef?.trim()?.takeIf { it.isNotEmpty() }
             )
             val response = httpClient.post("$baseUrl/api/v1/pos/orders/${input.orderId}/payments") {
                 contentType(ContentType.Application.Json)
