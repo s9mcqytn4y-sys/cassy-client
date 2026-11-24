@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { CATALOG, json, mockCheckout, mockStore } from "./mocks";
+import { CATALOG, QUOTE, json, mockCheckout, mockStore } from "./mocks";
 
 test("tamu memesan, membayar QRIS, dan melihat status", async ({ page }) => {
   await mockStore(page);
@@ -693,4 +693,30 @@ test("paket bundle memvalidasi semua slot dan mengirim bundle_items ke quote dan
   await page.getByRole("button", { name: "Bayar Rp 57.500" }).click();
   await expect(page.getByText("Menunggu pembayaran")).toBeVisible();
   expect(orderBody.items?.[0]?.bundle_items).toEqual(quoteBody.items?.[0]?.bundle_items);
+});
+
+// PWA-02 (S4-Q7): after QUOTE_CHANGED the cart re-prices from the server and the retry carries the new fingerprint.
+test("QUOTE_CHANGED memuat harga baru dari server dan bayar ulang memakai kuotasi baru", async ({ page }) => {
+  await mockStore(page);
+  let rejected = false;
+  const fingerprints: unknown[] = [];
+  await page.route("**/api/v1/public/stores/senja/orders/quote", (r) =>
+    r.fulfill(json(rejected ? { ...QUOTE, subtotal_amount: 26100, service_charge_amount: 1305, tax_amount: 2595, total_amount: 30000, quote_fingerprint: "fp2" } : QUOTE))
+  );
+  await page.route("**/api/v1/public/guest/orders", (r) => {
+    fingerprints.push(r.request().postDataJSON().expected_quote_fingerprint);
+    if (!rejected) {
+      rejected = true;
+      return r.fulfill(json({ code: "QUOTE_CHANGED", error: "x" }, 409));
+    }
+    return r.fulfill(json({ order: { id: "o1", order_number: "A-014" }, tracking_token: "trk" }, 201));
+  });
+  await page.route("**/api/v1/public/guest/orders/o1/payments", (r) =>
+    r.fulfill(json({ payment: { id: "p1", qr_string: "00020101", amount: 30000 } }, 201))
+  );
+  await addAndOpenCart(page);
+  await page.getByRole("button", { name: "Bayar Rp 28.750" }).click();
+  await expect(page.getByRole("dialog").getByRole("alert")).toContainText("Harga berubah");
+  await page.getByRole("button", { name: "Bayar Rp 30.000" }).click();
+  await expect.poll(() => fingerprints).toEqual(["fp", "fp2"]);
 });
