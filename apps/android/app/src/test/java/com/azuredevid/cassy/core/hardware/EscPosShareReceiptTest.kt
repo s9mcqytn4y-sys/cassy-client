@@ -48,4 +48,29 @@ class EscPosShareReceiptTest {
         assertTrue(text.contains("2x"))
         assertTrue(!text.contains("struk akhir"))
     }
+
+    /** S5-Q1: an equal share has no items of its own, so it lists the whole table bill under its heading. */
+    @Test
+    fun equalShareListsTheWholeTableBill() {
+        val bytes = EscPosReceiptBuilder(EscPosReceiptBuilder.PaperWidth.WIDTH_80MM).buildShareReceipt(
+            storeName = "Kopi Pandan",
+            orderId = "ORD-20261120-0009",
+            tableName = "Meja 5",
+            cashierName = "Rina",
+            shareNumber = 1,
+            shareCount = 2,
+            shareTotalIdr = 28_500L,
+            paymentMethod = "TUNAI",
+            billLines = listOf(
+                EscPosReceiptBuilder.ShareReceiptLine("Kopi Susu", 2, 36_000L),
+                EscPosReceiptBuilder.ShareReceiptLine("Roti Bakar", 1, 21_000L)
+            )
+        )
+        val text = String(bytes, Charset.forName("US-ASCII"))
+
+        assertTrue(text.contains("PESANAN MEJA (DIBAGI RATA)"))
+        assertTrue(text.contains("Kopi Susu") && text.contains("Roti Bakar"))
+        assertTrue(text.contains("BAGIAN 1 DARI 2"))
+        assertTrue(!text.contains("struk akhir"))
+    }
 }

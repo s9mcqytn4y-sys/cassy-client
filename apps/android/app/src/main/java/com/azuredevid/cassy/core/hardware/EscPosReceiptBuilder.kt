@@ -269,8 +269,9 @@ class EscPosReceiptBuilder(
     }
 
     /**
-     * Receipt for one share of a split bill: the share amount and how it was paid. Line items stay on
-     * the full receipt that prints when the last share is paid.
+     * Receipt for one share of a split bill: the share amount and how it was paid. A by_item share lists
+     * its own [lines] (server allocations); an equal share lists the whole table bill as [billLines] under
+     * its own heading, then the share it paid (S5-Q1, OPS-04).
      */
     fun buildShareReceipt(
         storeName: String,
@@ -282,6 +283,7 @@ class EscPosReceiptBuilder(
         shareTotalIdr: Long,
         paymentMethod: String,
         lines: List<ShareReceiptLine> = emptyList(),
+        billLines: List<ShareReceiptLine> = emptyList(),
         cashTenderedIdr: Long? = null,
         changeIdr: Long? = null
     ): ByteArray {
@@ -293,11 +295,13 @@ class EscPosReceiptBuilder(
         row("Kasir:", cashierName)
         row("Waktu:", dateFormat.format(Date()))
         doubleSeparator()
-        lines.forEach { line ->
+        val shown = lines.ifEmpty { billLines }
+        if (lines.isEmpty() && billLines.isNotEmpty()) writeLine("PESANAN MEJA (DIBAGI RATA)")
+        shown.forEach { line ->
             writeLine(line.name)
             row("  ${line.qty}x", "Rp " + rupiahFormat.format(line.amountIdr))
         }
-        if (lines.isNotEmpty()) separator()
+        if (shown.isNotEmpty()) separator()
         bold(true)
         row("BAGIAN $shareNumber DARI $shareCount:", "Rp " + rupiahFormat.format(shareTotalIdr))
         bold(false)
@@ -309,7 +313,7 @@ class EscPosReceiptBuilder(
         }
         separator()
         alignCenter()
-        if (lines.isEmpty()) text("Rincian pesanan ada di struk akhir.")
+        if (shown.isEmpty()) text("Rincian pesanan ada di struk akhir.")
         emptyLine(1)
         feedAndCut()
         return build()

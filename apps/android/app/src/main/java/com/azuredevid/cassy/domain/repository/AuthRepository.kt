@@ -12,8 +12,7 @@ data class MobileBootstrapData(
     @SerialName("store_name") val storeName: String = "",
     @SerialName("staff_session") val staffSession: MobileStaffSessionDto? = null,
     @SerialName("app_brand") val appBrand: MobileAppBrandDto? = null,
-    @SerialName("pos_layout") val posLayout: MobilePosLayoutDto? = null,
-    @SerialName("hardware_config") val hardwareConfig: MobileHardwareConfigDto? = null
+    @SerialName("pos_layout") val posLayout: MobilePosLayoutDto? = null
 ) {
     /** Effective permissions of the signed-in staff; the login response carries none (OpenAPI MobileBootstrap). */
     val permissions: List<String> get() = staffSession?.permissions.orEmpty()
@@ -36,13 +35,6 @@ data class MobilePosLayoutDto(
     @SerialName("auto_lock_seconds") val autoLockSeconds: Int = 300,
     @SerialName("kds_auto_refresh_seconds") val kdsAutoRefreshSeconds: Int = 5,
     @SerialName("kds_sound_alert_enabled") val kdsSoundAlertEnabled: Boolean = true
-)
-
-@Serializable
-data class MobileHardwareConfigDto(
-    @SerialName("cash_drawer_kick_on_cash") val cashDrawerKickOnCash: Boolean = true,
-    @SerialName("default_printer_interface") val defaultPrinterInterface: String = "lan_tcp",
-    @SerialName("default_printer_port") val defaultPrinterPort: Int = 9100
 )
 
 data class AuthLoginResult(

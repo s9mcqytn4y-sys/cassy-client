@@ -24,7 +24,9 @@ data class TabSplit(
     val paidAmount: Long = 0L,
     val status: String = "unpaid",
     /** Units this share pays for; only a `by_item` split has them. [ShareLine.name] is filled by the POS. */
-    val items: List<ShareLine> = emptyList()
+    val items: List<ShareLine> = emptyList(),
+    /** The whole table bill, for an equal share that has no [items] of its own (S5-Q1). Filled by the POS. */
+    val billLines: List<ShareLine> = emptyList()
 ) {
     val isPaid: Boolean get() = status == "paid"
     val remainingAmount: Long get() = totalAmount - paidAmount

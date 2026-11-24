@@ -12,6 +12,7 @@ import com.azuredevid.cassy.domain.model.CreatePosOrderItemInput
 import com.azuredevid.cassy.domain.model.InitiatePosPaymentInput
 import com.azuredevid.cassy.domain.model.PosOrder
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
+import com.azuredevid.cassy.domain.repository.PrinterConfig
 import com.azuredevid.cassy.domain.repository.PrinterSettingsRepository
 import com.azuredevid.cassy.ui.designsystem.UiText
 import com.azuredevid.cassy.ui.designsystem.toUiText
@@ -131,6 +132,13 @@ internal class PosPaymentCoordinator(
                 )
                 return@onSuccess
             }
+            printLastShareReceipt(
+                snapshot = stateFlow.value,
+                paymentLabel = paymentLabel,
+                cashTenderedIdr = if (isEdc) null else res.payment.cashTenderedAmount ?: tenderedAmount,
+                changeIdr = res.payment.changeGivenAmount,
+                config = config
+            )
             val hasFailover = printDispatcher.dispatchReceiptsAndKitchenTickets(
                 state = snapshot,
                 order = settledOrder,
@@ -277,6 +285,7 @@ internal class PosPaymentCoordinator(
         }
         val snapshot = stateFlow.value
         val config = printerSettings.getConfig()
+        printLastShareReceipt(snapshot, paymentLabel = "QRIS", cashTenderedIdr = null, changeIdr = null, config = config)
         val hasFailover = printDispatcher.dispatchReceiptsAndKitchenTickets(
             state = snapshot,
             order = order,
@@ -297,6 +306,21 @@ internal class PosPaymentCoordinator(
         soundPlayer?.play(CassyAudioCue.ORDER_PAID)
         onEffect(PosUiEffect.QrisPaymentCompleted(orderNo))
         onEffect(PosUiEffect.ShowToast(UiText.res(R.string.pos_msg_qris_paid, orderNo)))
+    }
+
+    /**
+     * The share that settles a split bill gets its own receipt too (OPS-04, S5-Q1), then the full receipt.
+     * No-op when the bill was not split.
+     */
+    private suspend fun printLastShareReceipt(
+        snapshot: PosUiState,
+        paymentLabel: String,
+        cashTenderedIdr: Long?,
+        changeIdr: Long?,
+        config: PrinterConfig
+    ) {
+        val share = snapshot.selectedSplit ?: return
+        printDispatcher.printShareReceipt(snapshot, share, paymentLabel, cashTenderedIdr, changeIdr, config)
     }
 
     private fun settlesWholeBill(state: PosUiState, order: PosOrder): Boolean {

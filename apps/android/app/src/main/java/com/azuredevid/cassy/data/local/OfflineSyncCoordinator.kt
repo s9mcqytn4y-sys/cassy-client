@@ -143,14 +143,15 @@ class OfflineSyncCoordinator(
 
         // First attempt batch sync against POST /api/v1/device/offline-orders/sync for entries with full shift metadata.
         val batchCandidates = decodedEntries.filter { (_, p) ->
-            !p.cashierId.isNullOrBlank() && !p.shiftId.isNullOrBlank() && !p.catalogVersion.isNullOrBlank()
+            !p.cashierId.isNullOrBlank() && !p.shiftId.isNullOrBlank() && !p.catalogVersion.isNullOrBlank() &&
+                !p.offlineQueueNumber.isNullOrBlank()
         }
 
         if (batchCandidates.isNotEmpty()) {
-            val batchItems = batchCandidates.mapIndexed { idx, (entry, p) ->
+            val batchItems = batchCandidates.map { (entry, p) ->
                 DeviceOfflineOrderSyncItem(
                     clientOrderId = entry.clientOrderId,
-                    offlineQueueNumber = p.offlineQueueNumber?.takeIf { it.isNotBlank() } ?: "OFF-${idx + 1}",
+                    offlineQueueNumber = p.offlineQueueNumber.orEmpty(),
                     offlineCreatedAtIso = p.offlineCreatedAtIso
                         ?: Instant.ofEpochMilli(entry.createdAtMs).toString(),
                     cashierId = p.cashierId.orEmpty(),
@@ -200,7 +201,7 @@ class OfflineSyncCoordinator(
                 offlineOrderDao.updateStatus(
                     entry.clientOrderId,
                     OfflinePendingOrderEntity.STATUS_FAILED,
-                    "Missing cashier, shift or catalog version"
+                    "Missing cashier, shift, catalog version or offline number"
                 )
             }
         syncedCount

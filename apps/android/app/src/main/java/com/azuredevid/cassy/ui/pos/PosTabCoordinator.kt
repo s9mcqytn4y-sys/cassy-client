@@ -2,7 +2,9 @@ package com.azuredevid.cassy.ui.pos
 
 import com.azuredevid.cassy.domain.model.CreatePosOrderItemInput
 import com.azuredevid.cassy.domain.model.PosOrder
+import com.azuredevid.cassy.domain.model.PosOrderItem
 import com.azuredevid.cassy.domain.repository.ClosedTab
+import com.azuredevid.cassy.domain.repository.ShareLine
 import com.azuredevid.cassy.domain.repository.TabSplit
 import com.azuredevid.cassy.domain.repository.TableTabRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,16 +80,25 @@ internal class PosTabCoordinator(
             state.copy(
                 pendingOrder = closed.order,
                 pendingSplitId = closed.splits.firstOrNull { !it.isPaid }?.id,
-                tabSplits = closed.splits.withLineNames(state.cart.flatMap { it.sentLines }.associate { it.id to it.snapshotName }),
+                tabSplits = closed.splits.withLineNames(state.cart.flatMap { it.sentLines }),
                 cart = state.cart.map { it.copy(sentLines = emptyList()) }
             )
         }
         return Result.success(closed.order)
     }
 
-    /** The cart still holds the sent lines' names here; the closed order may come back without items. */
-    private fun List<TabSplit>.withLineNames(names: Map<String, String>) =
-        map { s -> s.copy(items = s.items.map { it.copy(name = names[it.orderItemId].orEmpty()) }) }
+    /**
+     * The cart still holds the sent lines here; the closed order may come back without items. A by_item
+     * share gets its lines named; an equal share gets the whole bill so its receipt lists what was eaten.
+     */
+    private fun List<TabSplit>.withLineNames(sent: List<PosOrderItem>): List<TabSplit> {
+        val names = sent.associate { it.id to it.snapshotName }
+        val bill = sent.map { ShareLine(it.id, it.quantity, it.subtotalAmount, it.snapshotName) }
+        return map { s ->
+            if (s.items.isEmpty()) s.copy(billLines = bill)
+            else s.copy(items = s.items.map { it.copy(name = names[it.orderItemId].orEmpty()) })
+        }
+    }
 
     suspend fun reopenTab(stateFlow: MutableStateFlow<PosUiState>, tabId: String): Result<PosOrder> {
         val repo = tableTabRepository ?: return Result.failure(IllegalStateException("table tabs unavailable"))
