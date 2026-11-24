@@ -612,11 +612,12 @@ class PosViewModelTest {
 
     @Test
     fun realtimeSplitCashierRequested_emitsToastAndRespectsAudioMute() = runTest {
+        var started = 0
         val eventsFlow = MutableSharedFlow<RealtimeEventEnvelope>()
         val fakeRealtime = object : RealtimeEventSource {
             override val connectionState: StateFlow<RealtimeConnectionState> = MutableStateFlow(RealtimeConnectionState.CONNECTED)
             override val events: SharedFlow<RealtimeEventEnvelope> = eventsFlow
-            override fun start(scope: CoroutineScope) {}
+            override fun start(scope: CoroutineScope) { started++ }
         }
         val tabs = FakeTableTabRepository()
         val vm = PosViewModel(
@@ -631,6 +632,8 @@ class PosViewModelTest {
         val emitted = mutableListOf<PosUiEffect>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.effects.collect { emitted += it } }
         testDispatcher.scheduler.advanceUntilIdle()
+        // A POS-only tablet must open /ws itself; it used to wait for the KDS screen to do it.
+        assertEquals(1, started)
 
         vm.setAudioCueMuted(true)
         assertTrue(vm.uiState.value.audioCueMuted)
