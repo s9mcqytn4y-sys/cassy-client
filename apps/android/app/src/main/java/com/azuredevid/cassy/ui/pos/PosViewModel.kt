@@ -187,6 +187,9 @@ class PosViewModel(
 
     private fun observeRealtimeEvents() {
         val client = realtimeClient ?: return
+        // Without this a POS-only tablet never opened /ws: guest pay-at-cashier requests, catalog changes and
+        // approval decisions only arrived when the KDS screen happened to start the socket.
+        client.start(viewModelScope)
         viewModelScope.launch {
             client.events.collect { event ->
                 if (event.type.equals(RealtimeEventEnvelope.TYPE_RESYNC_REQUIRED, ignoreCase = true) ||
