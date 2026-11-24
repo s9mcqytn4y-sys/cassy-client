@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "@/components/Providers";
 import React, { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 import QRCode from "qrcode";
@@ -32,7 +33,8 @@ function triggerDownload(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function QrCodeSvg({ value, size = 180, label = "Kode QR dapat dipindai", downloadMeta }: QrCodeSvgProps) {
+export function QrCodeSvg({ value, size = 180, label, downloadMeta }: QrCodeSvgProps) {
+  const { t } = useLocale();
   const [svgMarkup, setSvgMarkup] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
@@ -159,7 +161,7 @@ export function QrCodeSvg({ value, size = 180, label = "Kode QR dapat dipindai",
         style={{ width: size, height: size }}
         className="grid place-items-center rounded-xl border border-subtle bg-white p-2 text-xs text-neutral-700"
       >
-        Menyiapkan QR...
+        {t.qrPreparing}
       </div>
     );
   }
@@ -168,7 +170,7 @@ export function QrCodeSvg({ value, size = 180, label = "Kode QR dapat dipindai",
     <div className="flex flex-col items-center gap-3">
       <div
         role="img"
-        aria-label={label}
+        aria-label={label ?? t.qrDefaultLabel}
         style={{ width: size, height: size }}
         className="relative inline-block overflow-hidden rounded-xl border border-neutral-300 bg-white p-1.5 shadow-sm"
       >

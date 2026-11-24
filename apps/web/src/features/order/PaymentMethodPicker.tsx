@@ -195,9 +195,10 @@ export function BankPicker({
 }
 
 export function MidtransTrustFooter() {
+  const { t } = useLocale();
   return (
     <div className="mt-6 flex items-center justify-center gap-2 text-xs text-subink">
-      <span>Powered by</span>
+      <span>{t.poweredBy}</span>
       <img src="/brand/midtrans/midtrans_logo.svg" alt="Midtrans" className="h-4 w-auto object-contain" />
     </div>
   );

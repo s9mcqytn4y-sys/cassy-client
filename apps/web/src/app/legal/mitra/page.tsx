@@ -1,4 +1,5 @@
 import { siteUrl } from "@/lib/site";
+import { MESSAGES } from "@/lib/messages";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LegalView } from "../LegalView";
@@ -50,7 +51,7 @@ export default function LegalPartnerPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(legalPartnerJsonLd) }}
       />
-      <Suspense fallback={<div className="mx-auto max-w-2xl p-6 text-sm text-subink">Memuat dokumen...</div>}>
+      <Suspense fallback={<div className="mx-auto max-w-2xl p-6 text-sm text-subink">{MESSAGES["id-ID"].docLoading}</div>}>
         <LegalView audience="tenant" />
       </Suspense>
     </>
