@@ -8,7 +8,7 @@ Layar kasir tablet saat ini membagi lebar dalam persentase (`PosLandscapeScreen`
 
 ## 2. Sumber Stitch (v2 - Material 3 Adaptive Mobile + Tablet + TV)
 
-Project **`Cassy Android POS - Material 3 End-to-End`** (`13037968050970200135`, Public URL: https://stitch.withgoogle.com/projects/13037968050970200135), design system `assets/444b1d1db6644b67b4fea8e973a26c6e` (menggantikan project lama `3218044368979484496`). Daftar lengkap tersimpan di `apps/android/.stitch/SITE.md` dan `apps/android/.stitch/designs/`:
+Project **`Cassy Android POS - Material 3 End-to-End`** (`12425184884442557609`, Public URL: https://stitch.withgoogle.com/projects/12425184884442557609), design system `assets/444b1d1db6644b67b4fea8e973a26c6e` (menggantikan project lama `3218044368979484496`). Daftar lengkap tersimpan di `apps/android/.stitch/SITE.md` dan `apps/android/.stitch/designs/`:
 
 | Fase / Layar | Screen ID | File Lokal (`apps/android/.stitch/designs/`) |
 |---|---|---|

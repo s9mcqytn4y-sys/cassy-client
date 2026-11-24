@@ -1,34 +1,34 @@
-# Cassy Android POS (Material 3 Adaptive) - Stitch 1:1 Device-Ratio Flow Registry (v5 Polished)
+# Cassy Android POS (Material 3 Adaptive) - Stitch Clean 1:1 Registry (v5)
 
-- **Stitch Project URL (PUBLIC):** https://stitch.withgoogle.com/projects/13037968050970200135 (`projects/13037968050970200135`)
-- **Design System Asset:** `assets/444b1d1db6644b67b4fea8e973a26c6e` (`Cassy Android POS Material 3 Adaptive`)
-- **Polishment Verified:** 17/17 file HTML nyata terunduh via `download_file`, seluruh 8 layar Handphone true single-column portrait (`780px`/`824px` 2x -> `412x915`), 0 duplikat, `emDash=0`, `IDR=0`, `badBadge=0`.
+- **Stitch Project URL (PUBLIC):** https://stitch.withgoogle.com/projects/12425184884442557609 (`projects/12425184884442557609`)
+- **Design System Asset:** `assets/c0e050fde40940e0a411ecb140b08bd8` (`Cassy Android POS Material 3 Adaptive`)
+- **Zero Redundant Screens:** Built clean from scratch with exact **17 screens + 1 DESIGN.md** (`8 Handphone 412x915` + `8 Tablet 1280x800` + `1 Android TV 1920x1080`).
 
 ## Row 1: Handphone Flow (`412x915`)
-| Flow | Screen ID | Internal / Canvas | Local HTML |
-|---|---|---|---|
-| **M1 - StartupSplash** | `7d442512756741a1b94650d1475a8ea9` | `780x1768` / `412x915` | `.stitch/designs/M1-StartupSplash.html` |
-| **M2 - ServerConfig & mDNS** | `8e6af45e3bbd4ce697ea6ea43e110189` | `780x1768` / `412x915` | `.stitch/designs/M2-ServerConfig.html` |
-| **M3 - StorePairing & Staff PIN** | `83e992a044f94612833f997c49ca8fe1` | `780x1768` / `412x915` | `.stitch/designs/M3-StorePairing.html` |
-| **M4 - PosCashier Mobile (BottomNav + Sheet)** | `e0f06a5ff61549dcafd952ac9ab386ca` | `780x2176` / `412x915` | `.stitch/designs/M4-PosCashier-Mobile.html` |
-| **M5 - Bayar Tunai & QRIS Mobile** | `9d67e16d28ee4524aa390ac345d3b091` | `780x1812` / `412x915` | `.stitch/designs/M5-Cash-Qris-Mobile.html` |
-| **M6 - Meja & Split Bill Mobile** | `a059ec1cc59a427a99ab7a3e7eb09f2e` | `780x1768` / `412x915` | `.stitch/designs/M6-Tables-Split-Mobile.html` |
-| **M7 - Dapur KDS Tabbed Mobile** | `55edc64e21264bcab085ec96981ac26e` | `780x1830` / `412x915` | `.stitch/designs/M7-Kds-Tabbed-Mobile.html` |
-| **M8 - Pengaturan & Fitur Tamu Mobile** | `ab799e4331e640b08b2268b281c7802d` | `824x1830` / `412x915` | `.stitch/designs/M8-Settings-Flags-Mobile.html` |
+| Flow | Screen ID |
+|---|---|
+| **M1 - StartupSplash** | `a5b336fcb406465591eb3be387c3097a` |
+| **M2 - ServerConfig & mDNS** | `f77238340ade49d49c352e65bac0d454` |
+| **M3 - StorePairing & Staff PIN** | `3e0fe19eea3b4a388492ebbcf353c506` |
+| **M4 - PosCashier Mobile (BottomNav + Sheet)** | `b65280f807c74f48b79b9fc5e6ba30e8` |
+| **M5 - Bayar Tunai & QRIS Mobile** | `2534aaa3b40e4255a5c089dc4a9c3b08` |
+| **M6 - Meja & Split Bill Mobile** | `d91412afc3f14fdf90c4f1bb880db457` |
+| **M7 - Dapur KDS Tabbed Mobile** | `5ae16321f43d4fb7b468723933a6eed5` |
+| **M8 - Pengaturan & Fitur Tamu Mobile** | `b49f1be1d67e4bfbadfb5635815929cc` |
 
 ## Row 2: Tablet Flow (`1280x800`)
-| Flow | Screen ID | Canvas | Local HTML |
-|---|---|---|---|
-| **T1 - StorePairing & Server Split** | `84d2a7ec7be546fbb493bc4b58b3662a` | `1280x800` | `.stitch/designs/T1-Pairing-Tablet.html` |
-| **T2 - PosCashier Tablet (`88dp Rail + 420dp Panel`)** | `e90563614b9d43f7b6dcd4fa5c627d31` | `1280x800` | `.stitch/designs/T2-PosCashier-Tablet.html` |
-| **T3 - Payment Cash/QRIS & Shift Modals** | `cffa68e5d1784d6caccef550fc27ed0c` | `1280x800` | `.stitch/designs/T3-Payment-Shift-Tablet.html` |
-| **T4 - Table Management 68:32 & Void PIN** | `221aa73e95934ecc9a34ea8c41fc3095` | `1280x800` | `.stitch/designs/T4-Tables-Void-Tablet.html` |
-| **T5 - Split Bill Per-Item & Bagi Rata** | `e182747c2df043e0b228dd53ff58abd6` | `1280x800` | `.stitch/designs/T5-Split-PerItem-Tablet.html` |
-| **T6 - Kitchen Display KDS 3-Kolom** | `e3ba735dbe094d9684ae230c146a533e` | `1280x800` | `.stitch/designs/T6-Kds-3Col-Tablet.html` |
-| **T7 - Catalog Management & Product Form** | `3dbac57bf96d473ab44c006196c15267` | `1280x800` | `.stitch/designs/T7-Catalog-Tablet.html` |
-| **T8 - Store & Hardware Settings (6 Tabs + Fitur Tamu)** | `0b6e3374c8d04a50817630e6407b47f5` | `1280x800` | `.stitch/designs/T8-StoreSettings-Tablet.html` |
+| Flow | Screen ID |
+|---|---|
+| **T1 - StorePairing & Server Split** | `866919ddb8e34858a6ada4cff9baeabf` |
+| **T2 - PosCashier Tablet (`88dp Rail + 420dp Panel`)** | `404e8bae719d490a8318c51c1022fdb0` |
+| **T3 - PosCashModal & Shift** | `ac6ac2540dae4860b3cae7a655468b82` |
+| **T4 - Table Management 68:32 & Void PIN** | `aa4c1490e9f14edc9d45dfe6df8c72a0` |
+| **T5 - Split Bill Per-Item & Bagi Rata** | `4a4eb73fa2db45098457233c5bf0eb3a` |
+| **T6 - Kitchen Display KDS 3-Kolom** | `da7a42862cf64255aa146aa17084151c` |
+| **T7 - Catalog Management & Product Form** | `4b52a71c70a74d049592515791efe34e` |
+| **T8 - Store & Hardware Settings (6 Tabs + Fitur Tamu)** | `6d4a4f1396c04eb090e5520762c4a994` |
 
 ## Row 3: Android TV Companion (`1920x1080`)
-| Flow | Screen ID | Canvas | Local HTML |
-|---|---|---|---|
-| **TV1 - TvQueueDisplay Companion** | `a61e615d1aae44cc931313079bf11047` | `1920x1080` | `.stitch/designs/TV1-QueueDisplay-1920x1080.html` |
+| Flow | Screen ID |
+|---|---|
+| **TV1 - TvQueueDisplay Companion** | `5d262094f0dc4f20aa0bbe03d5434c15` |
