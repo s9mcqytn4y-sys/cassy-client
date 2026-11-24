@@ -3,6 +3,7 @@ package com.azuredevid.cassy.live
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.azuredevid.cassy.core.security.SessionManager
 import com.azuredevid.cassy.data.local.OfflineOrderDao
 import com.azuredevid.cassy.data.local.OfflinePricing
 import com.azuredevid.cassy.data.local.OfflineSyncCoordinator
@@ -76,6 +77,8 @@ class LiveOfflineSaleTest {
             }
         }
         runCatching { LiveStack.api("POST", "/store/devices/$deviceId/revoke", managerToken, JSONObject()) }
+        // The revoked credential must not follow the next test's login (it would be refused).
+        runBlocking { koin.get<SessionManager>().clearSession(preserveDeviceBinding = false) }
     }
 
     @Test
