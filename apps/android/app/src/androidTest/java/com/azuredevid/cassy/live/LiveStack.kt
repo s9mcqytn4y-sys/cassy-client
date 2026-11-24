@@ -35,6 +35,8 @@ internal object LiveStack {
         koin.get<ServerSettingsRepository>().setBaseUrl("$HOST_URL:18080")
         setApiReachable(true)
         login("kitchen.e2e@cassy.local", KITCHEN_PIN)
+        // Login carries no permissions; the app loads them from the bootstrap, and the KDS board reads them.
+        koin.get<AuthRepository>().fetchMobileBootstrap().getOrThrow()
     }
 
     /** Access token for a second staff member acting outside the app's own session (the cashier sending orders). */

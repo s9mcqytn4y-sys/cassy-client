@@ -56,7 +56,9 @@ class LiveShiftReportTest {
 
         // Blind count: the cashier's X-report hides the expected cash, the manager's shows it.
         assertNull("cashier X-report hides expected cash", shifts.getXReport(shift.id).getOrThrow().expectedCash)
-        val expected = LiveStack.api("GET", "/pos/shifts/${shift.id}/x-report", managerToken).getLong("expected_cash")
+        val managerX = LiveStack.api("GET", "/pos/shifts/${shift.id}/x-report", managerToken)
+        assertTrue("manager X-report shows expected cash: $managerX", managerX.has("expected_cash"))
+        val expected = managerX.getLong("expected_cash")
 
         val vm = onMain { koin.get<ShiftViewModel> { parametersOf(SavedStateHandle()) } }
         onMain { vm.onDrawerSelected(drawer.id) }
