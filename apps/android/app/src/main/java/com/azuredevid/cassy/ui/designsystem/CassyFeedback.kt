@@ -75,7 +75,7 @@ suspend fun SnackbarHostState.showCassySnackbar(
     message: String,
     tone: CassyToastTone = CassyToastTone.INFO,
     actionLabel: String? = null,
-    duration: SnackbarDuration = SnackbarDuration.Short
+    duration: SnackbarDuration = if (tone == CassyToastTone.ERROR) SnackbarDuration.Long else SnackbarDuration.Short
 ): SnackbarResult {
     currentSnackbarData?.dismiss()
     return showSnackbar(
