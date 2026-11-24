@@ -1,5 +1,8 @@
 package com.azuredevid.cassy.data.repository
 
+import java.io.IOException
+import kotlinx.coroutines.flow.catch
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import android.content.Context
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.DataStore
@@ -55,6 +58,7 @@ class DataStorePrinterSettingsRepository(
     ) : this(
         dataStore = DataStoreFactory.create(
             serializer = PrinterConfigSerializer,
+            corruptionHandler = ReplaceFileCorruptionHandler { PrinterConfig() },
             scope = CoroutineScope(ioDispatcher + SupervisorJob())
         ) {
             context.applicationContext.dataStoreFile("cassy_printer_config.json")
@@ -62,7 +66,9 @@ class DataStorePrinterSettingsRepository(
         ioDispatcher = ioDispatcher
     )
 
-    override val configFlow: Flow<PrinterConfig> = dataStore.data.map { raw ->
+    override val configFlow: Flow<PrinterConfig> = dataStore.data.catch { e ->
+        if (e is IOException) emit(PrinterConfig()) else throw e
+    }.map { raw ->
         raw.copy(
             cashierPrinterPort = raw.cashierPrinterPort.takeIf { it in 1..65535 } ?: 9100,
             paperWidthMm = if (raw.paperWidthMm == 58) 58 else 80

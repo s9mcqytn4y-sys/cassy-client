@@ -251,7 +251,30 @@ export const id = {
   sharePayVa: "Transfer Bank (VA)",
   sharePayCashier: "Bayar di kasir",
   shareCashierRequested: "Menunggu konfirmasi kasir",
-  shareCashierRequestedBody: "Tunjukkan layar ini ke kasir untuk membayar bagian Anda secara tunai atau EDC."
+  shareCashierRequestedBody: "Tunjukkan layar ini ke kasir untuk membayar bagian Anda secara tunai atau EDC.",
+  docLoading: "Memuat dokumen...",
+  homeNavLabel: "Tautan informasi",
+  homeGuestPrivacy: "Untuk Tamu: Privasi",
+  homePartners: "Untuk Mitra Gerai",
+  homeBadgeServerPrice: "Harga Dihitung Server",
+  homeBadgePdp: "Patuh UU PDP No. 27/2022",
+  homeHeadline: "Pesan dan bayar dari meja, terhubung ke kasir gerai.",
+  homeIntro: "oleh AzureDevID adalah platform kasir POS tablet Android dan pemesanan QR meja untuk kafe, restoran, dan bakery di Indonesia. Semua total dihitung server dan struk digital dikirim aman.",
+  homeHowLabel: "Cara kerja Cassy",
+  homeStep1Title: "1. Pindai QR Meja",
+  homeStep1Body: "Buka menu langsung di peramban tanpa instal aplikasi.",
+  homeStep2Title: "2. Harga Resmi Server",
+  homeStep2Body: "Pajak, layanan, dan status bayar divalidasi penuh oleh server gerai.",
+  homeStep3Title: "3. Struk Digital & PDF",
+  homeStep3Body: "Tersedia sebagai halaman ringkas dan berkas PDF lewat tautan aman.",
+  pwaUpdateAvailable: "Pembaruan aplikasi tersedia. Keranjang Anda tetap aman.",
+  pwaUpdateAction: "Perbarui",
+  qrPreparing: "Menyiapkan QR...",
+  qrDefaultLabel: "Kode QR dapat dipindai",
+  poweredBy: "Powered by",
+  queueSpotlightLabel: "Baru dipanggil",
+  queueReadyNow: "Siap Diambil Sekarang",
+  queuePickupHint: "Silakan ambil pesanan Anda di meja pengambilan"
 };
 
 export type Messages = typeof id;

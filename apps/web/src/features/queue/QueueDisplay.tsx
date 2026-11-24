@@ -302,18 +302,18 @@ export function QueueDisplay() {
         <div className="order-first flex flex-col gap-4 md:order-last md:col-span-7">
           {spotlight ? (
             <section
-              aria-label="Baru dipanggil"
+              aria-label={t.queueSpotlightLabel}
               aria-live="assertive"
               className="flex flex-col items-center justify-center gap-2 rounded-3xl border-2 border-[var(--brand-accent)] bg-[var(--brand-primary)] px-6 py-8 text-center text-[var(--brand-on-primary)]"
             >
               <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1 text-xs font-bold uppercase tracking-wider">
                 <Bell className="h-4 w-4 text-[var(--brand-accent)]" aria-hidden="true" />
-                Siap Diambil Sekarang
+                {t.queueReadyNow}
               </span>
               <p className="font-display text-6xl font-extrabold tracking-tight tabular-nums ipad:text-8xl">
                 {spotlight.queue_number}
               </p>
-              <p className="text-sm opacity-90 ipad:text-base">Silakan ambil pesanan Anda di meja pengambilan</p>
+              <p className="text-sm opacity-90 ipad:text-base">{t.queuePickupHint}</p>
             </section>
           ) : null}
           <QueueColumn

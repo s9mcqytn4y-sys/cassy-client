@@ -1,5 +1,8 @@
 package com.azuredevid.cassy.data.repository
 
+import java.io.IOException
+import kotlinx.coroutines.flow.catch
+import androidx.datastore.preferences.core.emptyPreferences
 import com.azuredevid.cassy.core.coroutines.runCatchingCancellable
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -58,7 +61,7 @@ class DataStoreServerSettingsRepository(
 
     init {
         scope.launch {
-            dataStore.data.collect { prefs ->
+            dataStore.data.catch { e -> if (e is IOException) emit(emptyPreferences()) else throw e }.collect { prefs ->
                 val stored = prefs[KEY_BASE_URL_PREF]
                 if (!stored.isNullOrBlank()) {
                     _baseUrlFlow.value = normalizeBaseUrl(stored)

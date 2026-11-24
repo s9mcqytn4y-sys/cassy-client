@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { MESSAGES } from "@/lib/messages";
 import Link from "next/link";
 import { CassyWordmark } from "@/components/CassyLogo";
 import { siteUrl } from "@/lib/site";
@@ -87,6 +88,8 @@ const structuredData = [
 ];
 
 export default function HomePage() {
+  // Server component without the locale provider: the landing page renders in Indonesian.
+  const t = MESSAGES["id-ID"];
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-5 py-5 text-ink">
       <script
@@ -96,18 +99,18 @@ export default function HomePage() {
 
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-subtle pb-4">
         <CassyWordmark height={24} />
-        <nav aria-label="Tautan informasi" className="flex flex-wrap items-center gap-2 text-sm">
+        <nav aria-label={t.homeNavLabel} className="flex flex-wrap items-center gap-2 text-sm">
           <Link
             href="/legal"
             className="inline-flex min-h-[48px] items-center rounded-xl border border-subtle bg-surface px-3.5 font-semibold text-ink transition hover:border-brand"
           >
-            Untuk Tamu: Privasi
+            {t.homeGuestPrivacy}
           </Link>
           <Link
             href="/legal/mitra"
             className="inline-flex min-h-[48px] items-center rounded-xl bg-brand px-3.5 font-semibold text-brand-fg transition hover:opacity-95"
           >
-            Untuk Mitra Gerai
+            {t.homePartners}
           </Link>
         </nav>
       </header>
@@ -115,38 +118,37 @@ export default function HomePage() {
       <section className="space-y-3">
         <div className="flex flex-wrap gap-2 text-xs font-semibold text-subink">
           <span className="rounded-full border border-subtle bg-surface px-3 py-1 text-ink">
-            Harga Dihitung Server
+            {t.homeBadgeServerPrice}
           </span>
           <span className="rounded-full border border-subtle bg-surface px-3 py-1 text-ink">
-            Patuh UU PDP No. 27/2022
+            {t.homeBadgePdp}
           </span>
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">
-          Pesan dan bayar dari meja, terhubung ke kasir gerai.
+          {t.homeHeadline}
         </h1>
         <p className="text-sm leading-relaxed text-subink sm:text-base">
-          <strong>Cassy</strong> oleh AzureDevID adalah platform kasir POS tablet Android dan pemesanan QR meja untuk
-          kafe, restoran, dan bakery di Indonesia. Semua total dihitung server dan struk digital dikirim aman.
+          <strong>Cassy</strong> {t.homeIntro}
         </p>
       </section>
 
-      <section aria-label="Cara kerja Cassy" className="grid gap-3 sm:grid-cols-3">
+      <section aria-label={t.homeHowLabel} className="grid gap-3 sm:grid-cols-3">
         <article className="rounded-xl border border-subtle bg-surface p-3.5">
-          <h2 className="text-sm font-semibold text-ink">1. Pindai QR Meja</h2>
+          <h2 className="text-sm font-semibold text-ink">{t.homeStep1Title}</h2>
           <p className="mt-1 text-xs leading-relaxed text-subink">
-            Buka menu langsung di peramban tanpa instal aplikasi.
+            {t.homeStep1Body}
           </p>
         </article>
         <article className="rounded-xl border border-subtle bg-surface p-3.5">
-          <h2 className="text-sm font-semibold text-ink">2. Harga Resmi Server</h2>
+          <h2 className="text-sm font-semibold text-ink">{t.homeStep2Title}</h2>
           <p className="mt-1 text-xs leading-relaxed text-subink">
-            Pajak, layanan, dan status bayar divalidasi penuh oleh server gerai.
+            {t.homeStep2Body}
           </p>
         </article>
         <article className="rounded-xl border border-subtle bg-surface p-3.5">
-          <h2 className="text-sm font-semibold text-ink">3. Struk Digital &amp; PDF</h2>
+          <h2 className="text-sm font-semibold text-ink">{t.homeStep3Title}</h2>
           <p className="mt-1 text-xs leading-relaxed text-subink">
-            Tersedia sebagai halaman ringkas dan berkas PDF lewat tautan aman.
+            {t.homeStep3Body}
           </p>
         </article>
       </section>

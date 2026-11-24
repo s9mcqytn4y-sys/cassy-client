@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "@/components/Providers";
 import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 
@@ -8,6 +9,7 @@ import { RefreshCw } from "lucide-react";
  * Service Worker waits to activate. Reloading preserves guest cart state in localStorage.
  */
 export function PwaUpdateBanner() {
+  const { t } = useLocale();
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
 
   useEffect(() => {
@@ -59,14 +61,14 @@ export function PwaUpdateBanner() {
       aria-live="polite"
       className="fixed bottom-4 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-strong bg-[var(--brand-primary)] px-4 py-3 text-sm text-[var(--brand-on-primary)] shadow-lg"
     >
-      <span className="font-medium">Pembaruan aplikasi tersedia. Keranjang Anda tetap aman.</span>
+      <span className="font-medium">{t.pwaUpdateAvailable}</span>
       <button
         type="button"
         onClick={() => waitingWorker.postMessage({ type: "SKIP_WAITING" })}
         className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-xl bg-[var(--brand-accent)] px-3.5 py-2 text-xs font-bold text-[var(--brand-on-accent)]"
       >
         <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
-        Perbarui
+        {t.pwaUpdateAction}
       </button>
     </div>
   );
