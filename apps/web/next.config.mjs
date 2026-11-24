@@ -14,6 +14,12 @@ const nextConfig = {
       {
         source: "/health/:path*",
         destination: `${backendInternalUrl}/health/:path*`
+      },
+      // Behind nginx (/ws is routed to the API before Next.js) this never matches; without nginx
+      // (next start against the Docker test stack, local dev) live status needs it.
+      {
+        source: "/ws",
+        destination: `${backendInternalUrl}/ws`
       }
     ];
   },

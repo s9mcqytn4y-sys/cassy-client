@@ -8,6 +8,10 @@ import com.azuredevid.cassy.domain.model.StoredSession
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.request.get
+import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.providers.BearerTokens
+import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -94,7 +98,11 @@ class AuthRepositoryTest {
                               "store_id": "st-1",
                               "store_slug": "kopi-senja",
                               "store_name": "Kopi Senja",
-                              "permissions": ["store.settings.manage", "order.pos.create"]
+                              "staff_session": {
+                                "user_id": "u-1",
+                                "role": "owner",
+                                "permissions": ["store.settings.manage", "order.pos.create"]
+                              }
                             }
                         """.trimIndent(),
                         status = HttpStatusCode.OK,
@@ -137,5 +145,49 @@ class AuthRepositoryTest {
         val ex = res.exceptionOrNull() as? DomainException
         assertTrue(ex?.error is DomainError.Unauthorized)
         assertNull(sessionManager.getAccessToken())
+    }
+
+    /** S3 finding: logging in as another staff member must not keep sending the previous one's token. */
+    @Test
+    fun secondLogin_sendsTheNewStaffTokenNotTheCachedOne() = runTest(UnconfinedTestDispatcher()) {
+        val sessionManager = DataStoreSessionManager(InMemorySessionDataStore(), backgroundScope)
+        val tokens = ArrayDeque(listOf("jwt-manager", "jwt-cashier"))
+        val seen = mutableListOf<String?>()
+        val engine = MockEngine { request ->
+            when (request.url.encodedPath) {
+                "/api/v1/auth/staff/login" -> respond(
+                    content = """
+                        {"access_token": "${tokens.removeFirst()}", "token_type": "Bearer",
+                         "access_token_expires_at": "2026-11-13T21:00:00Z", "session_expires_at": "2026-11-14T21:00:00Z",
+                         "pin_change_required": false,
+                         "staff": {"user_id": "u-1", "full_name": "Staf", "email": "s@kopi.id", "role": "cashier",
+                                   "store": {"id": "st-1", "slug": "kopi-senja", "name": "Kopi Senja"}}}
+                    """.trimIndent(),
+                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                )
+                else -> {
+                    seen += request.headers[HttpHeaders.Authorization]
+                    respond("{}", headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()))
+                }
+            }
+        }
+        val http = HttpClient(engine) {
+            install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
+            install(Auth) {
+                bearer {
+                    loadTokens { sessionManager.getAccessToken()?.let { BearerTokens(it, "") } }
+                    sendWithoutRequest { true }
+                }
+            }
+        }
+        val repo = KtorAuthRepository(http, settings(), sessionManager, Dispatchers.Unconfined)
+
+        // Other repositories (shifts, orders) rely on the bearer plugin instead of setting the header.
+        repo.login(storeSlug = "kopi-senja", email = "m@kopi.id", pin = "111111").getOrThrow()
+        http.get("https://pos.test/api/v1/pos/shifts/current")
+        repo.login(storeSlug = "kopi-senja", email = "c@kopi.id", pin = "222222").getOrThrow()
+        http.get("https://pos.test/api/v1/pos/shifts/current")
+
+        assertEquals(listOf("Bearer jwt-manager", "Bearer jwt-cashier"), seen)
     }
 }

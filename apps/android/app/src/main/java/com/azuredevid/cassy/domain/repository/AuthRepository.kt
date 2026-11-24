@@ -10,10 +10,18 @@ data class MobileBootstrapData(
     @SerialName("store_id") val storeId: String = "",
     @SerialName("store_slug") val storeSlug: String = "",
     @SerialName("store_name") val storeName: String = "",
-    @SerialName("permissions") val permissions: List<String> = emptyList(),
+    @SerialName("staff_session") val staffSession: MobileStaffSessionDto? = null,
     @SerialName("app_brand") val appBrand: MobileAppBrandDto? = null,
     @SerialName("pos_layout") val posLayout: MobilePosLayoutDto? = null,
     @SerialName("hardware_config") val hardwareConfig: MobileHardwareConfigDto? = null
+) {
+    /** Effective permissions of the signed-in staff; the login response carries none (OpenAPI MobileBootstrap). */
+    val permissions: List<String> get() = staffSession?.permissions.orEmpty()
+}
+
+@Serializable
+data class MobileStaffSessionDto(
+    @SerialName("permissions") val permissions: List<String> = emptyList()
 )
 
 @Serializable
