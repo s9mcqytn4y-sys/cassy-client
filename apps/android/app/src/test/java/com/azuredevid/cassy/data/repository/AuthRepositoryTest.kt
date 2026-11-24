@@ -75,7 +75,7 @@ class AuthRepositoryTest {
                           "session_expires_at": "2026-11-14T21:00:00Z",
                           "pin_change_required": false,
                           "staff": {
-                            "user_id": "u-1",
+                            "id": "u-1",
                             "full_name": "Siti Kasir",
                             "email": "siti@kopi.id",
                             "role": "owner",
@@ -123,6 +123,8 @@ class AuthRepositoryTest {
         val stored = sessionManager.currentSession()
         assertNotNull(stored)
         assertEquals(listOf("store.settings.manage", "order.pos.create"), stored?.permissions)
+        // The server names the staff id "id" (OpenAPI StaffIdentity); offline orders need it as cashier_id.
+        assertEquals("u-1", stored?.staff?.userId)
 
         repo.logout()
         assertNull(sessionManager.getAccessToken())
@@ -160,7 +162,7 @@ class AuthRepositoryTest {
                         {"access_token": "${tokens.removeFirst()}", "token_type": "Bearer",
                          "access_token_expires_at": "2026-11-13T21:00:00Z", "session_expires_at": "2026-11-14T21:00:00Z",
                          "pin_change_required": false,
-                         "staff": {"user_id": "u-1", "full_name": "Staf", "email": "s@kopi.id", "role": "cashier",
+                         "staff": {"id": "u-1", "full_name": "Staf", "email": "s@kopi.id", "role": "cashier",
                                    "store": {"id": "st-1", "slug": "kopi-senja", "name": "Kopi Senja"}}}
                     """.trimIndent(),
                     headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
