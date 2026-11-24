@@ -94,7 +94,11 @@ class AuthRepositoryTest {
                               "store_id": "st-1",
                               "store_slug": "kopi-senja",
                               "store_name": "Kopi Senja",
-                              "permissions": ["store.settings.manage", "order.pos.create"]
+                              "staff_session": {
+                                "user_id": "u-1",
+                                "role": "owner",
+                                "permissions": ["store.settings.manage", "order.pos.create"]
+                              }
                             }
                         """.trimIndent(),
                         status = HttpStatusCode.OK,
