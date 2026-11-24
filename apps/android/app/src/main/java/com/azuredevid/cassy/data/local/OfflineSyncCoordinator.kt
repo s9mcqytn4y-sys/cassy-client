@@ -1,8 +1,6 @@
 package com.azuredevid.cassy.data.local
 
-import com.azuredevid.cassy.domain.model.CreatePosOrderInput
 import com.azuredevid.cassy.domain.model.CreatePosOrderItemInput
-import com.azuredevid.cassy.domain.model.InitiatePosPaymentInput
 import com.azuredevid.cassy.domain.repository.DeviceOfflineOrderSyncItem
 import com.azuredevid.cassy.domain.repository.PosOrderRepository
 import kotlinx.coroutines.CoroutineDispatcher
@@ -56,6 +54,11 @@ class OfflineSyncCoordinator(
     private val nowMs: () -> Long = System::currentTimeMillis
 ) {
     private val json = Json { ignoreUnknownKeys = true }
+
+    private companion object {
+        /** `offlineMaxBatch` on POST /api/v1/device/offline-orders/sync. */
+        const val MAX_SYNC_BATCH = 50
+    }
 
     @Volatile
     private var currentMaxOfflineOrders: Int = maxOfflineOrders
@@ -142,7 +145,6 @@ class OfflineSyncCoordinator(
         val batchCandidates = decodedEntries.filter { (_, p) ->
             !p.cashierId.isNullOrBlank() && !p.shiftId.isNullOrBlank() && !p.catalogVersion.isNullOrBlank()
         }
-        val handledIds = mutableSetOf<String>()
 
         if (batchCandidates.isNotEmpty()) {
             val batchItems = batchCandidates.mapIndexed { idx, (entry, p) ->
@@ -166,9 +168,11 @@ class OfflineSyncCoordinator(
                     cashTenderedAmount = entry.cashReceivedIdr
                 )
             }
-            val batchResult = posOrderRepository.syncDeviceOfflineOrders(batchItems)
-            batchResult.getOrNull()?.forEach { outcome ->
-                handledIds.add(outcome.clientOrderId)
+            val outcomes = batchItems.chunked(MAX_SYNC_BATCH).flatMap { chunk ->
+                // A failed call (network) leaves its orders pending for the next attempt.
+                posOrderRepository.syncDeviceOfflineOrders(chunk).getOrNull().orEmpty()
+            }
+            outcomes.forEach { outcome ->
                 when (outcome.status) {
                     "accepted", "resolved_accepted" -> {
                         offlineOrderDao.updateStatus(
@@ -188,52 +192,17 @@ class OfflineSyncCoordinator(
             }
         }
 
-        for ((entry, payload) in decodedEntries) {
-            if (entry.clientOrderId in handledIds) continue
-
-            val createResult = posOrderRepository.createOrder(
-                CreatePosOrderInput(
-                    idempotencyKey = entry.idempotencyKey,
-                    orderType = payload.orderType,
-                    tableNumber = payload.tableNumber,
-                    customerName = payload.customerName,
-                    items = payload.items.map {
-                        CreatePosOrderItemInput(
-                            productId = it.productId,
-                            quantity = it.quantity,
-                            notes = it.notes
-                        )
-                    }
-                )
-            )
-            val createdOrder = createResult.getOrNull()
-            if (createdOrder == null) {
+        // Only the device endpoint applies ADR-005 (snapshot pricing, original shift, limits). An order
+        // without its metadata cannot go there; it stays on the device as failed, never discarded (OF9).
+        decodedEntries
+            .filter { (entry, _) -> entry !in batchCandidates.map { it.first } }
+            .forEach { (entry, _) ->
                 offlineOrderDao.updateStatus(
                     entry.clientOrderId,
-                    OfflinePendingOrderEntity.STATUS_PENDING,
-                    createResult.exceptionOrNull()?.message.orEmpty()
-                )
-                continue
-            }
-            val tenderResult = posOrderRepository.initiatePayment(
-                InitiatePosPaymentInput(
-                    orderId = createdOrder.id,
-                    idempotencyKey = "${entry.idempotencyKey}_cash",
-                    method = "cash",
-                    cashTenderedAmount = entry.cashReceivedIdr
-                )
-            )
-            if (tenderResult.isSuccess) {
-                offlineOrderDao.updateStatus(entry.clientOrderId, OfflinePendingOrderEntity.STATUS_SYNCED)
-                syncedCount++
-            } else {
-                offlineOrderDao.updateStatus(
-                    entry.clientOrderId,
-                    OfflinePendingOrderEntity.STATUS_PENDING,
-                    tenderResult.exceptionOrNull()?.message.orEmpty()
+                    OfflinePendingOrderEntity.STATUS_FAILED,
+                    "Missing cashier, shift or catalog version"
                 )
             }
-        }
         syncedCount
     } }
 }

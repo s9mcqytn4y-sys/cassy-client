@@ -900,4 +900,12 @@
     <string name="printer_bt_btn_open_settings">Open Bluetooth Settings</string>
     <string name="printer_bt_btn_refresh">Refresh</string>
     <string name="printer_msg_bt_checking">Connecting to Bluetooth printer %1$s...</string>
+    <string name="pos_offline_banner">Offline mode: cash only. Totals are estimates; official figures follow once connected.</string>
+    <string name="pos_offline_no_tabs">Table bills cannot be paid offline. Wait until the connection is back.</string>
+    <string name="pos_offline_no_session">No cashier session found. Sign in again once connected.</string>
+    <string name="pos_offline_no_shift">Open a shift before taking cash offline.</string>
+    <string name="pos_offline_unpriced">Some items have no offline price. Remove them or wait until connected.</string>
+    <string name="pos_offline_short">Not enough cash. At least Rp %1$,d.</string>
+    <string name="pos_offline_limit">Offline order limit reached. Connect the device to sync first.</string>
+    <string name="pos_offline_queued">Order %1$s saved offline and sent once connected.</string>
 </resources>

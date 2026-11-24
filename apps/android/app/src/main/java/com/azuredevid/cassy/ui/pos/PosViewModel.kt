@@ -1,5 +1,10 @@
 package com.azuredevid.cassy.ui.pos
 
+import com.azuredevid.cassy.domain.error.DomainException
+import com.azuredevid.cassy.domain.error.DomainError
+import com.azuredevid.cassy.domain.repository.ServerConnectionStatus
+import com.azuredevid.cassy.domain.repository.ServerHealthMonitor
+import com.azuredevid.cassy.data.local.OfflinePricingStore
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -59,7 +64,9 @@ class PosViewModel(
     private val storePrinters: StorePrinterRepository? = null,
     private val serverSettings: ServerSettingsRepository? = null,
     private val savedStateHandle: SavedStateHandle = SavedStateHandle(),
-    private val bluetoothPrinter: BluetoothPrinterClient? = null
+    private val bluetoothPrinter: BluetoothPrinterClient? = null,
+    private val healthMonitor: ServerHealthMonitor? = null,
+    offlinePricing: OfflinePricingStore? = null
 ) : ViewModel() {
 
     private companion object {
@@ -67,6 +74,7 @@ class PosViewModel(
         const val KEY_SEARCH_QUERY = "pos_search_query"
         const val KEY_ORDER_TYPE = "pos_order_type"
         const val KEY_TABLE_NAME = "pos_table_name"
+        const val OFFLINE_AFTER_FAILED_PROBES = 2
     }
 
     private val printDispatcher = PosPrintDispatcher(printerManager, bluetoothPrinter)
@@ -95,6 +103,11 @@ class PosViewModel(
     val effects: SharedFlow<PosUiEffect> = _effects.asSharedFlow()
 
     private var quoteJob: Job? = null
+    private val offlineSale = if (offlineSyncCoordinator != null && offlinePricing != null) {
+        PosOfflineSale(offlineSyncCoordinator, offlinePricing, sessionManager, printerSettings, printDispatcher)
+    } else {
+        null
+    }
     private var qrisPollJob: Job? = null
 
     init {
@@ -105,6 +118,37 @@ class PosViewModel(
         offlineSyncCoordinator?.let { sync ->
             viewModelScope.launch { runCatchingCancellable { sync.syncPendingOrders() } }
         }
+        observeConnectivity()
+    }
+
+    /** Two failed probes in a row switch to offline mode; the first good one switches back and syncs. */
+    private fun observeConnectivity() {
+        val monitor = healthMonitor ?: return
+        if (offlineSale == null) return
+        viewModelScope.launch {
+            var failures = 0
+            monitor.observeConnectivity().collect { state ->
+                when (state.status) {
+                    ServerConnectionStatus.CHECKING -> Unit
+                    ServerConnectionStatus.ONLINE -> {
+                        failures = 0
+                        if (_uiState.value.isOffline) goOnline()
+                    }
+                    else -> if (++failures >= OFFLINE_AFTER_FAILED_PROBES && !_uiState.value.isOffline) goOffline()
+                }
+            }
+        }
+    }
+
+    private fun goOffline() {
+        _uiState.update { it.copy(isOffline = true) }
+        refreshQuote()
+    }
+
+    private fun goOnline() {
+        _uiState.update { it.copy(isOffline = false) }
+        offlineSyncCoordinator?.let { sync -> viewModelScope.launch { runCatchingCancellable { sync.syncPendingOrders() } } }
+        refreshQuote()
     }
 
     private fun observeAudioPreference() {
@@ -599,10 +643,15 @@ class PosViewModel(
         _uiState.update { it.copy(showCashModal = false, settlementError = null) }
     }
 
-    fun submitCashPayment(tenderedAmount: Long, drawerId: String? = null) {
+    fun submitCashPayment(tenderedAmount: Long, drawerId: String? = null, shiftId: String? = null) {
         val snapshot = _uiState.value
         val quote = snapshot.quote ?: return
         if (snapshot.cart.isEmpty() || snapshot.isSubmittingOrder) return
+        val offline = offlineSale
+        if (snapshot.isOffline && offline != null) {
+            viewModelScope.launch { sellOffline(offline, snapshot, tenderedAmount, shiftId) }
+            return
+        }
         viewModelScope.launch {
             paymentCoordinator.submitCashPayment(
                 stateFlow = _uiState,
@@ -921,11 +970,21 @@ class PosViewModel(
 
         quoteJob = viewModelScope.launch {
             _uiState.update { it.copy(isQuoting = true, quoteError = null) }
+            if (snapshot.isOffline && offlineSale != null) {
+                quoteOffline(snapshot.cart)
+                return@launch
+            }
             orderQuoteRepository.quote(quoteRequestOf(snapshot.cart, snapshot.orderType))
                 .onSuccess { quote ->
                     _uiState.update { it.copy(quote = quote, isQuoting = false, quoteError = null) }
                 }
                 .onFailure { err ->
+                    // The quote is the first call to notice the server is gone; do not wait for the probe.
+                    if (offlineSale != null && (err as? DomainException)?.error is DomainError.NetworkUnavailable) {
+                        _uiState.update { it.copy(isOffline = true) }
+                        quoteOffline(snapshot.cart)
+                        return@onFailure
+                    }
                     _uiState.update {
                         it.copy(
                             quote = null,
@@ -934,6 +993,34 @@ class PosViewModel(
                         )
                     }
                 }
+        }
+    }
+
+    private suspend fun quoteOffline(cart: List<CartItem>) {
+        val estimate = offlineSale?.quote(cart)
+        _uiState.update {
+            it.copy(
+                quote = estimate?.quote,
+                isQuoting = false,
+                quoteError = if (estimate == null) UiText.res(R.string.pos_offline_unpriced) else null
+            )
+        }
+    }
+
+    private suspend fun sellOffline(sale: PosOfflineSale, snapshot: PosUiState, tenderedIdr: Long, shiftId: String?) {
+        _uiState.update { it.copy(isSubmittingOrder = true, settlementError = null) }
+        when (val outcome = sale.sell(snapshot, tenderedIdr, shiftId)) {
+            is PosOfflineSale.Outcome.Queued -> {
+                clearCartAfterPayment(lastOrderId = outcome.number)
+                soundPlayer?.play(CassyAudioCue.ORDER_PAID)
+                _effects.emit(PosUiEffect.CashPaymentCompleted(outcome.number))
+                _effects.emit(PosUiEffect.ShowToast(UiText.res(R.string.pos_offline_queued, outcome.number)))
+            }
+            is PosOfflineSale.Outcome.Refused -> {
+                soundPlayer?.play(CassyAudioCue.SOFT_ERROR)
+                _uiState.update { it.copy(isSubmittingOrder = false, settlementError = outcome.reason) }
+                _effects.emit(PosUiEffect.ShowToast(outcome.reason))
+            }
         }
     }
 

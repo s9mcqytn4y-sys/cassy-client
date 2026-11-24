@@ -894,4 +894,12 @@
     <string name="printer_bt_btn_open_settings">Buka Pengaturan Bluetooth</string>
     <string name="printer_bt_btn_refresh">Segarkan</string>
     <string name="printer_msg_bt_checking">Menghubungi printer Bluetooth %1$s...</string>
+    <string name="pos_offline_banner">Mode offline: hanya tunai. Total adalah perkiraan, angka resmi menyusul saat tersambung.</string>
+    <string name="pos_offline_no_tabs">Tagihan meja tidak bisa dibayar saat offline. Tunggu sampai tersambung.</string>
+    <string name="pos_offline_no_session">Sesi kasir tidak ditemukan. Masuk ulang setelah tersambung.</string>
+    <string name="pos_offline_no_shift">Buka shift dulu sebelum menerima tunai offline.</string>
+    <string name="pos_offline_unpriced">Ada menu tanpa harga offline. Hapus menu itu atau tunggu sampai tersambung.</string>
+    <string name="pos_offline_short">Uang tunai kurang. Minimal Rp %1$,d.</string>
+    <string name="pos_offline_limit">Batas pesanan offline tercapai. Sambungkan perangkat untuk sinkron dulu.</string>
+    <string name="pos_offline_queued">Pesanan %1$s disimpan offline dan dikirim saat tersambung.</string>
 </resources>
