@@ -18,7 +18,6 @@ Prioritas: **T** tinggi (bayar sebelum pilot), **S** sedang (bayar dalam rilis b
 |---|---|---|---|
 | S1 | Token bearer di path (struk, pelacakan, bagi tagihan) tercatat utuh di access log nginx | S | Sebelum log dikirim ke layanan pihak ketiga: samarkan dengan `map` di `log_format` |
 | S2 | Repo client belum punya pemindai rahasia di CI (backend sudah Gitleaks) | R | Saat ada konfigurasi atau kunci baru di repo client |
-| O1 | `/opt/mycaffe` di host demo adalah salinan `deploy/` dan `scripts/`, bukan checkout git; perubahan konfigurasi deploy perlu disalin manual | S | Sebelum pilot VPS Jakarta: checkout git dengan tag rilis |
 | O2 | Port forwarding localhost Windows ke WSL putus; skrip lokal memakai IP WSL | R | Saat mengganti mesin atau setelah `wsl --shutdown` terjadwal |
 | O3 | Override `next>postcss` di `pnpm-workspace.yaml` karena Next memasang postcss 8.4.31 | R | Hapus saat Next memakai postcss yang sudah ditambal |
 | P2 | Ikon Cassy PNG dibuat dari SVG vault di repo web, belum disimpan balik ke vault | R | Saat Director merapikan aset vault |
