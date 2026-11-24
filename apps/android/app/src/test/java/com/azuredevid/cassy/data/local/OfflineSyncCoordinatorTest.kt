@@ -73,7 +73,7 @@ class OfflineSyncCoordinatorTest {
         }
     }
 
-    private suspend fun OfflineSyncCoordinator.enqueueWithMetadata(customer: String = "Budi") = enqueueCashOrder(
+    private suspend fun OfflineSyncCoordinator.enqueueWithMetadata(customer: String = "Budi", number: String? = "T1-101500") = enqueueCashOrder(
         storeSlug = "central-cafe",
         orderType = "takeaway",
         tableNumber = null,
@@ -82,7 +82,8 @@ class OfflineSyncCoordinatorTest {
         cashReceivedIdr = 100_000L,
         cashierId = "00000000-0000-0000-0000-000000000001",
         shiftId = "00000000-0000-0000-0000-000000000002",
-        catalogVersion = "v1"
+        catalogVersion = "v1",
+        offlineQueueNumber = number
     )
 
     @Test
@@ -123,6 +124,19 @@ class OfflineSyncCoordinatorTest {
 
         assertEquals(0, coordinator.syncPendingOrders())
         assertEquals(OfflinePendingOrderEntity.STATUS_FAILED, dao.get(bare.clientOrderId)?.syncStatus)
+        assertTrue(repo.batches.isEmpty())
+    }
+
+    /** The server rejects any offline number without the device prefix (OF6); none is invented on sync. */
+    @Test
+    fun `an order without an offline number is kept as failed and never sent`() = runTest {
+        val dao = InMemoryOfflineOrderDao()
+        val repo = FakePosOrderRepository()
+        val coordinator = OfflineSyncCoordinator(dao, repo, StandardTestDispatcher(testScheduler))
+        val unnumbered = coordinator.enqueueWithMetadata(number = null)
+
+        assertEquals(0, coordinator.syncPendingOrders())
+        assertEquals(OfflinePendingOrderEntity.STATUS_FAILED, dao.get(unnumbered.clientOrderId)?.syncStatus)
         assertTrue(repo.batches.isEmpty())
     }
 
@@ -201,7 +215,8 @@ class OfflineSyncCoordinatorTest {
             cashReceivedIdr = 35_000L,
             cashierId = "00000000-0000-0000-0000-000000000001",
             shiftId = "00000000-0000-0000-0000-000000000002",
-            catalogVersion = "2026-11-18T10:00:00Z"
+            catalogVersion = "2026-11-18T10:00:00Z",
+            offlineQueueNumber = "T1-101501"
         )
         val rejected = coordinator.enqueueCashOrder(
             storeSlug = "central-cafe",
@@ -212,7 +227,8 @@ class OfflineSyncCoordinatorTest {
             cashReceivedIdr = 35_000L,
             cashierId = "00000000-0000-0000-0000-000000000001",
             shiftId = "00000000-0000-0000-0000-000000000002",
-            catalogVersion = "2026-11-18T10:00:00Z"
+            catalogVersion = "2026-11-18T10:00:00Z",
+            offlineQueueNumber = "T1-101502"
         )
 
         val syncedCount = coordinator.syncPendingOrders()

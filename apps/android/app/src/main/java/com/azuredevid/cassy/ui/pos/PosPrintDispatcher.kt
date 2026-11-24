@@ -45,6 +45,7 @@ internal class PosPrintDispatcher(
             shareCount = state.tabSplits.size,
             shareTotalIdr = share.totalAmount,
             lines = share.items.map { EscPosReceiptBuilder.ShareReceiptLine(it.name.ifBlank { "Item" }, it.quantity, it.amount) },
+            billLines = share.billLines.map { EscPosReceiptBuilder.ShareReceiptLine(it.name.ifBlank { "Item" }, it.quantity, it.amount) },
             paymentMethod = paymentLabel,
             cashTenderedIdr = cashTenderedIdr,
             changeIdr = changeIdr ?: cashTenderedIdr?.let { (it - share.totalAmount).coerceAtLeast(0L) }
