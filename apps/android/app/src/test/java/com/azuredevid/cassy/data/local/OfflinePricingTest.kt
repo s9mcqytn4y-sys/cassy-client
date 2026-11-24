@@ -9,6 +9,7 @@ class OfflinePricingTest {
     private val snapshot = OfflinePricingSnapshot(
         storeSlug = "e2e-kasir",
         catalogVersion = "v1",
+        devicePrefix = "T1",
         taxBps = 1000,
         serviceBps = 500,
         cashRoundingStep = 500,
@@ -47,6 +48,7 @@ class OfflinePricingTest {
     fun refusesWhatItCannotPrice() {
         assertNull("unknown product", OfflinePricing.estimate(snapshot, listOf("teh" to 1)))
         assertNull("no snapshot yet", OfflinePricing.estimate(OfflinePricingSnapshot(), listOf("kopi" to 1)))
+        assertNull("no device prefix: sync would reject the sale", OfflinePricing.estimate(snapshot.copy(devicePrefix = ""), listOf("kopi" to 1)))
         assertNull("empty cart", OfflinePricing.estimate(snapshot, emptyList()))
     }
 }

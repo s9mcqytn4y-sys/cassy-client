@@ -44,7 +44,7 @@ internal class PosOfflineSale(
         if (tenderedIdr < estimate.cashDue) return Outcome.Refused(UiText.res(R.string.pos_offline_short, estimate.cashDue))
 
         // A local number for the slip and the kitchen; the server assigns the official one at sync (OF6).
-        val number = "OFF-" + clock().format(LOCAL_NUMBER)
+        val number = catalog.devicePrefix + "-" + clock().format(LOCAL_NUMBER)
         val dineIn = snapshot.orderType == "DINE-IN"
         val entry = try {
             sync.enqueueCashOrder(

@@ -19,6 +19,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 private data class DeviceCatalogDto(
     @SerialName("device_role") val role: String = "pos",
+    @SerialName("device_prefix") val prefix: String = "",
     val features: Map<String, Boolean> = emptyMap(),
     @SerialName("catalog_version") val catalogVersion: String = "",
     @SerialName("cash_rounding_step") val cashRoundingStep: Long = 0,
@@ -62,6 +63,7 @@ private fun DeviceCatalogDto.toOfflinePricing(nowMs: Long): OfflinePricingSnapsh
     return OfflinePricingSnapshot(
         storeSlug = body.store?.slug.orEmpty(),
         catalogVersion = catalogVersion,
+        devicePrefix = prefix,
         taxBps = body.store?.taxBps ?: 0,
         serviceBps = body.store?.serviceBps ?: 0,
         cashRoundingStep = cashRoundingStep,

@@ -27,13 +27,15 @@ import java.io.OutputStream
 data class OfflinePricingSnapshot(
     val storeSlug: String = "",
     val catalogVersion: String = "",
+    /** Starts every offline queue number; the server rejects any other prefix at sync (OF6). */
+    val devicePrefix: String = "",
     val taxBps: Long = 0,
     val serviceBps: Long = 0,
     val cashRoundingStep: Long = 0,
     val prices: Map<String, Long> = emptyMap(),
     val fetchedAtMs: Long = 0
 ) {
-    val isUsable: Boolean get() = catalogVersion.isNotBlank()
+    val isUsable: Boolean get() = catalogVersion.isNotBlank() && devicePrefix.isNotBlank()
 }
 
 /** An offline quote: same shape as the server's, plus the cash the server will ask for at sync. */
