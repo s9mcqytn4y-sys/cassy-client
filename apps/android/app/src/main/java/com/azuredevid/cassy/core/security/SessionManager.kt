@@ -1,5 +1,8 @@
 package com.azuredevid.cassy.core.security
 
+import java.io.IOException
+import kotlinx.coroutines.flow.catch
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import android.content.Context
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.DataStore
@@ -106,6 +109,9 @@ class DataStoreSessionManager(
     ) : this(
         dataStore = DataStoreFactory.create(
             serializer = EncryptedSessionSerializer(cipher),
+            // An unreadable file (keystore reset, restore from backup) signs the device out instead of
+            // failing every read forever; the cashier logs in or re-pairs.
+            corruptionHandler = ReplaceFileCorruptionHandler { StoredSession() },
             scope = scope,
             produceFile = { context.applicationContext.dataStoreFile(SESSION_FILE_NAME) }
         ),
@@ -119,7 +125,7 @@ class DataStoreSessionManager(
 
     init {
         scope.launch {
-            dataStore.data.collect { stored ->
+            dataStore.data.catch { e -> if (e is IOException) emit(StoredSession()) else throw e }.collect { stored ->
                 _sessionFlow.value = stored.takeIf { it.isAuthenticated }
             }
         }

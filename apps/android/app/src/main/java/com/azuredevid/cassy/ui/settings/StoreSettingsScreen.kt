@@ -1,5 +1,6 @@
 package com.azuredevid.cassy.ui.settings
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.Manifest
 import android.content.Intent
 import android.os.Build
@@ -31,7 +32,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -69,10 +69,10 @@ fun StoreSettingsScreen(
     printerViewModel: PrinterSettingsViewModel = koinViewModel(),
     displayViewModel: DisplayScreensViewModel = koinViewModel()
 ) {
-    val state by viewModel.uiState.collectAsState()
-    val printerState by printerViewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val printerState by printerViewModel.uiState.collectAsStateWithLifecycle()
     val printerTabOpen = state.selectedTabIndex == 3
-    val displayState by displayViewModel.uiState.collectAsState()
+    val displayState by displayViewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(state.selectedTabIndex == 4, state.hasManageAccess) {
         if (state.selectedTabIndex == 4 && state.hasManageAccess) displayViewModel.load()
     }

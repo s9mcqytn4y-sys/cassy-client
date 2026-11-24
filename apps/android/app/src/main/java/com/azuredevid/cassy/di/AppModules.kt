@@ -81,7 +81,7 @@ val appModule = module {
             androidContext(),
             CassyDatabase::class.java,
             CassyDatabase.DATABASE_NAME
-        ).fallbackToDestructiveMigration().build()
+        ).build() // No destructive fallback: offline_pending_orders holds cash not yet synced (ADR-005 OF9).
     }
     single { get<CassyDatabase>().catalogCacheDao() }
     single { get<CassyDatabase>().offlineOrderDao() }

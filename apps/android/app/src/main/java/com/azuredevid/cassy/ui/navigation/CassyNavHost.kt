@@ -1,8 +1,8 @@
 package com.azuredevid.cassy.ui.navigation
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -57,10 +57,10 @@ fun CassyNavHost(
     modifier: Modifier = Modifier,
     roleViewModel: DeviceRoleViewModel = koinViewModel()
 ) {
-    val activeSession by sessionManager.sessionFlow.collectAsState()
+    val activeSession by sessionManager.sessionFlow.collectAsStateWithLifecycle()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    val roleState by roleViewModel.uiState.collectAsState()
+    val roleState by roleViewModel.uiState.collectAsStateWithLifecycle()
 
     // The owner can change this tablet's role at any time; check it whenever the app comes back.
     val lifecycleOwner = LocalLifecycleOwner.current

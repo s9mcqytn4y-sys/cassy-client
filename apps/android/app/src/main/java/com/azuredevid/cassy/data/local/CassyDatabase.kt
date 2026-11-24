@@ -10,7 +10,8 @@ import androidx.room.RoomDatabase
         OfflinePendingOrderEntity::class
     ],
     version = 1,
-    exportSchema = false
+    // Schemas are committed under app/schemas so every version bump ships a tested Migration.
+    exportSchema = true
 )
 abstract class CassyDatabase : RoomDatabase() {
     abstract fun catalogCacheDao(): CatalogCacheDao
