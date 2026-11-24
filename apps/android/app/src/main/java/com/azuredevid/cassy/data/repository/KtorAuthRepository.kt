@@ -12,6 +12,8 @@ import com.azuredevid.cassy.domain.repository.MobileBootstrapData
 import com.azuredevid.cassy.domain.repository.PinSetupResult
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.auth.authProvider
+import io.ktor.client.plugins.auth.providers.BearerAuthProvider
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -149,6 +151,9 @@ class KtorAuthRepository(
             val staff = dto.staff.toDomain()
             val offlineVerifier = dto.offlinePinVerifier?.toDomain()
 
+            // The bearer plugin caches the last token; without this a new staff member's calls go out
+            // under the previous one's session until it expires.
+            forgetCachedToken()
             sessionManager.saveLoginSession(
                 accessToken = dto.accessToken,
                 accessTokenExpiresAt = dto.accessTokenExpiresAt,
@@ -240,9 +245,11 @@ class KtorAuthRepository(
                 }
             }
             sessionManager.clearSession(preserveDeviceBinding = true)
+            forgetCachedToken()
             Result.success(Unit)
         } catch (t: Throwable) {
             sessionManager.clearSession(preserveDeviceBinding = true)
+            forgetCachedToken()
             Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal keluar dari sesi."))
         }
     }
@@ -339,5 +346,9 @@ class KtorAuthRepository(
         } catch (t: Throwable) {
             Result.failure(HttpErrorMapper.fromThrowable(t, "Gagal mengatur PIN baru."))
         }
+    }
+
+    private fun forgetCachedToken() {
+        httpClient.authProvider<BearerAuthProvider>()?.clearToken()
     }
 }
