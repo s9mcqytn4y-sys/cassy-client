@@ -126,14 +126,15 @@ class LiveGateEvidenceTest {
         )
 
         // Settle what is left so table U1 is free for the next live test.
-        val closed = tabs.closeTab(tab.id, splitCount = 1).getOrThrow()
+        val share = tabs.closeTab(tab.id, splitCount = 1).getOrThrow().splits.single()
         koin.get<PosOrderRepository>().initiatePayment(
             InitiatePosPaymentInput(
                 orderId = tab.id,
                 idempotencyKey = UUID.randomUUID().toString(),
                 method = "cash",
-                cashTenderedAmount = closed.order.totalAmount + 1_000L,
-                drawerId = drawer.id
+                cashTenderedAmount = share.totalAmount + 1_000L,
+                drawerId = drawer.id,
+                splitId = share.id
             )
         ).getOrThrow()
     }
