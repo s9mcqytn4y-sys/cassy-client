@@ -80,7 +80,8 @@ internal fun BoxScope.PosLandscapeModals(
             onConfirmCashPayment = { tenderedLong, _ ->
                 posViewModel.submitCashPayment(
                     tenderedAmount = tenderedLong,
-                    drawerId = shiftState.currentShift?.drawerId
+                    drawerId = shiftState.currentShift?.drawerId,
+                    shiftId = shiftState.currentShift?.id
                 )
             }
         )

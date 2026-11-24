@@ -39,6 +39,8 @@ import java.text.NumberFormat
 @Composable
 internal fun PosOrderActionButtons(
     orderType: String,
+    // Offline: cash only (ADR-005 OF1); kitchen send, tabs, split, QRIS and EDC wait for the server.
+    isOffline: Boolean = false,
     cart: List<CartItem>,
     quote: OrderQuote?,
     isCartLocked: Boolean,
@@ -88,7 +90,7 @@ internal fun PosOrderActionButtons(
                 CassyTonalButton(
                     text = stringResource(R.string.btn_send_to_kitchen),
                     onClick = onSendToKitchen,
-                    enabled = cart.isNotEmpty() && !isCartLocked,
+                    enabled = cart.isNotEmpty() && !isCartLocked && !isOffline,
                     icon = Icons.Rounded.Restaurant,
                     modifier = Modifier.weight(1f)
                 )
@@ -111,7 +113,7 @@ internal fun PosOrderActionButtons(
             CassyPrimaryButton(
                 text = stringResource(R.string.btn_pay_qris),
                 onClick = onOpenQrisModal,
-                enabled = isShiftOpen && quote != null && cart.isNotEmpty() && !isCartLocked && !isSubmittingOrder,
+                enabled = isShiftOpen && quote != null && cart.isNotEmpty() && !isCartLocked && !isSubmittingOrder && !isOffline,
                 icon = Icons.Rounded.QrCode2,
                 height = CassyDimens.ButtonHeightTall,
                 containerColor = MaterialTheme.colorScheme.tertiary,
@@ -123,7 +125,7 @@ internal fun PosOrderActionButtons(
         CassyTonalButton(
             text = stringResource(R.string.btn_pay_edc),
             onClick = onOpenEdcModal,
-            enabled = quote != null && cart.isNotEmpty() && !isCartLocked,
+            enabled = quote != null && cart.isNotEmpty() && !isCartLocked && !isOffline,
             icon = Icons.Rounded.CreditCard,
             modifier = Modifier.fillMaxWidth()
         )
@@ -137,7 +139,7 @@ internal fun PosOrderActionButtons(
                 CassyTonalButton(
                     text = stringResource(R.string.split_btn_split_bill),
                     onClick = onOpenSplitBill,
-                    enabled = isShiftOpen && quote != null && cart.isNotEmpty() && !isCartLocked && !isSubmittingOrder,
+                    enabled = isShiftOpen && quote != null && cart.isNotEmpty() && !isCartLocked && !isSubmittingOrder && !isOffline,
                     icon = Icons.AutoMirrored.Rounded.CallSplit,
                     modifier = Modifier.weight(1f)
                 )

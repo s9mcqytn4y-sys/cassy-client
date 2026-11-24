@@ -42,7 +42,7 @@ data class StaffSessionRefreshDto(
 
 @Serializable
 data class StaffIdentityDto(
-    @SerialName("user_id") val userId: String = "",
+    @SerialName("id") val userId: String = "",
     @SerialName("full_name") val fullName: String = "",
     val email: String = "",
     val role: String = "",

@@ -1,5 +1,9 @@
 package com.azuredevid.cassy.di
 
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
+import com.azuredevid.cassy.data.local.OfflinePricingStore
 import androidx.room.Room
 import com.azuredevid.cassy.core.audio.CassySoundPlayer
 import com.azuredevid.cassy.core.hardware.AndroidBluetoothEscPosManager
@@ -91,6 +95,7 @@ val appModule = module {
     single<BiometricSecurityManager> { BiometricSecurityManager(androidContext()) }
     single<AeadCipher> { AndroidTinkAeadCipher(androidContext()) }
     single<SessionManager> { DataStoreSessionManager(androidContext(), get()) }
+    single { OfflinePricingStore(androidContext(), CoroutineScope(Dispatchers.IO + SupervisorJob())) }
     single<ServerSettingsRepository> { DataStoreServerSettingsRepository(androidContext()) }
     single<PrinterSettingsRepository> { DataStorePrinterSettingsRepository(androidContext()) }
     single<LocalServerDiscoveryRepository> { AndroidNsdLocalServerDiscovery(androidContext()) }
@@ -193,7 +198,8 @@ val repositoryModule = module {
         KtorDeviceProfileRepository(
             httpClient = get(),
             serverSettings = get(),
-            deviceCredential = { get<SessionManager>().getDeviceCredential() }
+            deviceCredential = { get<SessionManager>().getDeviceCredential() },
+            offlinePricing = get()
         )
     }
 
@@ -334,7 +340,9 @@ val viewModelModule = module {
             storePrinters = get(),
             serverSettings = get(),
             savedStateHandle = get(),
-            bluetoothPrinter = get()
+            bluetoothPrinter = get(),
+            healthMonitor = get(),
+            offlinePricing = get()
         )
     }
     viewModel {

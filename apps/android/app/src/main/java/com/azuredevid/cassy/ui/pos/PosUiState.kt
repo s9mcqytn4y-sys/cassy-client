@@ -30,6 +30,8 @@ data class PosUiState(
     val quote: OrderQuote? = null,
     val isQuoting: Boolean = false,
     val quoteError: UiText? = null,
+    /** Server unreachable: cash only, quotes are the device estimate (S4-Q2). */
+    val isOffline: Boolean = false,
     val storeName: String = "",
     val cashierName: String = "",
     val audioCueMuted: Boolean = false,

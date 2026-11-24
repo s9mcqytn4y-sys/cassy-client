@@ -51,57 +51,52 @@ class OfflineSyncCoordinatorTest {
         fun get(id: String): OfflinePendingOrderEntity? = items[id]
     }
 
+    /** Accepts every order on the device endpoint; the online endpoints must never be used (S4-Q6). */
     private class FakePosOrderRepository : PosOrderRepository {
-        var createdKeys = mutableListOf<String>()
-        var paymentKeys = mutableListOf<String>()
+        val batches = mutableListOf<List<String>>()
 
-        override suspend fun createOrder(input: CreatePosOrderInput): Result<PosOrder> {
-            createdKeys.add(input.idempotencyKey)
+        override suspend fun createOrder(input: CreatePosOrderInput): Result<PosOrder> =
+            Result.failure(AssertionError("offline orders must not go through createOrder"))
+
+        override suspend fun initiatePayment(input: InitiatePosPaymentInput): Result<InitiatePosPaymentResult> =
+            Result.failure(AssertionError("offline orders must not go through initiatePayment"))
+
+        override suspend fun getOrder(orderId: String): Result<PosOrderDetail> =
+            Result.failure(UnsupportedOperationException())
+
+        override suspend fun syncDeviceOfflineOrders(
+            orders: List<DeviceOfflineOrderSyncItem>
+        ): Result<List<DeviceOfflineOrderSyncOutcome>> {
+            batches.add(orders.map { it.clientOrderId })
             delay(10)
-            return Result.success(PosOrder(id = "ord-1", orderNumber = "A-001", totalAmount = 50_000L))
-        }
-
-        override suspend fun initiatePayment(input: InitiatePosPaymentInput): Result<InitiatePosPaymentResult> {
-            paymentKeys.add(input.idempotencyKey)
-            return Result.success(
-                InitiatePosPaymentResult(
-                    payment = PosPaymentAttempt(
-                        id = "pay-1",
-                        providerOrderId = "prov-1",
-                        method = input.method,
-                        status = "paid",
-                        amount = 50_000L,
-                        cashTenderedAmount = input.cashTenderedAmount
-                    )
-                )
-            )
-        }
-
-        override suspend fun getOrder(orderId: String): Result<PosOrderDetail> {
-            return Result.success(PosOrderDetail(order = PosOrder(id = orderId, orderNumber = "A-001")))
+            return Result.success(orders.map { DeviceOfflineOrderSyncOutcome(clientOrderId = it.clientOrderId, status = "accepted") })
         }
     }
 
+    private suspend fun OfflineSyncCoordinator.enqueueWithMetadata(customer: String = "Budi") = enqueueCashOrder(
+        storeSlug = "central-cafe",
+        orderType = "takeaway",
+        tableNumber = null,
+        customerName = customer,
+        items = listOf(OfflineOrderItemPayload(productId = "p1", quantity = 2)),
+        cashReceivedIdr = 100_000L,
+        cashierId = "00000000-0000-0000-0000-000000000001",
+        shiftId = "00000000-0000-0000-0000-000000000002",
+        catalogVersion = "v1"
+    )
+
     @Test
-    fun `enqueueCashOrder and syncPendingOrders transitions to SYNCED idempotently`() = runTest {
+    fun `queued orders sync through the device endpoint and turn SYNCED`() = runTest {
         val dao = InMemoryOfflineOrderDao()
         val repo = FakePosOrderRepository()
-        val coordinator = OfflineSyncCoordinator(dao, repo)
+        val coordinator = OfflineSyncCoordinator(dao, repo, StandardTestDispatcher(testScheduler))
 
-        val entity = coordinator.enqueueCashOrder(
-            storeSlug = "central-cafe",
-            orderType = "take_away",
-            tableNumber = null,
-            customerName = "Budi",
-            items = listOf(OfflineOrderItemPayload(productId = "p1", quantity = 2)),
-            cashReceivedIdr = 100_000L
-        )
+        val entity = coordinator.enqueueWithMetadata()
 
-        val synced = coordinator.syncPendingOrders()
-        assertEquals(1, synced)
+        assertEquals(1, coordinator.syncPendingOrders())
         assertEquals(OfflinePendingOrderEntity.STATUS_SYNCED, dao.get(entity.clientOrderId)?.syncStatus)
-        assertEquals(listOf(entity.idempotencyKey), repo.createdKeys)
-        assertEquals(listOf("${entity.idempotencyKey}_cash"), repo.paymentKeys)
+        assertEquals(listOf(listOf(entity.clientOrderId)), repo.batches)
+        assertEquals("a synced order is not sent again", 0, coordinator.syncPendingOrders())
     }
 
     @Test
@@ -109,15 +104,37 @@ class OfflineSyncCoordinatorTest {
         val dao = InMemoryOfflineOrderDao()
         val repo = FakePosOrderRepository()
         val coordinator = OfflineSyncCoordinator(dao, repo, StandardTestDispatcher(testScheduler))
-        coordinator.enqueueCashOrder("central-cafe", "take_away", null, "Budi", listOf(OfflineOrderItemPayload("p1", 1)), 50_000L)
+        coordinator.enqueueWithMetadata()
 
         val first = launch { coordinator.syncPendingOrders() }
         val second = launch { coordinator.syncPendingOrders() }
         first.join()
         second.join()
 
-        assertEquals(1, repo.createdKeys.size)
-        assertEquals(1, repo.paymentKeys.size)
+        assertEquals(1, repo.batches.size)
+    }
+
+    @Test
+    fun `an order without shift metadata is kept as failed and never sent`() = runTest {
+        val dao = InMemoryOfflineOrderDao()
+        val repo = FakePosOrderRepository()
+        val coordinator = OfflineSyncCoordinator(dao, repo, StandardTestDispatcher(testScheduler))
+        val bare = coordinator.enqueueCashOrder("central-cafe", "takeaway", null, "Budi", listOf(OfflineOrderItemPayload("p1", 1)), 50_000L)
+
+        assertEquals(0, coordinator.syncPendingOrders())
+        assertEquals(OfflinePendingOrderEntity.STATUS_FAILED, dao.get(bare.clientOrderId)?.syncStatus)
+        assertTrue(repo.batches.isEmpty())
+    }
+
+    @Test
+    fun `more than fifty orders go in batches the server accepts`() = runTest {
+        val dao = InMemoryOfflineOrderDao()
+        val repo = FakePosOrderRepository()
+        val coordinator = OfflineSyncCoordinator(dao, repo, StandardTestDispatcher(testScheduler))
+        repeat(51) { coordinator.enqueueWithMetadata(customer = "Tamu $it") }
+
+        assertEquals(51, coordinator.syncPendingOrders())
+        assertEquals(listOf(50, 1), repo.batches.map { it.size })
     }
 
     @Test

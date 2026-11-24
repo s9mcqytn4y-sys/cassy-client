@@ -1,5 +1,6 @@
 package com.azuredevid.cassy.ui.pos.components
 
+import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -60,6 +61,7 @@ fun PosOrderSummaryPanel(
     onIncreaseQuantity: (CartItem) -> Unit,
     onDecreaseQuantity: (CartItem) -> Unit,
     quote: OrderQuote?,
+    isOffline: Boolean = false,
     quoteError: String? = null,
     rupiahFormat: NumberFormat,
     onOpenDrawerKick: () -> Unit,
@@ -288,8 +290,17 @@ fun PosOrderSummaryPanel(
 
                 splitSection()
 
+                if (isOffline) {
+                    CassyErrorBanner(
+                        message = stringResource(R.string.pos_offline_banner),
+                        tone = CassyToastTone.WARNING,
+                        modifier = Modifier.testTag("banner_pos_offline")
+                    )
+                }
+
                 PosOrderActionButtons(
                     orderType = orderType,
+                    isOffline = isOffline,
                     cart = cart,
                     quote = quote,
                     isCartLocked = isCartLocked,
