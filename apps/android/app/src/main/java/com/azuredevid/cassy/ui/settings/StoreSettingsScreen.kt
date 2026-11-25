@@ -8,7 +8,6 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,7 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -42,7 +39,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.azuredevid.cassy.R
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
-import com.azuredevid.cassy.ui.designsystem.CassyEmptyState
 import com.azuredevid.cassy.ui.designsystem.CassyShimmerBox
 import com.azuredevid.cassy.ui.designsystem.CassySnackbarHost
 import com.azuredevid.cassy.ui.designsystem.CassyStatusBadge
@@ -71,7 +67,8 @@ fun StoreSettingsScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val printerState by printerViewModel.uiState.collectAsStateWithLifecycle()
-    val printerTabOpen = state.selectedTabIndex == 3
+    // Staff without store settings rights only get the printer view (status and test print).
+    val printerTabOpen = !state.hasManageAccess || state.selectedTabIndex == 3
     val displayState by displayViewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(state.selectedTabIndex == 4, state.hasManageAccess) {
         if (state.selectedTabIndex == 4 && state.hasManageAccess) displayViewModel.load()
@@ -171,7 +168,7 @@ fun StoreSettingsScreen(
                 stringResource(R.string.settings_tab_features)
             )
 
-            androidx.compose.foundation.layout.BoxWithConstraints(
+            if (state.hasManageAccess) androidx.compose.foundation.layout.BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 val isWide = maxWidth >= CassyDimens.SplitPaneBreakpoint
@@ -250,26 +247,26 @@ fun StoreSettingsScreen(
                         )
                     }
                 }
+            } else if (!state.hasManageAccess) {
+                PrinterSettingsTab(
+                    state = printerState,
+                    onAdd = printerViewModel::openNew,
+                    onEdit = printerViewModel::openEdit,
+                    onTest = printerViewModel::test,
+                    modifier = Modifier.fillMaxSize()
+                )
             } else {
                 when (state.selectedTabIndex) {
-                    0 -> if (state.hasManageAccess) {
-                        MidtransCredentialsTab(
-                            state = state,
-                            onEvent = viewModel::onEvent,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        RestrictedAccessNotice(modifier = Modifier.fillMaxSize())
-                    }
-                    1 -> if (state.hasManageAccess) {
-                        StoreBrandCmsTab(
-                            state = state,
-                            onEvent = viewModel::onEvent,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        RestrictedAccessNotice(modifier = Modifier.fillMaxSize())
-                    }
+                    0 -> MidtransCredentialsTab(
+                        state = state,
+                        onEvent = viewModel::onEvent,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    1 -> StoreBrandCmsTab(
+                        state = state,
+                        onEvent = viewModel::onEvent,
+                        modifier = Modifier.fillMaxSize()
+                    )
                     2 -> StoreServiceModeTab(
                         state = state,
                         onEvent = viewModel::onEvent,
@@ -288,15 +285,11 @@ fun StoreSettingsScreen(
                         onRevoke = displayViewModel::askRevoke,
                         modifier = Modifier.fillMaxSize()
                     )
-                    5 -> if (state.hasManageAccess) {
-                        StoreFeatureFlagsTab(
-                            state = state,
-                            onEvent = viewModel::onEvent,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        RestrictedAccessNotice(modifier = Modifier.fillMaxSize())
-                    }
+                    5 -> StoreFeatureFlagsTab(
+                        state = state,
+                        onEvent = viewModel::onEvent,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
         }
@@ -357,16 +350,3 @@ fun StoreSettingsScreen(
     }
 }
 
-@Composable
-private fun RestrictedAccessNotice(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.padding(CassyDimens.SpaceXl),
-        contentAlignment = Alignment.Center
-    ) {
-        CassyEmptyState(
-            icon = Icons.Rounded.Lock,
-            title = stringResource(R.string.settings_access_denied_title),
-            subtitle = stringResource(R.string.settings_access_denied_body)
-        )
-    }
-}

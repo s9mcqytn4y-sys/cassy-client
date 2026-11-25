@@ -41,6 +41,10 @@ import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import com.azuredevid.cassy.ui.settings.StoreSettingsUiEvent
 import com.azuredevid.cassy.ui.settings.StoreSettingsUiState
 
+/**
+ * BYOK Midtrans credentials of the store.
+ * Owner setting: moves to Cassy Manager (A3), see Docs/PRD/PrdFrontendUxAndLaunch.md section 4.
+ */
 @Composable
 fun MidtransCredentialsTab(
     state: StoreSettingsUiState,

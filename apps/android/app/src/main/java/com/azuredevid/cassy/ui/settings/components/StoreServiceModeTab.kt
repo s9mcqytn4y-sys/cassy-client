@@ -52,6 +52,10 @@ import com.azuredevid.cassy.ui.settings.StoreSettingsUiState
 import com.azuredevid.cassy.ui.theme.statusWarnBg
 import com.azuredevid.cassy.ui.theme.statusWarnFg
 
+/**
+ * QR service mode, table timer and enabled payment methods.
+ * Owner setting: moves to Cassy Manager (A3), see Docs/PRD/PrdFrontendUxAndLaunch.md section 4.
+ */
 @Composable
 fun StoreServiceModeTab(
     state: StoreSettingsUiState,

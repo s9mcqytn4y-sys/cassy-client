@@ -44,6 +44,10 @@ private val GUEST_V4_FEATURE_FLAGS = listOf(
     FeatureFlagItem("guest_email_receipt_enabled", R.string.feature_guest_email_receipt_title, R.string.feature_guest_email_receipt_desc)
 )
 
+/**
+ * The store feature flags; the POS only reads them.
+ * Owner setting: moves to Cassy Manager (A3), see Docs/PRD/PrdFrontendUxAndLaunch.md section 4.
+ */
 @Composable
 fun StoreFeatureFlagsTab(
     state: StoreSettingsUiState,
