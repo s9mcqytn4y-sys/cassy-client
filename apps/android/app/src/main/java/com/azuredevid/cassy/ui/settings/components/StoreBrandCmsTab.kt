@@ -65,6 +65,10 @@ private val COLOR_PRESETS = listOf(
 )
 
 @OptIn(ExperimentalLayoutApi::class)
+/**
+ * Brand and guest page content of the store.
+ * Owner setting: moves to Cassy Manager (A3), see Docs/PRD/PrdFrontendUxAndLaunch.md section 4.
+ */
 @Composable
 fun StoreBrandCmsTab(
     state: StoreSettingsUiState,

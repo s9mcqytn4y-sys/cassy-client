@@ -46,7 +46,10 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-/** Queue TV screens of the store: add one, share its link to the TV, revoke one that is lost. */
+/**
+ * Queue TV screens of the store: add one, share its link to the TV, revoke one that is lost.
+ * Owner setting: moves to Cassy Manager (A3), see Docs/PRD/PrdFrontendUxAndLaunch.md section 4.
+ */
 @Composable
 fun DisplayScreensTab(
     state: DisplayScreensUiState,

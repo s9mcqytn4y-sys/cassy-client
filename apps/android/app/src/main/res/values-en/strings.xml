@@ -197,8 +197,6 @@
     <string name="settings_loading">Loading store configuration…</string>
     <string name="settings_access_badge_allowed">Manage Access</string>
     <string name="settings_access_badge_denied">Restricted Access</string>
-    <string name="settings_access_denied_title">Store Management Permission Required</string>
-    <string name="settings_access_denied_body">Your staff account lacks the store.settings.manage permission. Ask the store owner to update Midtrans, guest branding, or service policies.</string>
     <string name="settings_tab_midtrans">Midtrans BYOK</string>
     <string name="settings_tab_cms">Guest Branding</string>
     <string name="settings_tab_service">Service Mode</string>

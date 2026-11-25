@@ -66,6 +66,10 @@ import java.text.NumberFormat
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Menu editing for owner and manager; daily availability toggles stay on the POS.
+ * Manager setting: moves to Cassy Manager (A3), see Docs/PRD/PrdFrontendUxAndLaunch.md section 4.
+ */
 @Composable
 fun CatalogManagementScreen(
     onNavigateBack: () -> Unit,

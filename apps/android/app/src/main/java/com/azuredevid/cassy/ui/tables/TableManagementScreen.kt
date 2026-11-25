@@ -63,6 +63,8 @@ private const val PANEL_WEIGHT = 0.32f
  * Table and QR management (Release One PR 5). Tablet layout splits 68:32: the table grid on the left,
  * the selected table's QR and actions on the right; below the split breakpoint the panes stack.
  * All decisions live in [TableManagementViewModel]; this screen only renders state and routes events.
+ *
+ * Manager setting: moves to Cassy Manager (A3), see Docs/PRD/PrdFrontendUxAndLaunch.md section 4.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

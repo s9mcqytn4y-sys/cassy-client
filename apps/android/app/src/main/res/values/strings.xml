@@ -197,8 +197,6 @@
     <string name="settings_loading">Memuat konfigurasi gerai…</string>
     <string name="settings_access_badge_allowed">Izin Kelola Aktif</string>
     <string name="settings_access_badge_denied">Akses Terbatas</string>
-    <string name="settings_access_denied_title">Izin Kelola Gerai Diperlukan</string>
-    <string name="settings_access_denied_body">Akun Anda tidak memiliki izin store.settings.manage. Hubungi pemilik gerai untuk mengubah Midtrans, tampilan tamu, atau mode layanan.</string>
     <string name="settings_tab_midtrans">Midtrans BYOK</string>
     <string name="settings_tab_cms">Tampilan Tamu</string>
     <string name="settings_tab_service">Mode Layanan</string>
