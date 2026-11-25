@@ -55,7 +55,8 @@ jobs:
           file: apps/web/Dockerfile
           push: true
           build-args: |
-            NEXT_PUBLIC_APP_URL=https://demo.abbdullaziz.online
+            NEXT_PUBLIC_APP_URL=https://pos.abbdullaziz.online
+            PLANS_API_URL=https://api.abbdullaziz.online
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 

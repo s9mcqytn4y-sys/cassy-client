@@ -101,6 +101,18 @@ export default function HomePage() {
         <CassyWordmark height={24} />
         <nav aria-label={t.homeNavLabel} className="flex flex-wrap items-center gap-2 text-sm">
           <Link
+            href="/fitur"
+            className="inline-flex min-h-[48px] items-center rounded-xl border border-subtle bg-surface px-3.5 font-semibold text-ink transition hover:border-brand"
+          >
+            {t.mkt.navFeatures}
+          </Link>
+          <Link
+            href="/harga"
+            className="inline-flex min-h-[48px] items-center rounded-xl border border-subtle bg-surface px-3.5 font-semibold text-ink transition hover:border-brand"
+          >
+            {t.mkt.navPricing}
+          </Link>
+          <Link
             href="/legal"
             className="inline-flex min-h-[48px] items-center rounded-xl border border-subtle bg-surface px-3.5 font-semibold text-ink transition hover:border-brand"
           >

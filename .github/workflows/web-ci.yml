@@ -115,6 +115,9 @@ jobs:
         run: pnpm --filter @azuredevid/cassy-web test:unit
 
       - name: Build Next.js Web App
+        env:
+          # No backend in this job: marketing pages use the reviewed plan snapshot (src/lib/plans.ts).
+          ALLOW_PLAN_FALLBACK: "1"
         run: pnpm run build
 
   web-e2e:
@@ -159,6 +162,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Next.js Web App
+        env:
+          # No backend in this job: marketing pages use the reviewed plan snapshot (src/lib/plans.ts).
+          ALLOW_PLAN_FALLBACK: "1"
         run: pnpm run build
 
       - name: Run Playwright against the production build
@@ -227,14 +233,17 @@ jobs:
           echo "Nginx cache status for the menu:"
           docker logs cassy-test-nginx-1 2>&1 | grep -oE 'cs=[A-Z]+' | sort | uniq -c
 
-      # PWA-09 (S5-Q5): mobile Lighthouse, median of 3 runs, on the guest menu and a real short receipt.
-      - name: Lighthouse on menu and receipt (PWA-09)
+      # PWA-09 (S5-Q5) and FL1 W4: mobile Lighthouse, median of 3 runs, on the guest menu, a real short receipt,
+      # and the marketing pages /, /harga, /fitur.
+      - name: Lighthouse on menu, receipt and marketing pages (PWA-09, FL1 W4)
         working-directory: apps/web
         run: |
           pnpm start > "$RUNNER_TEMP/web.log" 2>&1 &
           for _ in $(seq 1 60); do curl -fsS -o /dev/null http://127.0.0.1:3000 && break; sleep 2; done
           mapfile -t urls < <(bash ../../.github/scripts/PrepareLighthouseTargets.sh)
-          npx --yes @lhci/cli@0.15.1 autorun --collect.url="${urls[0]}" --collect.url="${urls[1]}"
+          args=()
+          for url in "${urls[@]}"; do args+=("--collect.url=$url"); done
+          npx --yes @lhci/cli@0.15.1 autorun "${args[@]}"
 
       - uses: actions/upload-artifact@v7
         if: always()
@@ -273,4 +282,6 @@ jobs:
           file: apps/web/Dockerfile
           push: false
           tags: cassy-web:test
+          build-args: |
+            ALLOW_PLAN_FALLBACK=1
 

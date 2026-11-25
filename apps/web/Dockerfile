@@ -21,7 +21,11 @@ ENV NODE_ENV=production
 ENV BUILD_STANDALONE=true
 ARG NEXT_PUBLIC_APP_URL
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
-RUN pnpm --filter @azuredevid/cassy-web build
+# Marketing pages read prices from the API at build (FL-Q6). Without PLANS_API_URL the build fails unless
+# ALLOW_PLAN_FALLBACK=1 (CI validation builds only).
+ARG PLANS_API_URL
+ARG ALLOW_PLAN_FALLBACK
+RUN PLANS_API_URL=$PLANS_API_URL ALLOW_PLAN_FALLBACK=$ALLOW_PLAN_FALLBACK pnpm --filter @azuredevid/cassy-web build
 
 FROM node:22-alpine AS runner
 WORKDIR /app
@@ -30,6 +34,9 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 ENV NEXT_TELEMETRY_DISABLED=1
+# Daily revalidation of the marketing pages reads prices from here; on failure Next keeps the last good page.
+ARG PLANS_API_URL
+ENV PLANS_API_URL=$PLANS_API_URL
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
