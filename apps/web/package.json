@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "codegen:api": "openapi-typescript ../../../CassyBackend/docs/Api/OpenApi.yaml -o src/types/api.generated.ts",
     "check:copy": "node scripts/CheckHardcodedCopy.mjs",
-    "test:unit": "node --experimental-strip-types src/features/order/cart.test.mjs",
+    "test:unit": "node --experimental-strip-types src/features/order/cart.test.mjs && node --experimental-strip-types src/lib/plans.test.mjs",
     "test:e2e": "playwright test",
     "test:e2e:live": "playwright test --config playwright.live.config.ts"
   },

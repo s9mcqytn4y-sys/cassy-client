@@ -1,4 +1,4 @@
-import type { Messages } from "@/lib/messages";
+import type { TextKey } from "@/lib/messages";
 import type { PaymentInfo, SplitShareLink } from "./types";
 
 export type OrderPhase = "awaiting" | "paid" | "cancelled" | "refunded";
@@ -28,7 +28,7 @@ export function moneyTaken(progress?: OrderProgress | null): boolean {
   return progress?.payment_status === "paid" || progress?.payment_status === "partially_refunded";
 }
 
-const CHECKOUT_MESSAGES: Record<string, keyof Messages> = {
+const CHECKOUT_MESSAGES: Record<string, TextKey> = {
   GUEST_SESSION_EXPIRED: "sessionExpired",
   QUOTE_CHANGED: "priceChanged",
   UNAVAILABLE: "itemUnavailable",
@@ -56,7 +56,7 @@ export function safeDeeplink(url?: string): string | null {
   }
 }
 
-export function checkoutMessageKey(code: unknown): keyof Messages {
+export function checkoutMessageKey(code: unknown): TextKey {
   return (typeof code === "string" && CHECKOUT_MESSAGES[code]) || "checkoutFailed";
 }
 

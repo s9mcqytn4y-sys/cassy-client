@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# PWA-09 (S5-Q5): prints the two pages Lighthouse measures against the test stack, one per line:
-# the guest menu of table U1 and the short receipt of a real paid order. The order is a cash sale on
+# PWA-09 (S5-Q5) and FL1 W4: prints the pages Lighthouse measures against the test stack, one per line:
+# the guest menu of table U1, the short receipt of a real paid order, and the marketing pages /, /harga, /fitur. The order is a cash sale on
 # "Laci Uji 2" in a shift that is opened and force-closed here. Needs curl and node.
 set -eu
 
@@ -40,3 +40,6 @@ call POST "/pos/shifts/$shift_id/force-close" "$manager" '{"reason":"Akhir persi
 
 echo "$WEB/order/e2e-kasir-meja-u1-qrcode"
 echo "$WEB/r/$code"
+echo "$WEB/"
+echo "$WEB/harga"
+echo "$WEB/fitur"

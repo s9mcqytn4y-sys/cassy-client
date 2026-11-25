@@ -97,8 +97,16 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-subtle pb-4">
+      <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-subtle pb-4">
         <CassyWordmark height={24} />
+        <nav aria-label={t.mkt.navLabel} className="flex items-center gap-1 text-sm">
+          <Link href="/fitur" className="inline-flex min-h-[44px] items-center px-2 font-semibold text-ink underline-offset-4 hover:underline">
+            {t.mkt.navFeatures}
+          </Link>
+          <Link href="/harga" className="inline-flex min-h-[44px] items-center px-2 font-semibold text-ink underline-offset-4 hover:underline">
+            {t.mkt.navPricing}
+          </Link>
+        </nav>
         <nav aria-label={t.homeNavLabel} className="flex flex-wrap items-center gap-2 text-sm">
           <Link
             href="/legal"
