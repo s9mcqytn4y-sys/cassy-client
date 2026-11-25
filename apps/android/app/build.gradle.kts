@@ -172,7 +172,7 @@ dependencies {
     testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
     testImplementation("androidx.room:room-testing:$roomVersion")
     testImplementation("io.insert-koin:koin-test:4.0.0")
-    testImplementation("io.insert-koin:koin-test-junit4:4.0.0")
+    testImplementation("io.insert-koin:koin-test-junit4:4.2.2")
 
     androidTestImplementation(composeBom)
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
