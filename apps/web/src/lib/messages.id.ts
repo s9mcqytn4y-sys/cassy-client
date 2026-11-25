@@ -296,7 +296,7 @@ export const id = {
     notIncluded: "Tidak termasuk",
     notApplicable: "Tidak ada",
     free: "Gratis",
-    featuresTitle: "Fitur Cassy: kasir tablet, pesan dari meja, dan layar dapur",
+    featuresTitle: "Fitur Cassy: kasir tablet, QR meja, layar dapur",
     featuresDescription: "Kasir tablet Android, pemesanan QR meja tanpa unduh aplikasi, QRIS lewat akun Midtrans milik gerai, layar dapur KDS, dan struk digital.",
     featuresHeadline: "Kasir tablet dan pesan dari meja untuk kafe dan resto",
     featuresAnswer: "Cassy adalah aplikasi kasir tablet Android dan pemesanan QR meja untuk usaha makanan dan minuman di Indonesia. Paket berbayar mulai {price} per bulan setelah uji coba gratis 14 hari, dan Cassy tidak memotong komisi dari penjualan gerai.",

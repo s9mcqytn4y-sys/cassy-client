@@ -298,7 +298,7 @@ export const en: Messages = {
     notIncluded: "Not included",
     notApplicable: "None",
     free: "Free",
-    featuresTitle: "Cassy features: tablet POS, table ordering, and kitchen display",
+    featuresTitle: "Cassy features: tablet POS, QR ordering, kitchen display",
     featuresDescription: "Android tablet POS, QR table ordering without an app download, QRIS through the outlet's own Midtrans account, kitchen display, and digital receipts.",
     featuresHeadline: "Tablet POS and table ordering for cafes and restaurants",
     featuresAnswer: "Cassy is an Android tablet POS and QR table ordering app for food and drink businesses in Indonesia. Paid plans start at {price} per month after a free 14-day trial, and Cassy takes no commission from outlet sales.",
