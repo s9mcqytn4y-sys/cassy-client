@@ -150,7 +150,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
 
     // CameraX & Barcode Scanner for Store Pairing QR
-    val cameraxVersion = "1.4.0"
+    val cameraxVersion = "1.7.0"
     implementation("androidx.camera:camera-core:$cameraxVersion")
     implementation("androidx.camera:camera-camera2:$cameraxVersion")
     implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
