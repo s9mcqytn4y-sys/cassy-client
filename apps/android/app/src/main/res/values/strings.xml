@@ -894,4 +894,5 @@
     <string name="pos_offline_short">Uang tunai kurang. Minimal Rp %1$,d.</string>
     <string name="pos_offline_limit">Batas pesanan offline tercapai. Sambungkan perangkat untuk sinkron dulu.</string>
     <string name="pos_offline_queued">Pesanan %1$s disimpan offline dan dikirim saat tersambung.</string>
+    <string name="settings_delete_store_account">Hapus akun toko</string>
 </resources>

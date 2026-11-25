@@ -900,4 +900,5 @@
     <string name="pos_offline_short">Not enough cash. At least Rp %1$,d.</string>
     <string name="pos_offline_limit">Offline order limit reached. Connect the device to sync first.</string>
     <string name="pos_offline_queued">Order %1$s saved offline and sent once connected.</string>
+    <string name="settings_delete_store_account">Delete store account</string>
 </resources>
