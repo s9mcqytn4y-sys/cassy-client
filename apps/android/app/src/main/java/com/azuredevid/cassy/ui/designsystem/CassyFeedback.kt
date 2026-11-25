@@ -37,11 +37,13 @@ import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -119,6 +121,15 @@ fun CassySnackbarHost(
         val visuals = snackbarData.visuals
         val tone = (visuals as? CassySnackbarVisuals)?.tone ?: CassyToastTone.INFO
         val (bg, fg) = toneColors(tone)
+        // One place gives every POS outcome its haptic: confirm on success, reject on error.
+        val view = LocalView.current
+        LaunchedEffect(snackbarData) {
+            when (tone) {
+                CassyToastTone.SUCCESS -> runCatching { view.performHapticFeedback(HapticFeedbackConstants.CONFIRM) }
+                CassyToastTone.ERROR -> runCatching { view.performHapticFeedback(HapticFeedbackConstants.REJECT) }
+                else -> Unit
+            }
+        }
         val icon = toneIcon(tone)
 
         Surface(

@@ -161,7 +161,7 @@ export function OrderApp({ token }: { token: string }) {
     if (!increased || typeof window === "undefined" || !window.matchMedia("(prefers-reduced-motion: no-preference)").matches) return;
     animate("[data-cart-cta]", {
       scale: [0.97, 1],
-      duration: 180,
+      duration: 150, // --motion-feedback (tokens.json motion.feedbackMs)
       ease: "outQuad"
     });
   }, [itemCount]);
