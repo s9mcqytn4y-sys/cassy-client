@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.azuredevid.cassy.R
 import com.azuredevid.cassy.ui.designsystem.CassyCard
+import com.azuredevid.cassy.ui.designsystem.cassyPopOnChange
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
 import com.azuredevid.cassy.ui.designsystem.CassyEmptyState
 import com.azuredevid.cassy.ui.pos.CartItem
@@ -130,7 +131,9 @@ internal fun PosCartItemsList(
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.widthIn(min = 28.dp),
+                                    modifier = Modifier
+                                        .widthIn(min = 28.dp)
+                                        .cassyPopOnChange(item.quantity),
                                     textAlign = TextAlign.Center
                                 )
 

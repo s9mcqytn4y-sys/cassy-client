@@ -97,11 +97,6 @@ fun ServerConfigScreen(
         viewModel.effects.collect { effect ->
             when (effect) {
                 is ServerConfigUiEffect.ShowProbeResult -> {
-                    if (effect.success) {
-                        CassyFeedbackCue.success(view)
-                    } else {
-                        CassyFeedbackCue.warningOrError(view)
-                    }
                     val msg = if (effect.success) {
                         String.format(probeOkTemplate, effect.detail.asString(view.context))
                     } else {

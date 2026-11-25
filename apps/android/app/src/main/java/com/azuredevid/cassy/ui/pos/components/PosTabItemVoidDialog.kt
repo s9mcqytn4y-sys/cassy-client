@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.azuredevid.cassy.R
 import com.azuredevid.cassy.ui.designsystem.CassyDangerButton
+import com.azuredevid.cassy.ui.designsystem.cassyShakeOnError
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
 import com.azuredevid.cassy.ui.designsystem.CassyModalDialog
 import com.azuredevid.cassy.ui.designsystem.CassySecondaryButton
@@ -134,7 +135,8 @@ fun PosTabItemVoidDialog(
             label = stringResource(R.string.tab_void_pin),
             enabled = editable,
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = pinKeyboard
+            keyboardOptions = pinKeyboard,
+            modifier = Modifier.cassyShakeOnError(state.error)
         )
         if (state.step == TabVoidStep.OWNER) {
             Text(

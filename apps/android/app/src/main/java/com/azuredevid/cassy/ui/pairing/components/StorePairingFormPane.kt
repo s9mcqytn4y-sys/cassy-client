@@ -55,6 +55,7 @@ import com.azuredevid.cassy.ui.designsystem.CassyPrimaryButton
 import com.azuredevid.cassy.ui.designsystem.CassyStatusBadge
 import com.azuredevid.cassy.ui.designsystem.CassyTextActionButton
 import com.azuredevid.cassy.ui.designsystem.CassyTextField
+import com.azuredevid.cassy.ui.designsystem.cassyShakeOnError
 import com.azuredevid.cassy.ui.designsystem.CassyToastTone
 import com.azuredevid.cassy.ui.pairing.StorePairingUiState
 import com.azuredevid.cassy.ui.pairing.StorePairingViewModel
@@ -295,6 +296,7 @@ fun StorePairingFormPane(
             modifier = Modifier
                 .defaultMinSize(minHeight = 56.dp)
                 .focusRequester(pinFocus)
+                .cassyShakeOnError(state.pinError ?: state.formError)
         )
 
         if (!formError.isNullOrBlank()) {

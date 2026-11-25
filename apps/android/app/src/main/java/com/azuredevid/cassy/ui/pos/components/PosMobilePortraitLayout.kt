@@ -53,6 +53,7 @@ import com.azuredevid.cassy.data.model.CatalogProduct
 import com.azuredevid.cassy.data.model.OrderQuote
 import com.azuredevid.cassy.domain.model.Shift
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
+import com.azuredevid.cassy.ui.designsystem.cassyPopOnChange
 import com.azuredevid.cassy.ui.designsystem.CassyPrimaryButton
 import com.azuredevid.cassy.ui.designsystem.CassySecondaryButton
 import com.azuredevid.cassy.ui.designsystem.CassyStatusBadge
@@ -299,7 +300,8 @@ fun PosMobilePortraitLayout(
                             ),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.cassyPopOnChange(totalItems)
                         )
                     }
                     CassyPrimaryButton(
