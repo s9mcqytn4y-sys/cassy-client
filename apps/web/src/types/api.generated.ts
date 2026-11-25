@@ -3479,6 +3479,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/account-deletion/otp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Email a 6-digit code to the store owner for /hapus-akun (always 202, no enumeration)
+         * @description Unknown stores, unknown or non-owner emails, inactive stores and rate-limited requests all answer 202 without sending a code. A code lives 10 minutes; one per minute and five per hour per owner. Every public deletion call counts toward 20 per 15 minutes per client IP.
+         */
+        post: operations["requestAccountDeletionOTP"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/account-deletion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify the code and start the 30-day grace period before anonymization
+         * @description Creates a tenant clearance request with channel web. After cooling_off_ends_at the worker anonymizes staff, customer and owner contact data and deactivates the store and its devices. Orders, payments, shifts, reports and invoices are kept for the legal retention period.
+         */
+        post: operations["confirmAccountDeletion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/account-deletion/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify the code and cancel the request in its grace period */
+        post: operations["cancelAccountDeletion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/stores/{slug}/cms": {
         parameters: {
             query?: never;
@@ -3719,7 +3776,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Request tax-safe account clearance (blocks if open shift or active orders exist; 7-day cooling-off, 10-year UU KUP ledger retention) */
+        /** Request tax-safe account clearance (blocks if open shift or active orders exist; 30-day cooling-off, 10-year UU KUP ledger retention) */
         post: operations["requestAccountClearance"];
         delete?: never;
         options?: never;
@@ -5271,6 +5328,61 @@ export interface components {
                 reason: string;
             }[];
         };
+        AccountDeletionOTPRequest: {
+            /** @example central-cafe */
+            store_slug: string;
+            /** Format: email */
+            email: string;
+        };
+        AccountDeletionOTPResponse: {
+            message: string;
+            /** @example 600 */
+            expires_in_seconds: number;
+            /** @description Only in APP_ENV development or test */
+            dev_otp_preview?: string;
+        };
+        AccountDeletionConfirmRequest: {
+            store_slug: string;
+            /** Format: email */
+            email: string;
+            otp_code: string;
+            /** @description Optional; ignored by the cancel endpoint */
+            reason?: string;
+        };
+        AccountDeletionRequest: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            store_id?: string;
+            /**
+             * @description cooling_off = pending, pii_anonymized_ledger_retained = completed
+             * @enum {string}
+             */
+            status: "cooling_off" | "cancelled" | "pii_anonymized_ledger_retained";
+            /** @enum {string} */
+            channel: "pos" | "web";
+            reason?: string;
+            /**
+             * Format: date-time
+             * @description When anonymization runs (requested + 30 days)
+             */
+            cooling_off_ends_at: string;
+            /** Format: date-time */
+            ledger_retention_until: string;
+            /** Format: date-time */
+            executed_at?: string;
+            /** Format: date-time */
+            created_at: string;
+        };
+        AccountDeletionResponse: {
+            request: components["schemas"]["AccountDeletionRequest"];
+        };
+        AccountDeletionPendingResponse: {
+            /** @example ACCOUNT_DELETION_PENDING */
+            code: string;
+            error: string;
+            request?: components["schemas"]["AccountDeletionRequest"];
+        };
         ErrorResponse: {
             /** @example Layanan pemesanan sedang dalam pemeliharaan. Silakan hubungi kasir untuk bantuan pemesanan. */
             error: string;
@@ -5283,7 +5395,7 @@ export interface components {
             request_id?: string;
         };
         /** @enum {string} */
-        StaffRole: "owner" | "cashier" | "barista" | "kitchen";
+        StaffRole: "owner" | "manager" | "cashier" | "barista" | "kitchen";
         /** @description Either store_slug + email or badge (scanned staff ID card, V14), always with the PIN. */
         StaffLoginRequest: {
             /** @description QR token from the staff ID card; replaces store_slug and email, never the PIN. */
@@ -11634,12 +11746,19 @@ export interface operations {
                 content: {
                     "application/json": {
                         device_role: components["schemas"]["DeviceRole"];
+                        /** @description Starts every offline_queue_number this device sends ("<prefix>-..."); sync rejects any other prefix. */
+                        device_prefix: string;
                         features: components["schemas"]["FeatureFlags"];
                         catalog_version: string;
                         /** Format: date-time */
                         first_served_at: string;
                         /** @description Same shape as GET /api/v1/pos/catalog. */
                         catalog: Record<string, never>;
+                        /**
+                         * @description Cash rounding (rupiah) the server applies at sync, so an offline device asks for the same cash.
+                         * @enum {integer}
+                         */
+                        cash_rounding_step: 0 | 100 | 500;
                     };
                 };
             };
@@ -14113,6 +14232,141 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    requestAccountDeletionOTP: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountDeletionOTPRequest"];
+            };
+        };
+        responses: {
+            /** @description Code sent when the owner email matches the store */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountDeletionOTPResponse"];
+                };
+            };
+            /** @description Too many requests from this IP */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    confirmAccountDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountDeletionConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Request created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountDeletionResponse"];
+                };
+            };
+            /** @description ACCOUNT_DELETION_PENDING (a request already runs its grace period, returned in request) or CONFLICT (open shift or active order) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountDeletionPendingResponse"];
+                };
+            };
+            /** @description OTP_INVALID (wrong, used or expired code, or unknown store/email) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too many requests from this IP */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    cancelAccountDeletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountDeletionConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Request cancelled */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountDeletionResponse"];
+                };
+            };
+            /** @description ACCOUNT_DELETION_NOT_PENDING */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description OTP_INVALID */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Too many requests from this IP */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
             };
         };
     };

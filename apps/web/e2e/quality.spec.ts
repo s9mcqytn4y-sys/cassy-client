@@ -194,3 +194,58 @@ test.describe("kartu QR pada layar 360 x 640", () => {
     await expect(page.getByText(/Bayar sebelum/)).toBeInViewport({ ratio: 1 });
   });
 });
+
+test("hapus akun: kode, permintaan 30 hari, lolos axe di tiap langkah", async ({ page }) => {
+  const request = {
+    id: "demo-clearance-1",
+    status: "cooling_off",
+    channel: "web",
+    cooling_off_ends_at: "2026-12-25T10:00:00Z",
+    ledger_retention_until: "2036-11-25T10:00:00Z",
+    created_at: "2026-11-25T10:00:00Z"
+  };
+  let confirmBody: Record<string, string> = {};
+  await page.route("**/api/v1/public/account-deletion/otp", (r) => r.fulfill({ ...json({ message: "ok", expires_in_seconds: 600 }), status: 202 }));
+  await page.route("**/api/v1/public/account-deletion", (r) => {
+    confirmBody = r.request().postDataJSON();
+    return r.fulfill({ ...json({ request }), status: 201 });
+  });
+  await page.goto("/hapus-akun", { waitUntil: "networkidle" });
+  await expect(page.getByRole("heading", { level: 1, name: "Hapus akun toko Cassy" })).toBeVisible();
+  await expectNoSeriousViolations(page);
+  await expectNoHorizontalScroll(page);
+
+  await page.getByLabel("Kode toko").fill("kopi-senja");
+  await page.getByLabel("Email pemilik").fill("pemilik@kopisenja.test");
+  await page.getByRole("button", { name: "Kirim kode verifikasi" }).click();
+  await page.getByLabel("Kode verifikasi").fill("123456");
+  await expectNoSeriousViolations(page);
+  await page.getByRole("button", { name: "Minta penghapusan akun" }).click();
+
+  await expect(page.getByRole("heading", { name: "Permintaan penghapusan diterima" })).toBeVisible();
+  await expect(page.getByText("25 Desember 2026")).toBeVisible();
+  expect(confirmBody).toMatchObject({ store_slug: "kopi-senja", email: "pemilik@kopisenja.test", otp_code: "123456" });
+  await expectNoSeriousViolations(page);
+});
+
+test("hapus akun: permintaan yang sudah berjalan ditampilkan dengan tanggalnya", async ({ page }) => {
+  await page.route("**/api/v1/public/account-deletion/otp", (r) => r.fulfill({ ...json({ message: "ok", expires_in_seconds: 600 }), status: 202 }));
+  await page.route("**/api/v1/public/account-deletion", (r) =>
+    r.fulfill({
+      ...json({
+        code: "ACCOUNT_DELETION_PENDING",
+        error: "permintaan hapus akun sudah berjalan pada masa tenggang",
+        request: { id: "demo-clearance-2", status: "cooling_off", channel: "pos", cooling_off_ends_at: "2026-12-20T10:00:00Z", ledger_retention_until: "2036-11-20T10:00:00Z", created_at: "2026-11-20T10:00:00Z" }
+      }),
+      status: 409
+    })
+  );
+  await page.goto("/hapus-akun", { waitUntil: "networkidle" });
+  await page.getByLabel("Kode toko").fill("kopi-senja");
+  await page.getByLabel("Email pemilik").fill("pemilik@kopisenja.test");
+  await page.getByRole("button", { name: "Kirim kode verifikasi" }).click();
+  await page.getByLabel("Kode verifikasi").fill("654321");
+  await page.getByRole("button", { name: "Minta penghapusan akun" }).click();
+  await expect(page.getByRole("heading", { name: "Sudah ada permintaan penghapusan" })).toBeVisible();
+  await expect(page.getByText("20 Desember 2026")).toBeVisible();
+});

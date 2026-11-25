@@ -24,6 +24,7 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -34,9 +35,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.azuredevid.cassy.BuildConfig
 import com.azuredevid.cassy.R
 import com.azuredevid.cassy.ui.designsystem.CassyDimens
 import com.azuredevid.cassy.ui.designsystem.CassyShimmerBox
@@ -136,6 +139,19 @@ fun StoreSettingsScreen(
                     }
                 },
                 actions = {
+                    // Account deletion is a web flow (FL-Q9) so it works the same with or without the app.
+                    if (state.staffRoleLabel.equals("owner", ignoreCase = true)) {
+                        val uriHandler = LocalUriHandler.current
+                        TextButton(
+                            onClick = { uriHandler.openUri(BuildConfig.PUBLIC_WEB_URL + "/hapus-akun") },
+                            modifier = Modifier.defaultMinSize(minHeight = CassyDimens.TouchTargetMin)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.settings_delete_store_account),
+                                color = colors.error
+                            )
+                        }
+                    }
                     CassyStatusBadge(
                         text = stringResource(
                             if (state.hasManageAccess) {
