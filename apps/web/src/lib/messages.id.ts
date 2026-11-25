@@ -389,7 +389,41 @@ export const id = {
       { aspect: "Layar dapur", commission: "Bervariasi", subscription: "Sering jadi tambahan berbayar", cassy: "Termasuk sesuai paket" },
       { aspect: "Saat langganan berhenti", commission: "Bervariasi", subscription: "Bervariasi", cassy: "Baca-saja, data tidak dihapus" }
     ]
-  }
+  },
+  delTitle: "Hapus akun toko Cassy",
+  delIntro: "Pemilik toko dapat meminta penghapusan akun dari halaman ini. Kami mengirim kode verifikasi ke email pemilik yang terdaftar.",
+  delWhatTitle: "Yang terjadi setelah Anda meminta penghapusan",
+  delGrace: "Ada masa tenggang 30 hari. Selama itu Anda dapat membatalkan permintaan dari halaman ini atau dari pengaturan toko di aplikasi POS.",
+  delPaymentsOff: "Pembayaran online lewat Midtrans gerai langsung dinonaktifkan saat permintaan dibuat.",
+  delRemoved: "Setelah 30 hari, kami menganonimkan nama, email, nomor telepon, dan PIN staf, data kontak pelanggan dan tamu, serta kontak pemilik. Toko, perangkat, dan layar tampilan dinonaktifkan.",
+  delKept: "Catatan transaksi, pembayaran, shift, laporan, dan faktur disimpan selama masa retensi yang diwajibkan hukum perpajakan, tanpa data pribadi.",
+  delPrivacyLink: "Baca kebijakan privasi",
+  delStoreSlug: "Kode toko",
+  delStoreSlugHint: "Kode yang dipakai saat masuk ke aplikasi POS, misalnya kopi-senja.",
+  delEmail: "Email pemilik",
+  delReason: "Alasan (opsional)",
+  delSendCode: "Kirim kode verifikasi",
+  delSending: "Mengirim...",
+  delCodeSent: "Jika email tersebut adalah email pemilik toko ini, kode 6 digit sudah dikirim. Kode berlaku 10 menit.",
+  delCode: "Kode verifikasi",
+  delConfirm: "Minta penghapusan akun",
+  delCancelExisting: "Batalkan permintaan yang sedang berjalan",
+  delResend: "Kirim ulang kode",
+  delBack: "Ubah kode toko atau email",
+  delWorking: "Memproses...",
+  delDoneTitle: "Permintaan penghapusan diterima",
+  delDoneBody: "Data pribadi akan dianonimkan pada {date}. Sampai tanggal itu Anda dapat membatalkan permintaan.",
+  delPendingTitle: "Sudah ada permintaan penghapusan",
+  delPendingBody: "Permintaan sebelumnya akan dijalankan pada {date}. Minta kode baru untuk membatalkannya.",
+  delCancelledTitle: "Permintaan penghapusan dibatalkan",
+  delCancelledBody: "Akun toko tetap aktif. Aktifkan lagi pembayaran Midtrans di pengaturan toko bila Anda memakainya.",
+  delErrCode: "Kode salah atau sudah kedaluwarsa. Minta kode baru bila perlu.",
+  delErrNotPending: "Tidak ada permintaan penghapusan yang sedang berjalan.",
+  delErrBusy: "Masih ada shift kasir atau pesanan yang belum selesai. Tutup shift dan selesaikan pesanan, lalu coba lagi.",
+  delErrRate: "Terlalu banyak percobaan. Coba lagi dalam beberapa menit.",
+  delErrGeneric: "Permintaan belum bisa diproses. Coba lagi.",
+  delHome: "Beranda",
+  delSwitchLanguage: "Ganti bahasa ke Inggris"
 };
 
 export type Messages = typeof id;

@@ -14,8 +14,9 @@ android {
         applicationId = "com.azuredevid.cassy"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        // CI release builds pass these (android-release.yml); local builds keep 1 / 1.0.0.
+        versionCode = System.getenv("ANDROID_VERSION_CODE")?.toIntOrNull() ?: 1
+        versionName = System.getenv("ANDROID_VERSION_NAME")?.takeIf { it.isNotBlank() } ?: "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -26,6 +27,7 @@ android {
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
             buildConfigField("String", "BASE_API_URL", "\"http://10.0.2.2:8080\"")
+            buildConfigField("String", "PUBLIC_WEB_URL", "\"http://10.0.2.2:8088\"")
             buildConfigField("Boolean", "IS_DEMO_ENVIRONMENT", "true")
         }
         create("staging") {
@@ -33,11 +35,13 @@ android {
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-staging"
             buildConfigField("String", "BASE_API_URL", "\"https://api.abbdullaziz.online\"")
+            buildConfigField("String", "PUBLIC_WEB_URL", "\"https://pos.abbdullaziz.online\"")
             buildConfigField("Boolean", "IS_DEMO_ENVIRONMENT", "true")
         }
         create("prod") {
             dimension = "environment"
             buildConfigField("String", "BASE_API_URL", "\"https://api.abbdullaziz.online\"")
+            buildConfigField("String", "PUBLIC_WEB_URL", "\"https://pos.abbdullaziz.online\"")
             buildConfigField("Boolean", "IS_DEMO_ENVIRONMENT", "false")
         }
     }
