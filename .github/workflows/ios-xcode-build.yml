@@ -31,7 +31,7 @@ jobs:
     runs-on: macos-15
     steps:
       - name: Checkout client monorepo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Select latest stable Xcode
         run: |
