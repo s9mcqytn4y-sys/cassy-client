@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" fill="none" role="img" aria-label="Keranjang masih kosong">
+  <style>
+    @keyframes cassyCartFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-4px); }
+    }
+    .cassy-cart { animation: cassyCartFloat 3.6s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+    @media (prefers-reduced-motion: reduce) {
+      .cassy-cart { animation: none; }
+    }
+  </style>
+  <ellipse cx="100" cy="134" rx="52" ry="7" fill="#17211E" fill-opacity="0.08"/>
+  <g class="cassy-cart">
+    <!-- Serving Tray / Bag Silhouette -->
+    <path d="M62 56H138L131 116C130.4 121 126.2 125 121 125H79C73.8 125 69.6 121 69 116L62 56Z" fill="#FFFFFF" stroke="#1F5F52" stroke-width="2.5" stroke-linejoin="round"/>
+    <!-- Handle -->
+    <path d="M82 56V46C82 36.1 90.1 28 100 28C109.9 28 118 36.1 118 46V56" stroke="#1F5F52" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- Minimalist Coffee Bean Accent -->
+    <circle cx="100" cy="88" r="14" fill="#E9A23B" fill-opacity="0.22"/>
+    <path d="M93 88H107M100 81V95" stroke="#1F5F52" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+</svg>

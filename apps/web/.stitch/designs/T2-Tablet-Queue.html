@@ -1,0 +1,364 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1280, height=800, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cassy T2 Layar Antrean Publik (/antrean Live Queue Board)</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'putih-tulang': '#F7F5F0',
+            'pandan': '#1F5F52',
+            'pandan-dark': '#15433A',
+            'pandan-light': '#2A7A6A',
+            'kunyit': '#E9A23B',
+            'kunyit-light': '#FFF8EE',
+            'tinta': '#17211E',
+            'tinta-muted': '#56605B',
+            'tinta-subtle': '#8C877C',
+            'border-base': '#E2DDD2',
+            'border-subtle': '#EDE8DC'
+          },
+          fontFamily: {
+            display: ['Bricolage Grotesque', 'sans-serif'],
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    body, html {
+      width: 1280px;
+      height: 800px;
+      min-width: 1280px;
+      max-width: 1280px;
+      min-height: 800px;
+      max-height: 800px;
+      overflow: hidden;
+      background-color: #F7F5F0;
+      color: #17211E;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+    /* Pulse ring animation */
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 0.4; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .animate-pulse-ring {
+      animation: pulse-ring 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="w-[1280px] h-[800px] flex flex-col bg-putih-tulang selection:bg-pandan selection:text-white select-none">
+
+  <!-- TOP SLIM BAR (Height: 64px) -->
+  <header class="w-full h-16 bg-white border-b border-border-base px-8 flex items-center justify-between z-20 shrink-0 shadow-sm">
+    <!-- Brand & Location -->
+    <div class="flex items-center gap-4">
+      <div class="w-9 h-9 rounded-xl bg-pandan flex items-center justify-center text-white font-display font-bold text-lg shadow-sm">
+        C
+      </div>
+      <div class="flex items-center gap-3">
+        <h1 class="font-display font-bold text-xl text-tinta tracking-tight">Cassy Roastery Senopati</h1>
+        <span class="text-border-base text-lg font-light">|</span>
+        <span class="text-sm font-semibold text-tinta-muted tracking-wide uppercase">Layar Antrean Langsung</span>
+      </div>
+    </div>
+
+    <!-- Right Controls: Status & Realtime Clock -->
+    <div class="flex items-center gap-6">
+      <!-- Real-Time Connection Status Pill -->
+      <div class="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#EBF5F2] border border-[#C6E4DC]">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1F5F52] opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-pandan"></span>
+        </span>
+        <span class="text-xs font-semibold text-pandan tracking-tight">Terhubung Real-Time</span>
+      </div>
+
+      <!-- Socket latency indicator -->
+      <div class="flex items-center gap-1.5 text-xs text-tinta-subtle font-mono tabular-nums">
+        <svg class="w-3.5 h-3.5 text-pandan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        <span>ws 18ms</span>
+      </div>
+
+      <!-- Live Clock Tabular -->
+      <div class="flex items-center gap-2 pl-4 border-l border-border-base">
+        <svg class="w-4 h-4 text-tinta-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" stroke-width="2" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 3" />
+        </svg>
+        <span id="live-clock" class="font-mono text-base font-bold text-tinta tabular-nums tracking-wide">16:25:12 WIB</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN SPLIT VIEW (Height: 736px / remaining 100%) -->
+  <main class="w-full flex-1 flex overflow-hidden">
+
+    <!-- LEFT 42% CALL HERO SECTION (42% of 1280px = 537.6px) -->
+    <section class="w-[42%] h-full bg-pandan text-white relative flex flex-col justify-between p-10 shadow-2xl z-10 border-r border-pandan-dark">
+      
+      <!-- Subtle textured radial glow behind hero -->
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_35%,rgba(233,162,59,0.18),transparent_65%)] pointer-events-none"></div>
+      <div class="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-pandan-light/30 blur-3xl pointer-events-none"></div>
+
+      <!-- Hero Header: Call Badge & Status -->
+      <div class="relative z-10 flex items-center justify-between">
+        <!-- Kunyit Call Badge -->
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-kunyit text-tinta shadow-md">
+          <svg class="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          <span class="font-display font-extrabold text-sm tracking-wider uppercase">DIPANGGIL SEKARANG</span>
+        </div>
+
+        <!-- Node & Speaker info -->
+        <div class="flex items-center gap-2 text-xs font-mono text-white/80 bg-pandan-dark/60 px-3 py-1.5 rounded-lg border border-white/10">
+          <span class="w-2 h-2 rounded-full bg-kunyit"></span>
+          <span>Audio Bel Aktif (ID)</span>
+        </div>
+      </div>
+
+      <!-- Hero Centerpiece: Giant Display Code -->
+      <div class="relative z-10 flex flex-col items-center justify-center my-auto py-4 text-center">
+        <!-- Pulse Decorative Ring Behind Code -->
+        <div class="relative flex items-center justify-center">
+          <div class="absolute -inset-10 rounded-3xl border border-kunyit/30 animate-pulse-ring pointer-events-none"></div>
+          
+          <!-- Giant Tabular Display Code -->
+          <div class="font-display font-black text-[130px] leading-none tracking-tight text-white tabular-nums drop-shadow-sm select-all">
+            A-040
+          </div>
+        </div>
+
+        <!-- Pickup Destination Location Pill -->
+        <div class="mt-7 inline-flex items-center gap-3 px-6 py-2.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-inner">
+          <svg class="w-5 h-5 text-kunyit shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span class="font-display font-bold text-xl text-white tracking-wide">Meja M-02 / Konter Barista</span>
+        </div>
+
+        <!-- Prompt Directive Copy -->
+        <p class="mt-4 font-sans font-medium text-lg text-white/90 tracking-normal">
+          Silakan ambil pesanan Anda di konter barista utama
+        </p>
+      </div>
+
+      <!-- Hero Footer Details: Order Items Preview & Verification -->
+      <div class="relative z-10 bg-pandan-dark/70 backdrop-blur-sm rounded-2xl p-4 border border-white/10 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-kunyit">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs text-white/60 font-mono tracking-wider">PESANAN TERVALIDASI</div>
+            <div class="text-sm font-semibold text-white">2 Item (Classic Iced Latte, Croissant)</div>
+          </div>
+        </div>
+
+        <div class="text-right">
+          <div class="text-xs text-white/60 font-mono">WAKTU PANGGIL</div>
+          <div class="text-xs font-mono font-bold text-kunyit tabular-nums">16:24:58 WIB</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT 58% GRID SECTION (58% of 1280px = 742.4px) -->
+    <section class="w-[58%] h-full bg-putih-tulang flex flex-col p-8 overflow-hidden justify-between">
+      
+      <!-- TOP SECTION: SIAP DIAMBIL (Ready for Pickup) -->
+      <div class="w-full flex flex-col">
+        <!-- Section Header -->
+        <div class="flex items-center justify-between mb-3.5 pb-2.5 border-b border-border-base">
+          <div class="flex items-center gap-3">
+            <div class="w-3 h-3 rounded-full bg-pandan"></div>
+            <h2 class="font-display font-bold text-xl text-tinta tracking-tight">Siap Diambil</h2>
+            <span class="px-2.5 py-0.5 rounded-full bg-pandan/10 text-pandan text-xs font-mono font-bold tabular-nums">2 antrean</span>
+          </div>
+          <span class="text-xs text-tinta-subtle font-sans">Ambil pesanan di konter dengan menunjukkan struk digital</span>
+        </div>
+
+        <!-- Ready Cards Grid (2 prominent cards: A-038 & A-039) -->
+        <div class="grid grid-cols-2 gap-4">
+          
+          <!-- Card A-038 -->
+          <div class="bg-white rounded-2xl p-5 border-2 border-pandan shadow-sm flex flex-col justify-between relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-pandan/5 rounded-bl-full pointer-events-none"></div>
+            <div class="flex items-start justify-between">
+              <span class="font-display font-black text-5xl text-pandan tracking-tight tabular-nums">A-038</span>
+              <span class="px-3 py-1 rounded-lg bg-pandan text-white text-xs font-semibold tracking-wide">Konter 01</span>
+            </div>
+            <div class="mt-4 pt-3 border-t border-border-subtle flex items-center justify-between text-xs text-tinta-muted">
+              <span class="font-medium">1x Pandan Cold Brew</span>
+              <span class="font-mono text-tinta-subtle tabular-nums">16:23 WIB</span>
+            </div>
+          </div>
+
+          <!-- Card A-039 -->
+          <div class="bg-white rounded-2xl p-5 border-2 border-pandan shadow-sm flex flex-col justify-between relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-24 h-24 bg-pandan/5 rounded-bl-full pointer-events-none"></div>
+            <div class="flex items-start justify-between">
+              <span class="font-display font-black text-5xl text-pandan tracking-tight tabular-nums">A-039</span>
+              <span class="px-3 py-1 rounded-lg bg-pandan text-white text-xs font-semibold tracking-wide">Konter 02</span>
+            </div>
+            <div class="mt-4 pt-3 border-t border-border-subtle flex items-center justify-between text-xs text-tinta-muted">
+              <span class="font-medium">2x Es Kopi Susu Aren</span>
+              <span class="font-mono text-tinta-subtle tabular-nums">16:24 WIB</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- BOTTOM SECTION: SEDANG DISIAPKAN (In Preparation) -->
+      <div class="w-full flex flex-col mt-4">
+        <!-- Section Header -->
+        <div class="flex items-center justify-between mb-3.5 pb-2.5 border-b border-border-base">
+          <div class="flex items-center gap-3">
+            <div class="w-3 h-3 rounded-full bg-kunyit animate-pulse"></div>
+            <h2 class="font-display font-bold text-xl text-tinta tracking-tight">Sedang Disiapkan</h2>
+            <span class="px-2.5 py-0.5 rounded-full bg-kunyit/15 text-[#975B00] text-xs font-mono font-bold tabular-nums">4 pesanan di dapur & bar</span>
+          </div>
+          <span class="text-xs text-tinta-subtle font-sans">Dipersiapkan sesuai urutan pemesanan</span>
+        </div>
+
+        <!-- Preparing Cards Grid (Cards A-041, A-042, A-043, A-044) -->
+        <div class="grid grid-cols-2 gap-4">
+          
+          <!-- Card A-041 -->
+          <div class="bg-white rounded-2xl p-4 border border-border-base shadow-sm flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-putih-tulang flex items-center justify-center border border-border-subtle">
+                <span class="w-2.5 h-2.5 rounded-full bg-kunyit"></span>
+              </div>
+              <div>
+                <div class="font-display font-extrabold text-3xl text-tinta tabular-nums tracking-tight">A-041</div>
+                <div class="text-xs text-tinta-muted font-medium mt-0.5">Espresso Bar & Pastry</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="inline-block px-2.5 py-1 rounded-md bg-[#FFF9EE] text-[#975B00] border border-[#F5E2BE] text-xs font-medium">Estimasi 2 mnt</span>
+              <div class="text-[11px] font-mono text-tinta-subtle mt-1 tabular-nums">Barista 01</div>
+            </div>
+          </div>
+
+          <!-- Card A-042 -->
+          <div class="bg-white rounded-2xl p-4 border border-border-base shadow-sm flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-putih-tulang flex items-center justify-center border border-border-subtle">
+                <span class="w-2.5 h-2.5 rounded-full bg-kunyit"></span>
+              </div>
+              <div>
+                <div class="font-display font-extrabold text-3xl text-tinta tabular-nums tracking-tight">A-042</div>
+                <div class="text-xs text-tinta-muted font-medium mt-0.5">Manual Brew Flores</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="inline-block px-2.5 py-1 rounded-md bg-[#FFF9EE] text-[#975B00] border border-[#F5E2BE] text-xs font-medium">Estimasi 4 mnt</span>
+              <div class="text-[11px] font-mono text-tinta-subtle mt-1 tabular-nums">Slow Bar</div>
+            </div>
+          </div>
+
+          <!-- Card A-043 -->
+          <div class="bg-white rounded-2xl p-4 border border-border-base shadow-sm flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-putih-tulang flex items-center justify-center border border-border-subtle">
+                <span class="w-2.5 h-2.5 rounded-full bg-kunyit"></span>
+              </div>
+              <div>
+                <div class="font-display font-extrabold text-3xl text-tinta tabular-nums tracking-tight">A-043</div>
+                <div class="text-xs text-tinta-muted font-medium mt-0.5">Dapur Pastry Panas</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="inline-block px-2.5 py-1 rounded-md bg-[#FFF9EE] text-[#975B00] border border-[#F5E2BE] text-xs font-medium">Estimasi 5 mnt</span>
+              <div class="text-[11px] font-mono text-tinta-subtle mt-1 tabular-nums">Oven Station</div>
+            </div>
+          </div>
+
+          <!-- Card A-044 -->
+          <div class="bg-white rounded-2xl p-4 border border-border-base shadow-sm flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-putih-tulang flex items-center justify-center border border-border-subtle">
+                <span class="w-2.5 h-2.5 rounded-full bg-kunyit"></span>
+              </div>
+              <div>
+                <div class="font-display font-extrabold text-3xl text-tinta tabular-nums tracking-tight">A-044</div>
+                <div class="text-xs text-tinta-muted font-medium mt-0.5">Signature Iced Latte</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="inline-block px-2.5 py-1 rounded-md bg-[#FFF9EE] text-[#975B00] border border-[#F5E2BE] text-xs font-medium">Estimasi 6 mnt</span>
+              <div class="text-[11px] font-mono text-tinta-subtle mt-1 tabular-nums">Barista 02</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- FOOTER NOTE (Discrete Public Info) -->
+      <footer class="w-full pt-3 mt-2 border-t border-border-base flex items-center justify-between text-xs text-tinta-subtle">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-pandan"></span>
+          <span>Pemberitahuan otomatis aktif melalui pengeras suara konter & getar notifikasi ponsel tamu</span>
+        </div>
+        <div class="font-mono text-[11px] text-tinta-subtle">
+          Sistem Cassy Guest v2.4 . Meja & Konter Terenkripsi
+        </div>
+      </footer>
+
+    </section>
+
+  </main>
+
+  <!-- Live Clock updater script -->
+  <script>
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const clockElement = document.getElementById('live-clock');
+      if (clockElement) {
+        clockElement.textContent = `${hours}:${minutes}:${seconds} WIB`;
+      }
+    }
+    setInterval(updateClock, 1000);
+  </script>
+
+</body>
+</html>
+

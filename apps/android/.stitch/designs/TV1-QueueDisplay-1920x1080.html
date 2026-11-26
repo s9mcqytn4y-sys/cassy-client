@@ -1,0 +1,275 @@
+﻿<!DOCTYPE html>
+
+<html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_blank" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={"darkMode":"class","theme":{"extend":{"colors":{"on-error-container":"#93000a","inverse-on-surface":"#f2f1ec","secondary-fixed":"#ffddb6","on-primary":"#ffffff","on-tertiary-fixed-variant":"#653e00","on-surface-variant":"#3f4946","surface-container-lowest":"#FFFFFF","primary-container":"#1f5f52","on-tertiary":"#ffffff","error-container":"#FBE7E5","on-secondary-fixed":"#2a1800","surface-container":"#f0eee9","surface-container-low":"#f5f3ee","on-error":"#ffffff","secondary-fixed-dim":"#ffb959","on-primary-fixed-variant":"#095044","surface":"#F7F5F0","primary":"#1F5F52","on-secondary-container":"#714800","surface-dim":"#dbdad5","surface-bright":"#fbf9f4","on-secondary":"#17211E","inverse-surface":"#30312e","on-tertiary-container":"#fdbe6e","secondary":"#E9A23B","surface-variant":"#e4e2dd","on-secondary-fixed-variant":"#643f00","outline":"#8C877C","on-surface":"#17211E","error":"#B3261E","outline-variant":"#E2DDD2","on-primary-fixed":"#00201a","surface-container-high":"#eae8e3","secondary-container":"#ffb54d","on-background":"#1b1c19","on-primary-container":"#98d7c6","tertiary-container":"#784b00","tertiary":"#8A5A12","background":"#fbf9f4","tertiary-fixed-dim":"#fabb6b","primary-fixed":"#b0efde","on-tertiary-fixed":"#2a1700","surface-tint":"#2a685b","primary-fixed-dim":"#94d3c2","surface-container-highest":"#e4e2dd","inverse-primary":"#94d3c2","tertiary-fixed":"#ffddb7"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-lg":"1.5rem","margin":"1rem","gutter":"1rem","space-xl":"2rem","space-xs":"0.25rem","space-sm":"0.5rem","space-md":"1rem"},"fontFamily":{"headline-md":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"display-lg":["Plus Jakarta Sans"],"label-md":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"],"title-md":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"tabular-nums":["Plus Jakarta Sans"]},"fontSize":{"headline-md":["24px",{"lineHeight":"32px","fontWeight":"600"}],"headline-lg":["32px",{"lineHeight":"40px","fontWeight":"600"}],"headline-sm":["20px",{"lineHeight":"26px","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"display-lg":["44px",{"lineHeight":"52px","fontWeight":"700"}],"label-md":["12px",{"lineHeight":"16px","fontWeight":"500"}],"label-lg":["14px",{"lineHeight":"20px","fontWeight":"500"}],"title-md":["16px",{"lineHeight":"24px","fontWeight":"500"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"tabular-nums":["14px",{"lineHeight":"20px","fontWeight":"600"}]}}}}</script></head><body class="bg-surface font-body-md text-body-md text-on-surface select-none antialiased"><main class="w-full min-h-screen bg-surface"><div class="flex flex-col w-full h-screen bg-[#0C1412] text-surface select-none overflow-hidden font-body-md">
+<!-- Top Header Bar (80px equivalent to 80dp in 10-foot UI) -->
+<header class="w-full h-20 bg-[#111B18] px-8 flex items-center justify-between shadow-md shrink-0">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-sm">
+<span class="material-symbols-outlined text-2xl">soup_kitchen</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm font-bold tracking-tight text-surface-bright">Cassy TV Queue</span>
+<span class="bg-primary/30 text-primary-fixed text-xs px-2 py-0.5 rounded font-label-md font-semibold tracking-wider">LIVE</span>
+</div>
+<p class="font-label-md text-label-md text-outline tracking-wide">Kedai Cassy Sudirman</p>
+</div>
+</div>
+<!-- Center: Waktu Real-time -->
+<div class="flex items-center gap-3 bg-[#172421] px-5 py-2.5 rounded-xl shadow-sm">
+<span class="material-symbols-outlined text-secondary text-xl">schedule</span>
+<div class="flex items-baseline gap-1.5 font-tabular-nums">
+<span class="font-headline-md text-headline-md font-bold tracking-wider text-surface-bright" id="tv-clock">14:52:10</span>
+<span class="font-label-md text-label-md text-outline font-medium">WIB</span>
+</div>
+</div>
+<!-- Right: Status Banner -->
+<div class="flex items-center gap-3 bg-[#162723] px-5 py-2.5 rounded-xl max-w-xl shadow-sm">
+<span class="material-symbols-outlined text-primary-fixed shrink-0 text-xl" style="font-variation-settings: 'FILL' 1;">info</span>
+<p class="font-body-md text-body-md text-surface-bright truncate">Silakan ambil pesanan di Meja Pengambilan saat nomor Anda dipanggil</p>
+</div>
+</header>
+<!-- Main 40/60 Split Content Area -->
+<div class="flex-1 flex w-full p-6 gap-6 min-h-0">
+<!-- Left Hero Column (40% width): NOW CALLING / DIPANGGIL SEKARANG -->
+<div class="w-[40%] flex flex-col h-full shrink-0">
+<div class="w-full h-full bg-secondary text-on-secondary rounded-2xl p-8 flex flex-col justify-between shadow-xl relative overflow-hidden">
+<!-- Ambient decorative pulse glow -->
+<div class="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-secondary-container/40 blur-3xl pointer-events-none"></div>
+<div class="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-[#ffb959]/30 blur-2xl pointer-events-none"></div>
+<!-- Hero Card Top -->
+<div class="relative z-10 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-3xl text-on-secondary" style="font-variation-settings: 'FILL' 1;">volume_up</span>
+<span class="font-headline-sm text-headline-sm font-bold uppercase tracking-widest text-on-secondary">DIPANGGIL SEKARANG</span>
+</div>
+<!-- Audio chime wave animation indicator -->
+<div class="flex items-center gap-1.5 bg-black/10 px-3 py-1.5 rounded-full">
+<span class="w-1.5 h-3 bg-on-secondary rounded-full animate-pulse"></span>
+<span class="w-1.5 h-6 bg-on-secondary rounded-full animate-pulse [animation-delay:150ms]"></span>
+<span class="w-1.5 h-8 bg-on-secondary rounded-full animate-pulse [animation-delay:300ms]"></span>
+<span class="w-1.5 h-4 bg-on-secondary rounded-full animate-pulse [animation-delay:75ms]"></span>
+<span class="font-label-md text-label-md font-bold uppercase tracking-wider ml-1 text-on-secondary">SUARA AKTIF</span>
+</div>
+</div>
+<!-- Center Huge Order Display -->
+<div class="relative z-10 my-auto text-center flex flex-col items-center">
+<div class="bg-black/10 px-6 py-1.5 rounded-full mb-3">
+<span class="font-title-md text-title-md font-bold tracking-widest text-on-secondary">NOMOR ANTREAN</span>
+</div>
+<!-- Giant Order Code -->
+<h1 class="text-[130px] leading-none font-black font-tabular-nums tracking-tighter text-on-secondary my-1 drop-shadow-sm">A-040</h1>
+<div class="inline-flex items-center gap-2 bg-[#17211E] text-surface-bright px-5 py-2 rounded-xl mt-3 shadow-md">
+<span class="material-symbols-outlined text-secondary text-xl">table_restaurant</span>
+<span class="font-headline-sm text-headline-sm font-bold tracking-normal">Meja M-02 (Dine-In)</span>
+</div>
+<p class="font-label-lg text-label-lg font-bold tracking-wide mt-2 text-on-secondary/80">Lokasi: Pick-Up Counter 1</p>
+</div>
+<!-- Hero Card Bottom Status & Sub-Alert Pulse -->
+<div class="relative z-10 flex flex-col gap-3">
+<div class="w-full bg-[#17211E]/10 backdrop-blur-md rounded-xl p-4 flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<span class="w-3.5 h-3.5 rounded-full bg-error animate-ping"></span>
+<span class="font-title-md text-title-md font-bold text-on-secondary">Harap Menuju Meja Pengambilan</span>
+</div>
+<span class="font-tabular-nums font-label-lg text-label-lg font-bold text-on-secondary/90">Dipanggil: 14:51 WIB</span>
+</div>
+<div class="flex items-center justify-between text-xs font-label-md text-on-secondary/70 pt-1">
+<span>Stasiun Kasir Utama</span>
+<span>Konfirmasi Tiket #C-89210</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column (60% width): Split into two clear vertical sections -->
+<div class="w-[60%] flex flex-col h-full gap-5">
+<!-- Section A: SIAP DIAMBIL (READY FOR PICK-UP) -->
+<div class="flex-1 bg-[#111B18] rounded-2xl p-6 flex flex-col shadow-lg overflow-hidden">
+<!-- Section A Header -->
+<div class="flex items-center justify-between pb-4">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-[#34A853] shadow-[0_0_12px_#34A853]"></div>
+<h2 class="font-headline-sm text-headline-sm font-bold tracking-wide text-surface-bright uppercase">SIAP DIAMBIL</h2>
+<span class="font-label-md text-label-md text-outline tracking-wider">(READY FOR PICK-UP)</span>
+</div>
+<span class="bg-[#1E6B34]/30 text-[#98d7c6] px-3.5 py-1 rounded-full font-label-lg text-label-lg font-bold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base">check_circle</span>
+            3 Pesanan
+          </span>
+</div>
+<!-- Tile Grid: 3 columns of high-contrast cards -->
+<div class="grid grid-cols-3 gap-4 flex-1 items-stretch">
+<!-- Card 1 -->
+<div class="bg-[#182421] rounded-xl p-5 flex flex-col justify-between shadow-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1.5 bg-[#34A853]"></div>
+<div class="flex items-center justify-between pt-1">
+<span class="bg-primary/40 text-primary-fixed text-xs px-2.5 py-1 rounded-md font-label-md font-semibold">Dine-In</span>
+<div class="flex items-center gap-1 text-secondary font-label-md">
+<span class="material-symbols-outlined text-sm">timer</span>
+<span class="font-tabular-nums font-bold">4 Menit</span>
+</div>
+</div>
+<div class="text-center my-auto py-2">
+<span class="font-tabular-nums text-5xl font-black tracking-tight text-surface-bright block">A-038</span>
+<p class="font-title-md text-title-md text-surface-variant font-medium mt-1">Meja M-01</p>
+</div>
+<div class="bg-[#111B18] py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 text-xs text-outline font-label-md">
+<span class="material-symbols-outlined text-sm text-[#34A853]">countertops</span>
+<span>Counter 1</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-[#182421] rounded-xl p-5 flex flex-col justify-between shadow-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1.5 bg-[#34A853]"></div>
+<div class="flex items-center justify-between pt-1">
+<span class="bg-[#ffb54d]/20 text-secondary text-xs px-2.5 py-1 rounded-md font-label-md font-semibold">Bungkus</span>
+<div class="flex items-center gap-1 text-secondary font-label-md">
+<span class="material-symbols-outlined text-sm">timer</span>
+<span class="font-tabular-nums font-bold">2 Menit</span>
+</div>
+</div>
+<div class="text-center my-auto py-2">
+<span class="font-tabular-nums text-5xl font-black tracking-tight text-surface-bright block">A-039</span>
+<p class="font-title-md text-title-md text-secondary-fixed-dim font-medium mt-1">Take Away</p>
+</div>
+<div class="bg-[#111B18] py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 text-xs text-outline font-label-md">
+<span class="material-symbols-outlined text-sm text-[#34A853]">takeout_dining</span>
+<span>Meja Antar</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-[#182421] rounded-xl p-5 flex flex-col justify-between shadow-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1.5 bg-[#34A853]"></div>
+<div class="flex items-center justify-between pt-1">
+<span class="bg-primary/40 text-primary-fixed text-xs px-2.5 py-1 rounded-md font-label-md font-semibold">Dine-In</span>
+<div class="flex items-center gap-1 text-secondary font-label-md">
+<span class="material-symbols-outlined text-sm">timer</span>
+<span class="font-tabular-nums font-bold">6 Menit</span>
+</div>
+</div>
+<div class="text-center my-auto py-2">
+<span class="font-tabular-nums text-5xl font-black tracking-tight text-surface-bright block">A-036</span>
+<p class="font-title-md text-title-md text-surface-variant font-medium mt-1">Meja M-05</p>
+</div>
+<div class="bg-[#111B18] py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 text-xs text-outline font-label-md">
+<span class="material-symbols-outlined text-sm text-[#34A853]">countertops</span>
+<span>Counter 2</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Section B: SEDANG DISIAPKAN (PREPARING) -->
+<div class="flex-1 bg-[#111B18] rounded-2xl p-6 flex flex-col shadow-lg overflow-hidden">
+<!-- Section B Header -->
+<div class="flex items-center justify-between pb-3">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-secondary"></div>
+<h2 class="font-headline-sm text-headline-sm font-bold tracking-wide text-surface-bright uppercase">SEDANG DISIAPKAN</h2>
+<span class="font-label-md text-label-md text-outline tracking-wider">(PREPARING)</span>
+</div>
+<span class="bg-[#182421] text-outline px-3.5 py-1 rounded-full font-label-lg text-label-lg font-bold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base">hourglass_top</span>
+            4 Pesanan Dapur
+          </span>
+</div>
+<!-- Grid of in-progress orders (4 items) -->
+<div class="grid grid-cols-4 gap-3.5 flex-1 items-stretch">
+<!-- Item 1 -->
+<div class="bg-[#15201D] rounded-xl p-4 flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-xs font-label-md text-outline">Proses Bar</span>
+<span class="font-tabular-nums font-label-md text-secondary font-semibold">2 mnt</span>
+</div>
+<div class="text-center my-auto py-1">
+<span class="font-tabular-nums text-3xl font-black tracking-tight text-surface-dim block">A-041</span>
+<span class="font-body-md text-body-md text-outline truncate block mt-0.5">Meja M-04</span>
+</div>
+<div class="w-full bg-[#0C1412] h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full w-4/5"></div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="bg-[#15201D] rounded-xl p-4 flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-xs font-label-md text-outline">Dapur Panas</span>
+<span class="font-tabular-nums font-label-md text-outline font-semibold">12 mnt</span>
+</div>
+<div class="text-center my-auto py-1">
+<span class="font-tabular-nums text-3xl font-black tracking-tight text-surface-dim block">A-042</span>
+<span class="font-body-md text-body-md text-outline truncate block mt-0.5">Meja M-07</span>
+</div>
+<div class="w-full bg-[#0C1412] h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary-fixed-dim h-full rounded-full w-2/5"></div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="bg-[#15201D] rounded-xl p-4 flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-xs font-label-md text-secondary">Packing</span>
+<span class="font-tabular-nums font-label-md text-secondary font-semibold">1 mnt</span>
+</div>
+<div class="text-center my-auto py-1">
+<span class="font-tabular-nums text-3xl font-black tracking-tight text-surface-dim block">A-043</span>
+<span class="font-body-md text-body-md text-secondary-fixed-dim truncate block mt-0.5">Take Away</span>
+</div>
+<div class="w-full bg-[#0C1412] h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full w-11/12"></div>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="bg-[#15201D] rounded-xl p-4 flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="text-xs font-label-md text-outline">Pesanan Baru</span>
+<span class="font-label-md text-primary-fixed font-semibold">Baru</span>
+</div>
+<div class="text-center my-auto py-1">
+<span class="font-tabular-nums text-3xl font-black tracking-tight text-surface-dim block">A-044</span>
+<span class="font-body-md text-body-md text-outline truncate block mt-0.5">Meja M-09</span>
+</div>
+<div class="w-full bg-[#0C1412] h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full w-1/6"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Ticker Bar (60px equivalent to 60dp in 10-foot UI) -->
+<footer class="w-full h-14 bg-[#111B18] px-8 flex items-center justify-between shrink-0 shadow-inner">
+<div class="flex items-center gap-3 shrink-0">
+<span class="material-symbols-outlined text-secondary text-xl">campaign</span>
+<span class="font-label-lg text-label-lg font-bold tracking-wider text-secondary uppercase">PENGUMUMAN</span>
+</div>
+<!-- Running / Centered Ticker Notice -->
+<div class="flex-1 px-8 overflow-hidden">
+<div class="font-body-lg text-body-lg text-surface-variant truncate text-center">
+        Pesanan dibuat segar sesuai urutan antrean. Terima kasih telah bersabar menikmati sajian Kedai Cassy.
+      </div>
+</div>
+<div class="flex items-center gap-6 shrink-0 font-label-md text-label-md text-outline">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-[#34A853]"></span>
+<span>Sistem Antrean Cloud Aktif</span>
+</div>
+<span>v2.4.0-TV</span>
+</div>
+</footer>
+</div>
+<script>
+  (function initTvClock() {
+    const clockElement = document.getElementById('tv-clock');
+    if (!clockElement) return;
+
+    function updateTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      clockElement.textContent = hours + ':' + minutes + ':' + seconds;
+    }
+
+    updateTime();
+    setInterval(updateTime, 1000);
+  })();
+</script></main></body></html>

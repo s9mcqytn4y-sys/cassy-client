@@ -1,0 +1,246 @@
+﻿<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_blank" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "primary": "#1F5F52", "surface-dim": "#dbdad5", "outline": "#8C877C", "tertiary-fixed-dim": "#fabb6b", "on-secondary-container": "#714800", "secondary-fixed-dim": "#ffb959", "on-primary": "#FFFFFF", "on-surface-variant": "#3f4946", "surface-container": "#f0eee9", "surface-container-low": "#f5f3ee", "error": "#B3261E", "on-tertiary-fixed": "#2a1700", "on-secondary": "#ffffff", "outline-variant": "#bfc9c4", "on-error": "#ffffff", "primary-fixed-dim": "#94d3c2", "tertiary": "#8A5A12", "on-primary-container": "#98d7c6", "error-container": "#ffdad6", "tertiary-container": "#784b00", "primary-container": "#1f5f52", "on-tertiary-fixed-variant": "#653e00", "on-tertiary-container": "#fdbe6e", "on-tertiary": "#ffffff", "on-secondary-fixed": "#2a1800", "surface-bright": "#fbf9f4", "inverse-surface": "#30312e", "on-surface": "#17211E", "on-background": "#1b1c19", "surface-tint": "#2a685b", "primary-fixed": "#b0efde", "background": "#fbf9f4", "surface-container-lowest": "#ffffff", "surface-container-highest": "#e4e2dd", "inverse-primary": "#94d3c2", "surface-variant": "#e4e2dd", "inverse-on-surface": "#f2f1ec", "on-error-container": "#93000a", "surface-container-high": "#eae8e3", "surface": "#F7F5F0", "secondary": "#E9A23B", "on-secondary-fixed-variant": "#643f00", "tertiary-fixed": "#ffddb7", "secondary-fixed": "#ffddb6", "secondary-container": "#ffb54d", "on-primary-fixed-variant": "#095044", "on-primary-fixed": "#00201a" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-md": "1rem", "space-xl": "2.5rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "space-xs": "0.25rem", "gutter": "1.5rem", "margin": "2rem" }, "fontFamily": { "headline-sm": ["Newsreader"], "headline-md": ["Newsreader"], "label-md": ["Inter"], "headline-lg-mobile": ["Newsreader"], "body-lg": ["Inter"], "headline-lg": ["Newsreader"], "body-md": ["Inter"] }, "fontSize": { "headline-sm": ["22px", { "lineHeight": "28px", "fontWeight": "400" }], "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "400" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "500" }], "headline-lg-mobile": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "400" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "headline-lg": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.01em", "fontWeight": "400" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }] } } } };</script><style>@layer base{html,body{width:100%;min-height:100%;margin:0;padding:0;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}}::-webkit-scrollbar{display:none;}</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface text-on-surface font-body-md text-body-md min-h-screen flex flex-col antialiased selection:bg-primary/10"><main class="flex-1 flex flex-col relative w-full bg-surface pt-safe pb-safe"><div class="flex flex-col w-full pb-6 px-4 space-y-4">
+<!-- Interactive Toast Notification -->
+<div class="bg-surface-container-lowest/95 backdrop-blur-md rounded-xl p-3 shadow-md flex items-start justify-between gap-3 transition-all duration-300" id="statusToast">
+<div class="flex items-start gap-2.5">
+<div class="w-8 h-8 rounded-full bg-secondary/15 flex items-center justify-center shrink-0 mt-0.5 text-secondary">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">notifications_active</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface leading-tight">Pesanan siap diambil di konter</span>
+<span class="font-body-md text-label-md text-on-surface-variant mt-0.5">Antrean A-014 di Konter Barista</span>
+</div>
+</div>
+<button aria-label="Tutup pemberitahuan" class="text-outline hover:text-on-surface p-1 rounded-lg transition-colors" onclick="document.getElementById('statusToast').remove()">
+<span class="material-symbols-outlined text-base">close</span>
+</button>
+</div>
+<!-- Tenant & Table Indicator Bar -->
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<span class="font-body-lg text-body-lg font-medium text-on-surface tracking-tight">Cassy Roastery Senopati</span>
+</div>
+<div class="bg-primary/10 text-primary px-3 py-1 rounded-full flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span class="font-label-md text-label-md uppercase tracking-wider font-semibold">Meja A1 Indoor</span>
+</div>
+</div>
+<!-- Primary Success & Queue Callout Card -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-4">
+<div class="flex items-start justify-between">
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md uppercase tracking-wider font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded">QRIS Instan</span>
+<span class="font-label-md text-label-md text-outline">16:21 WIB</span>
+</div>
+<h1 class="font-headline-sm text-headline-sm text-on-surface font-semibold pt-1">Pembayaran Diterima</h1>
+<p class="font-label-md text-label-md text-on-surface-variant font-mono">ORD-20261122-0007</p>
+</div>
+<div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-sm">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+</div>
+<!-- Highlighted Queue Token Box -->
+<div class="bg-surface-container-low rounded-lg p-4 flex items-center justify-between">
+<div>
+<span class="font-label-md text-label-md text-on-surface-variant block uppercase tracking-wider">Nomor Antrean</span>
+<span class="font-headline-md text-headline-md font-bold text-on-surface tracking-tight font-mono">A-014</span>
+</div>
+<div class="text-right">
+<span class="font-label-md text-label-md text-primary font-medium block">Status Akun</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">Lunas via QRIS</span>
+</div>
+</div>
+</div>
+<!-- 4-Step Production Timeline Card -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-4">
+<div class="flex items-center justify-between pb-1">
+<span class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Lacak Pesanan</span>
+<span class="font-label-md text-label-md text-primary font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">sync</span> Pembaruan Langsung
+      </span>
+</div>
+<div class="space-y-4 relative">
+<!-- Step 1: Pesanan Diterima (Completed) -->
+<div class="flex items-start gap-3 relative">
+<div class="flex flex-col items-center">
+<div class="w-6 h-6 rounded-full bg-primary text-on-primary flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<div class="w-0.5 h-10 bg-primary mt-1"></div>
+</div>
+<div class="flex-1 pt-0.5">
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md font-medium text-on-surface">Pesanan diterima</span>
+<span class="font-label-md text-label-md text-outline font-mono">16:21 WIB</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant">Transaksi diverifikasi sistem POS</p>
+</div>
+</div>
+<!-- Step 2: Sedang Disiapkan (Active) -->
+<div class="flex items-start gap-3 relative -mt-2">
+<div class="flex flex-col items-center">
+<div class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center z-10">
+<div class="w-3 h-3 rounded-full bg-primary animate-ping"></div>
+</div>
+<div class="w-0.5 h-10 bg-surface-container-highest mt-1"></div>
+</div>
+<div class="flex-1 pt-0.5">
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md font-bold text-primary">Sedang disiapkan</span>
+<span class="font-label-md text-label-md text-primary font-mono font-medium">16:23 WIB</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface font-medium">Sedang diproses barista di bar utama</p>
+</div>
+</div>
+<!-- Step 3: Diantar ke Meja (Upcoming) -->
+<div class="flex items-start gap-3 relative -mt-2">
+<div class="flex flex-col items-center">
+<div class="w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center z-10">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+</div>
+<div class="w-0.5 h-10 bg-surface-container-highest mt-1"></div>
+</div>
+<div class="flex-1 pt-0.5">
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md text-outline">Diantar ke meja</span>
+<span class="font-label-md text-label-md text-outline">--:--</span>
+</div>
+<p class="font-label-md text-label-md text-outline">Pramusaji mengantar ke Meja A1</p>
+</div>
+</div>
+<!-- Step 4: Selesai (Upcoming) -->
+<div class="flex items-start gap-3 relative -mt-2">
+<div class="flex flex-col items-center">
+<div class="w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center z-10">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+</div>
+</div>
+<div class="flex-1 pt-0.5">
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md text-outline">Selesai</span>
+<span class="font-label-md text-label-md text-outline">--:--</span>
+</div>
+<p class="font-label-md text-label-md text-outline">Selamat menikmati racikan kopi Cassy</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Operational Status & Buzzer Alert Row -->
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-surface-container-low rounded-xl p-3 flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-lg">schedule</span>
+</div>
+<div class="min-w-0">
+<span class="font-label-md text-label-md text-on-surface-variant block truncate">Estimasi siap</span>
+<span class="font-body-md text-body-md font-semibold text-on-surface font-mono">~4 menit</span>
+</div>
+</div>
+<button class="bg-surface-container-lowest active:bg-surface-container-high rounded-xl p-3 flex items-center justify-center gap-2 text-primary font-medium shadow-sm transition-all text-left" id="bellButton" onclick="toggleBuzzer()">
+<span class="material-symbols-outlined text-xl" id="bellIcon">volume_up</span>
+<span class="font-body-md text-body-md font-semibold" id="bellText">Bunyi Bel Aktif</span>
+</button>
+</div>
+<!-- Anti-Spam Digital Receipt Dispatch Card -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-sm space-y-3.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl">forward_to_inbox</span>
+<h2 class="font-body-lg text-body-lg font-semibold text-on-surface">Kirim Struk ke Email</h2>
+</div>
+<span class="bg-primary/10 text-primary font-label-md text-label-md font-semibold px-2 py-0.5 rounded">Otomatis</span>
+</div>
+<!-- Active Confirmation Chip -->
+<div class="bg-primary/10 rounded-lg p-2.5 flex items-center justify-between gap-2">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-primary text-base shrink-0">mark_email_read</span>
+<span class="font-label-md text-label-md font-mono text-primary truncate">Terkirim ke abdulaziz...@gmail.com</span>
+</div>
+<span class="material-symbols-outlined text-primary text-sm shrink-0">verified</span>
+</div>
+<!-- Input Field with inline lock indicator -->
+<div class="space-y-1.5">
+<label class="font-label-md text-label-md text-on-surface-variant" for="receiptEmail">Alamat Email Penerima</label>
+<div class="relative flex items-center">
+<input class="w-full bg-surface-container-low text-on-surface font-mono text-body-md px-3.5 py-3 rounded-lg outline-none pr-10 focus:ring-1 focus:ring-primary cursor-default" id="receiptEmail" readonly="" type="email" value="abdulaziz@gmail.com"/>
+<span class="material-symbols-outlined absolute right-3 text-outline text-lg">lock</span>
+</div>
+</div>
+<!-- Cooldown Anti-Spam CTA -->
+<button class="w-full h-12 bg-surface-container-high text-outline rounded-xl font-label-md text-label-md font-semibold flex items-center justify-center gap-2 cursor-not-allowed transition-all" disabled="" id="resendBtn">
+<span class="material-symbols-outlined text-base">history</span>
+<span>Kirim Ulang (<span class="font-mono" id="countdownTimer">58</span>d)</span>
+</button>
+<div class="flex items-start gap-1.5 text-outline pt-0.5">
+<span class="material-symbols-outlined text-sm mt-0.5 shrink-0">info</span>
+<p class="font-label-md text-label-md text-on-surface-variant">
+        Maks 3x per pesanan. Periksa folder spam bila struk belum masuk dalam 2 menit.
+      </p>
+</div>
+</div>
+<!-- Bottom Functional Actions -->
+<div class="space-y-2.5 pt-2">
+<button class="w-full h-12 bg-surface-container-lowest text-primary rounded-xl font-body-md text-body-md font-semibold flex items-center justify-center gap-2 shadow-sm active:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-lg">receipt_long</span>
+      Lihat Struk Digital
+    </button>
+<button class="w-full h-14 bg-primary text-on-primary rounded-xl font-body-md text-body-md font-bold flex items-center justify-center gap-2 shadow-md active:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-xl">local_cafe</span>
+      Pesan Tambahan Menu
+    </button>
+</div>
+<!-- Audit & Encryption Microfooter -->
+<div class="text-center pt-2 pb-2">
+<p class="font-label-md text-label-md text-outline tracking-tight">
+      Ditenagai Cassy oleh AzureDevID â€¢ Sesi Meja A1 Terenkripsi TLS 1.3
+    </p>
+</div>
+</div>
+<script>
+  let seconds = 58;
+  const countdownEl = document.getElementById('countdownTimer');
+  const resendBtn = document.getElementById('resendBtn');
+
+  const timer = setInterval(() => {
+    seconds--;
+    if (countdownEl) countdownEl.textContent = seconds;
+    if (seconds <= 0) {
+      clearInterval(timer);
+      if (resendBtn) {
+        resendBtn.disabled = false;
+        resendBtn.classList.remove('bg-surface-container-high', 'text-outline', 'cursor-not-allowed');
+        resendBtn.classList.add('bg-surface-container-lowest', 'text-primary', 'active:bg-surface-container-low', 'cursor-pointer', 'shadow-sm');
+        resendBtn.innerHTML = '<span class="material-symbols-outlined text-base">send</span><span>Kirim Ulang Sekarang</span>';
+      }
+    }
+  }, 1000);
+
+  let buzzerActive = true;
+  function toggleBuzzer() {
+    buzzerActive = !buzzerActive;
+    const btn = document.getElementById('bellButton');
+    const icon = document.getElementById('bellIcon');
+    const text = document.getElementById('bellText');
+    
+    if (buzzerActive) {
+      icon.textContent = 'volume_up';
+      text.textContent = 'Bunyi Bel Aktif';
+      btn.classList.remove('text-outline');
+      btn.classList.add('text-primary');
+    } else {
+      icon.textContent = 'volume_off';
+      text.textContent = 'Bel Dibisukan';
+      btn.classList.remove('text-primary');
+      btn.classList.add('text-outline');
+    }
+  }
+</script></main></body></html>

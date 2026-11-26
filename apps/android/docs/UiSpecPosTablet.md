@@ -6,17 +6,21 @@ Status: v1 2026-11-20. Arah desain: [DesignPosTablet.md](DesignPosTablet.md). Do
 
 Layar kasir tablet saat ini membagi lebar dalam persentase (`PosLandscapeScreen`: rail 12%, katalog 53%, pesanan 35%). Di tablet 13 inci dan layar besar, rail menjadi sekitar 150dp, panel pesanan lebih dari 600dp, dan field ikut melebar. Rekomendasi: ganti ke lebar tetap (rail 88dp, panel pesanan 420dp, katalog sisa) dengan kartu katalog lebar tetap dan dialog yang dibatasi lebarnya. Ini satu PR tata letak, tanpa perubahan alur bisnis.
 
-## 2. Sumber Stitch
+## 2. Sumber Stitch (v2 - Material 3 Adaptive Mobile + Tablet + TV)
 
-Project `Cassy POS Tablet` (`3218044368979484496`), design system `assets/a8e62afbb8554174bf487a001cad5f7e`. Ambil HTML lewat Stitch MCP `get_screen` lalu `download_file`.
+Project **`Cassy Android POS - Material 3 End-to-End`** (`12425184884442557609`, Public URL: https://stitch.withgoogle.com/projects/12425184884442557609), design system `assets/444b1d1db6644b67b4fea8e973a26c6e` (menggantikan project lama `3218044368979484496`). Daftar lengkap tersimpan di `apps/android/.stitch/SITE.md` dan `apps/android/.stitch/designs/`:
 
-| Layar | Screen id | Gambar lokal (`apps/android/screenshots/stitch/PosLandscape/`) |
+| Fase / Layar | Screen ID | File Lokal (`apps/android/.stitch/designs/`) |
 |---|---|---|
-| Kasir utama | `1326d33887be4402910ca110d791fc18` | `CashierMain.png` |
-| Bayar tunai | `a785373be4cc43248685011ee31ec565` | `PaymentCashDialog.png` |
-| Bagi tagihan per item | `0b7f4ae112144b29999b895ae8db563b` | `SplitByItemDialog.png` |
+| Fase 1: Onboarding, Server Config & Security Pairing | `7a4ada35331d416ca30c4c1225c28862` | `01-Onboarding-Security.html` |
+| Fase 2: Kasir Utama (Mobile `NavigationBar` + Tablet `88dp/420dp`), Cash/QRIS & Shift | `e90563614b9d43f7b6dcd4fa5c627d31` | `02-Core-Cashier-Shift.html` |
+| Fase 3: Meja (68:32), Void PIN, Split (Equal/By-Item), KDS (3-Col/Tabbed) & TV Queue | `221aa73e95934ecc9a34ea8c41fc3095` | `03-Tables-Split-Kds-Tv.html` |
+| Fase 4: Katalog & Pengaturan Gerai (6 Tab termasuk `Fitur Tamu`) | `3dbac57bf96d473ab44c006196c15267` | `04-Catalog-StoreSettings.html` |
 
-Folder `screenshots/` di-gitignore, jadi gambar hanya ada di mesin lokal. Tabel di dokumen ini adalah acuan bersama.
+### Perbaikan Wajib dari Audit Screenshot Aktual `ui-v2.5.0`
+1. **Top Connection Status Strip (`40dp`):** Pindahkan banner koneksi/offline ke atas header agar tidak lagi menutupi tombol `Bayar Tunai`, `QRIS Dinamis`, atau `Bagi Tagihan`.
+2. **Adaptive M3 `NavigationSuiteScaffold`:** Mobile `< 600dp` memakai `NavigationBar` bawah + sticky Cart Bar (`ModalBottomSheet`) dan KDS Tabbed; Tablet `>= 840dp` memakai `NavigationRail` `88dp` + Catalog + `420dp` Order Panel.
+3. **Bahasa Indonesia Kasir Konsisten:** Format `Rp 32.000` (`tabular-nums`, bukan `IDR 32.000`), label seragam (`Kasir`, `Meja`, `Dapur`, `Katalog`, `Pengaturan`), tanpa truncation `SHIFT #SHIFT-`.
 
 ## 3. Tata Letak Kasir Utama (`PosLandscapeScreen`)
 

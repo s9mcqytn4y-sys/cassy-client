@@ -1,0 +1,335 @@
+﻿<!DOCTYPE html>
+
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=412, height=915, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Pengaturan Gerai &amp; Fitur Tamu (Mobile 412x915)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            surface: '#F7F5F0',
+            'surface-container-lowest': '#FFFFFF',
+            'surface-container': '#EFECE4',
+            'surface-container-high': '#E8E5DD',
+            'on-surface': '#17211E',
+            'on-surface-variant': '#56605B',
+            outline: '#8C877C',
+            'outline-variant': '#E2DDD2',
+            primary: '#1F5F52',
+            'on-primary': '#FFFFFF',
+            'primary-container': '#D3E8E2',
+            'on-primary-container': '#0C3B32',
+            secondary: '#E9A23B',
+            'on-secondary': '#17211E',
+            'secondary-container': '#FDEFD8',
+            tertiary: '#8A5A12',
+            error: '#B3261E',
+            'error-container': '#FBE7E5',
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 412px;
+      height: 915px;
+      overflow: hidden;
+      background-color: #F7F5F0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #17211E;
+      font-feature-settings: "tnum";
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="w-[412px] h-[915px] max-w-[412px] max-h-[915px] flex flex-col bg-surface text-on-surface select-none relative overflow-hidden">
+<!-- Status Bar Android Native (24px) -->
+<header class="h-[28px] w-full px-5 pt-1.5 flex justify-between items-center bg-surface shrink-0 z-30">
+<span class="text-[12px] font-semibold tracking-tight text-on-surface font-mono">14:28</span>
+<div class="flex items-center space-x-1.5 text-on-surface">
+<span class="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant">POS-01</span>
+<!-- Wi-Fi Icon -->
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M5 12.55a11 11 0 0 1 14.08 0"></path>
+<path d="M1.42 9a16 16 0 0 1 21.16 0"></path>
+<path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+<line x1="12" x2="12.01" y1="20" y2="20"></line>
+</svg>
+<!-- Battery Icon -->
+<svg class="w-4 h-4" fill="currentColor" viewbox="0 0 24 24">
+<rect fill="none" height="10" rx="2" stroke="currentColor" stroke-width="2" width="16" x="2" y="7"></rect>
+<path d="M20 11v2" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+<rect height="6" rx="1" width="10" x="4" y="9"></rect>
+</svg>
+</div>
+</header>
+<!-- Online Sync Strip Non-blocking Compact (28px) -->
+<section class="h-[28px] w-full px-4 bg-[#E3F2E6] flex items-center justify-between border-b border-[#C8E4CF] shrink-0 z-20">
+<div class="flex items-center space-x-2">
+<span class="w-2 h-2 rounded-full bg-[#1E6B34] animate-pulse"></span>
+<span class="text-[11px] font-semibold text-[#1E6B34]">Sinkronisasi Aktif: Redis WebSocket</span>
+</div>
+<span class="text-[10px] font-mono text-[#1E6B34] font-medium">Kanal: cassy_flag_v4</span>
+</section>
+<!-- Top App Bar & Context Info (52px) -->
+<section class="h-[52px] w-full px-4 flex items-center justify-between bg-surface shrink-0 z-20">
+<div class="flex items-center space-x-3">
+<button aria-label="Kembali" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-surface-container active:bg-surface-container-high transition-colors text-on-surface">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<div>
+<h1 class="text-[17px] font-bold tracking-tight text-on-surface leading-tight">Pengaturan Gerai</h1>
+<p class="text-[11px] font-medium text-on-surface-variant font-mono">Terminal 01 â€¢ v2.5.0</p>
+</div>
+</div>
+<div class="flex items-center space-x-1.5">
+<span class="text-[11px] font-semibold bg-primary-container text-on-primary-container px-2 py-0.5 rounded-full font-mono">7 Bendera Aktif</span>
+<button aria-label="Bantuan" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container text-on-surface-variant">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="9"></circle>
+<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke-linecap="round"></path>
+<line x1="12" x2="12.01" y1="17" y2="17"></line>
+</svg>
+</button>
+</div>
+</section>
+<!-- Scrollable M3 Tabs (44px) -->
+<nav class="h-[44px] w-full bg-surface border-b border-outline-variant flex items-center overflow-x-auto no-scrollbar px-3 space-x-1 shrink-0 z-20">
+<button class="px-3 py-1.5 rounded-full text-[12px] font-medium text-on-surface-variant whitespace-nowrap hover:bg-surface-container">
+      Midtrans BYOK
+    </button>
+<button class="px-3 py-1.5 rounded-full text-[12px] font-medium text-on-surface-variant whitespace-nowrap hover:bg-surface-container">
+      Branding
+    </button>
+<button class="px-3 py-1.5 rounded-full text-[12px] font-medium text-on-surface-variant whitespace-nowrap hover:bg-surface-container">
+      Layanan
+    </button>
+<button class="px-3 py-1.5 rounded-full text-[12px] font-medium text-on-surface-variant whitespace-nowrap hover:bg-surface-container">
+      Printer LAN
+    </button>
+<button class="px-3 py-1.5 rounded-full text-[12px] font-medium text-on-surface-variant whitespace-nowrap hover:bg-surface-container">
+      Antrean
+    </button>
+<!-- Active Tab: Fitur Tamu -->
+<button class="relative px-3.5 py-1.5 rounded-full text-[12px] font-bold text-white bg-primary shadow-sm whitespace-nowrap flex items-center space-x-1.5"><span>Fitur Tamu</span><span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-secondary text-on-secondary font-bold">7 Aktif</span></button>
+</nav>
+<!-- Scrollable Main Content Container -->
+<main class="flex-1 w-full overflow-y-auto no-scrollbar px-3.5 pt-3 pb-3 space-y-2.5">
+<!-- Guest PWA Header Alert Box -->
+<div class="bg-surface-container rounded-xl p-3 border border-outline-variant flex items-start space-x-3">
+<div class="w-7 h-7 rounded-lg bg-primary-container text-primary flex items-center justify-center shrink-0 mt-0.5">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<h2 class="text-[13px] font-bold text-on-surface">Fitur Guest PWA v4</h2>
+<span class="text-[10px] font-mono text-primary font-semibold">Web Browser HP</span>
+</div>
+<p class="text-[11px] text-on-surface-variant leading-tight mt-0.5">Pengaturan langsung memengaruhi alur pesanan mandiri tamu di meja tanpa perlu restart aplikasi kasir.</p>
+</div>
+</div>
+<!-- Feature Flag Switch Cards List (7 items, each >= 56dp) -->
+<!-- 1. Batal Mandiri Tamu -->
+<div class="min-h-[58px] bg-surface-container-lowest rounded-xl p-3 border border-outline-variant flex items-center justify-between shadow-xs">
+<div class="pr-3 flex-1">
+<div class="flex items-center space-x-1.5">
+<h3 class="text-[13px] font-semibold text-on-surface leading-tight">Batal Mandiri Tamu (Unpaid)</h3>
+</div>
+<p class="text-[11px] text-on-surface-variant leading-tight mt-0.5">Izinkan pembatalan sebelum tiket diproses dapur.</p>
+<span class="text-[9.5px] font-mono text-outline">guest_self_cancel_enabled</span>
+</div>
+<!-- M3 Switch Component (ON) -->
+<button aria-label="Toggle Batal Mandiri" class="w-[50px] h-[30px] rounded-full bg-primary p-0.5 flex items-center justify-end transition-colors shrink-0">
+<div class="w-[26px] h-[26px] rounded-full bg-white shadow-sm flex items-center justify-center">
+<svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24">
+<polyline points="20 6 9 17 4 12"></polyline>
+</svg>
+</div>
+</button>
+</div>
+<!-- 2. Bagi Tagihan Rata (2-20 Orang) -->
+<div class="min-h-[58px] bg-surface-container-lowest rounded-xl p-3 border border-outline-variant flex items-center justify-between shadow-xs">
+<div class="pr-3 flex-1">
+<div class="flex items-center space-x-1.5">
+<h3 class="text-[13px] font-semibold text-on-surface leading-tight">Bagi Tagihan Rata (2-20 Orang)</h3>
+</div>
+<p class="text-[11px] text-on-surface-variant leading-tight mt-0.5">Hitung pembagian total nominal sama rata otomatis.</p>
+<span class="text-[9.5px] font-mono text-outline">guest_split_equal_enabled</span>
+</div>
+<!-- M3 Switch Component (ON) -->
+<button aria-label="Toggle Bagi Tagihan Rata" class="w-[50px] h-[30px] rounded-full bg-primary p-0.5 flex items-center justify-end transition-colors shrink-0">
+<div class="w-[26px] h-[26px] rounded-full bg-white shadow-sm flex items-center justify-center">
+<svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24">
+<polyline points="20 6 9 17 4 12"></polyline>
+</svg>
+</div>
+</button>
+</div>
+<!-- 3. Bagi Tagihan Per Item -->
+<div class="min-h-[58px] bg-surface-container-lowest rounded-xl p-3 border border-outline-variant flex items-center justify-between shadow-xs">
+<div class="pr-3 flex-1">
+<div class="flex items-center space-x-1.5">
+<h3 class="text-[13px] font-semibold text-on-surface leading-tight">Bagi Tagihan Per Item</h3>
+</div>
+<p class="text-[11px] text-on-surface-variant leading-tight mt-0.5">Tamu memilih item piring masing-masing via QR meja.</p>
+<span class="text-[9.5px] font-mono text-outline">guest_split_by_item_enabled</span>
+</div>
+<!-- M3 Switch Component (ON) -->
+<button aria-label="Toggle Bagi Tagihan Per Item" class="w-[50px] h-[30px] rounded-full bg-primary p-0.5 flex items-center justify-end transition-colors shrink-0">
+<div class="w-[26px] h-[26px] rounded-full bg-white shadow-sm flex items-center justify-center">
+<svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24">
+<polyline points="20 6 9 17 4 12"></polyline>
+</svg>
+</div>
+</button>
+</div>
+<!-- 4. Multi-Pembayaran Split (QRIS/VA/Kasir) -->
+<div class="min-h-[58px] bg-surface-container-lowest rounded-xl p-3 border border-outline-variant flex items-center justify-between shadow-xs">
+<div class="pr-3 flex-1">
+<div class="flex items-center space-x-1.5">
+<h3 class="text-[13px] font-semibold text-on-surface leading-tight">Multi-Pembayaran Split</h3>
+<span class="text-[9.5px] px-1.5 py-0.2 bg-secondary-container text-on-secondary font-semibold rounded font-mono">QRIS / VA / Kasir</span>
+</div>
+<p class="text-[11px] text-on-surface-variant leading-tight mt-0.5">Tiap porsi bayar mandiri dengan metode berbeda.</p>
+<span class="text-[9.5px] font-mono text-outline">guest_split_multi_payment_enabled</span>
+</div>
+<!-- M3 Switch Component (ON) -->
+<button aria-label="Toggle Multi-Pembayaran Split" class="w-[50px] h-[30px] rounded-full bg-primary p-0.5 flex items-center justify-end transition-colors shrink-0">
+<div class="w-[26px] h-[26px] rounded-full bg-white shadow-sm flex items-center justify-center">
+<svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24">
+<polyline points="20 6 9 17 4 12"></polyline>
+</svg>
+</div>
+</button>
+</div>
+<!-- 5. Suara Bel Pesanan Siap -->
+<div class="min-h-[58px] bg-surface-container-lowest rounded-xl p-3 border border-outline-variant flex items-center justify-between shadow-xs">
+<div class="pr-3 flex-1">
+<div class="flex items-center space-x-1.5">
+<h3 class="text-[13px] font-semibold text-on-surface leading-tight">Suara Bel Pesanan Siap</h3>
+</div>
+<p class="text-[11px] text-on-surface-variant leading-tight mt-0.5">Bunyikan chime audio saat status makanan siap diambil.</p>
+<span class="text-[9.5px] font-mono text-outline">guest_ready_chime_enabled</span>
+</div>
+<!-- M3 Switch Component (ON) -->
+<button aria-label="Toggle Suara Bel Pesanan Siap" class="w-[50px] h-[30px] rounded-full bg-primary p-0.5 flex items-center justify-end transition-colors shrink-0">
+<div class="w-[26px] h-[26px] rounded-full bg-white shadow-sm flex items-center justify-center">
+<svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24">
+<polyline points="20 6 9 17 4 12"></polyline>
+</svg>
+</div>
+</button>
+</div>
+<!-- 6. Rekomendasi Pairing Keranjang -->
+<div class="min-h-[58px] bg-surface-container-lowest rounded-xl p-3 border border-outline-variant flex items-center justify-between shadow-xs">
+<div class="pr-3 flex-1">
+<div class="flex items-center space-x-1.5">
+<h3 class="text-[13px] font-semibold text-on-surface leading-tight">Rekomendasi Pairing Keranjang</h3>
+</div>
+<p class="text-[11px] text-on-surface-variant leading-tight mt-0.5">Tampilkan upsell pelengkap makanan dan minuman.</p>
+<span class="text-[9.5px] font-mono text-outline">guest_upsell_pairing_enabled</span>
+</div>
+<!-- M3 Switch Component (ON) -->
+<button aria-label="Toggle Rekomendasi Pairing Keranjang" class="w-[50px] h-[30px] rounded-full bg-primary p-0.5 flex items-center justify-end transition-colors shrink-0">
+<div class="w-[26px] h-[26px] rounded-full bg-white shadow-sm flex items-center justify-center">
+<svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewbox="0 0 24 24">
+<polyline points="20 6 9 17 4 12"></polyline>
+</svg>
+</div>
+</button>
+</div>
+<!-- 7. Kirim Struk ke Email Tamu -->
+<div class="min-h-[58px] bg-surface-container-lowest rounded-xl p-3 border border-outline-variant flex items-center justify-between shadow-xs"><div class="pr-3 flex-1"><div class="flex items-center space-x-1.5"><h3 class="text-[13px] font-semibold text-on-surface leading-tight">Kirim Struk ke Email Tamu</h3></div><p class="text-[11px] text-on-surface-variant leading-tight mt-0.5">Formulir input email receipt digital otomatis saat transaksi sukses di smartphone tamu.</p><span class="text-[9.5px] font-mono text-outline">guest_email_receipt_enabled</span></div><button aria-label="Toggle Kirim Struk Email" class="w-[50px] h-[30px] rounded-full bg-surface-container-high border border-outline p-0.5 flex items-center justify-start transition-colors shrink-0"><div class="w-[22px] h-[22px] rounded-full bg-outline shadow-sm flex items-center justify-center"><svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg></div></button></div>
+<!-- Audit Meta Footer Note -->
+<div class="pt-1 pb-2 text-center">
+<span class="text-[10px] font-mono text-on-surface-variant">SHA256: d8f1e09c2a â€¢ Format Konfigurasi v4.2</span>
+</div>
+</main>
+<!-- Sticky CTA Area (64px) Above Bottom Nav -->
+<footer class="w-full px-4 py-2 bg-surface/95 backdrop-blur-md border-t border-outline-variant shrink-0 z-30">
+<button class="w-full h-[56px] bg-primary active:bg-[#16483E] text-white rounded-xl font-bold text-[14px] flex items-center justify-center space-x-2 shadow-md transition-transform active:scale-[0.99]"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24"><path d="M4.5 12.75l6 6 9-13.5" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Simpan Pengaturan</span></button>
+</footer>
+<!-- M3 Bottom NavigationBar (64px) -->
+<nav class="h-[64px] w-full bg-surface-container border-t border-outline-variant flex items-center justify-around px-2 shrink-0 z-30">
+<!-- Tab 1: Kasir -->
+<button class="flex flex-col items-center justify-center flex-1 py-1 text-on-surface-variant hover:text-on-surface">
+<div class="w-12 h-7 rounded-full flex items-center justify-center transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<rect height="16" rx="2" width="18" x="3" y="4"></rect>
+<line x1="7" x2="17" y1="8" y2="8"></line>
+<line x1="7" x2="11" y1="12" y2="12"></line>
+<line x1="15" x2="17" y1="12" y2="12"></line>
+<line x1="7" x2="17" y1="16" y2="16"></line>
+</svg>
+</div>
+<span class="text-[10.5px] font-medium mt-0.5">Kasir</span>
+</button>
+<!-- Tab 2: Meja -->
+<button class="flex flex-col items-center justify-center flex-1 py-1 text-on-surface-variant hover:text-on-surface">
+<div class="w-12 h-7 rounded-full flex items-center justify-center transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M3 10h18M3 14h18M5 6v12M19 6v12" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<span class="text-[10.5px] font-medium mt-0.5">Meja</span>
+</button>
+<!-- Tab 3: Dapur -->
+<button class="flex flex-col items-center justify-center flex-1 py-1 text-on-surface-variant hover:text-on-surface">
+<div class="w-12 h-7 rounded-full flex items-center justify-center transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<span class="text-[10.5px] font-medium mt-0.5">Dapur</span>
+</button>
+<!-- Tab 4: Katalog -->
+<button class="flex flex-col items-center justify-center flex-1 py-1 text-on-surface-variant hover:text-on-surface">
+<div class="w-12 h-7 rounded-full flex items-center justify-center transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+<path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<span class="text-[10.5px] font-medium mt-0.5">Katalog</span>
+</button>
+<!-- Tab 5: Lainnya / Pengaturan (Active) -->
+<button class="flex flex-col items-center justify-center flex-1 py-1 text-on-surface">
+<div class="w-12 h-7 rounded-full bg-primary-container text-primary flex items-center justify-center transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24">
+<circle cx="12" cy="12" r="1.5"></circle>
+<circle cx="19" cy="12" r="1.5"></circle>
+<circle cx="5" cy="12" r="1.5"></circle>
+</svg>
+</div>
+<span class="text-[10.5px] font-bold text-primary mt-0.5">Lainnya</span>
+</button>
+</nav>
+</body>
+</html>

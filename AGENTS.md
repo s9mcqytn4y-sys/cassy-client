@@ -18,7 +18,17 @@ Sibling folders inside `C:\Projects\CassyWorkspace`:
 - Docker (`Docker`, repo `s9mcqytn4y-sys/cassy-docker`): Standalone Compose, Nginx, Monitoring, and VPS Gateway definitions.
 - Business Vault (`C:\Users\Acer\OneDrive\Documents\AzureDevId`): Brand, legal, payment, and recovery docs (readable by authorized workspace config; never print, copy, or commit secret values).
 
-Source of Truth docs: `docs/PrdCassyV4.md`, `docs/ProjectManagement/README.md`, `docs/TechDebt.md`, `apps/android/docs/ReleaseOnePlan.md`, plus workspace UI/UX specs `../Docs/UiUxHandoffSpec.md`, `../Docs/PwaUiUxDissection.md`, `../Docs/BackendUiUxProposals.md`, and `apps/web/.stitch/SITE.md` (active live demo domain: `https://pos.abbdullaziz.online` & `https://api.abbdullaziz.online`; `demo.abbdullaziz.online` is retired).
+Source of Truth docs: `docs/PrdCassyV4.md`, `docs/ProjectManagement/README.md`, `docs/TechDebt.md`, `apps/android/docs/ReleaseOnePlan.md`, plus workspace UI/UX specs `../Docs/UiUxHandoffSpec.md`, `../Docs/PwaUiUxDissection.md`, `../Docs/BackendUiUxProposals.md`, `apps/web/.stitch/SITE.md` (PWA Stitch: `https://stitch.withgoogle.com/projects/13375593037028476163`, 12 screens 1:1), and `apps/android/.stitch/SITE.md` (Android POS Stitch: `https://stitch.withgoogle.com/projects/12425184884442557609`, 17 screens 1:1). Active live demo domain: `https://pos.abbdullaziz.online` & `https://api.abbdullaziz.online` (`demo.abbdullaziz.online` is retired).
+
+## Visual Language & Taste Design (Frontend Context)
+
+- **Design Language:** *Warm Editorial Hospitality* (calm under lunch-rush pressure, exact with integer rupiah, zero AI slop).
+- **Color Roles (`packages/design-tokens/tokens.json`):** Putih Tulang `#F7F5F0` canvas, Pure White `#FFFFFF` surface, Tonal `#EFECE4` containers, Pandan `#1F5F52` primary (`text-brand-fg` `#FFFFFF` ONLY, never dark `text-brand-ink` on `bg-brand`), Kunyit `#E9A23B` accent (`#17211E` ink), Tinta `#17211E` primary ink.
+- **Typography & Tabular Numbers:** Web uses `Bricolage Grotesque` (display) + `Plus Jakarta Sans` (body) + `JetBrains Mono` (codes/VA); Android uses `Plus Jakarta Sans` (`fontFeatureSettings = "tnum"`) + `JetBrains Mono`. Always format currency as `Rp 32.000` (never `IDR 32.000`).
+- **Adaptive & Ergonomic Rules:**
+  - Web PWA (`apps/web`): `min-h-[100dvh]`, zero-scroll `390x844` landing (`py-5 gap-4`, `min-h-[48px]` CTAs), unwrapped H1 (`text-wrap: balance`), `dialog:modal { overscroll-behavior: contain; }`, `48x48` menu thumbnails in `CartSheet`, anti-spam email cooldown `60s`, **no SHA-256 hash box** on `/legal` & `/legal/mitra`, Apple-style spring curves (`--ease-spring: cubic-bezier(0.22, 1, 0.36, 1)`) with `prefers-reduced-motion`.
+  - Android POS (`apps/android`): Material Design 3 Adaptive `NavigationSuiteScaffold` (`NavigationBar` + `ModalBottomSheet` on Mobile `< 600dp` <-> `88dp NavigationRail` + `420dp Order Panel` on Tablet `>= 840dp`), non-blocking `40dp` Top Connection Status Strip (never covering payment CTAs), touch targets `>= 48dp` (`64dp` pay, `72dp` cash keypad), Bahasa Indonesia kasir copy consistent.
+- **Transparent Web-Standard UI Assets:** Error and empty state SVG illustrations with transparent backgrounds and `prefers-reduced-motion` live in `apps/web/public/brand/states/` (`state-404.svg`, `state-503.svg`, `state-offline.svg`, `state-expired.svg`, `state-refund.svg`, `state-empty-cart.svg`).
 
 ## Non-Negotiable Client Rules
 

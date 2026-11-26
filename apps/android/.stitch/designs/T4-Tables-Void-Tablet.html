@@ -1,0 +1,511 @@
+﻿<!DOCTYPE html>
+
+<html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_blank" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={"darkMode":"class","theme":{"extend":{"colors":{"on-error-container":"#93000a","inverse-on-surface":"#f2f1ec","secondary-fixed":"#ffddb6","on-primary":"#ffffff","on-tertiary-fixed-variant":"#653e00","on-surface-variant":"#3f4946","surface-container-lowest":"#FFFFFF","primary-container":"#1f5f52","on-tertiary":"#ffffff","error-container":"#FBE7E5","on-secondary-fixed":"#2a1800","surface-container":"#f0eee9","surface-container-low":"#f5f3ee","on-error":"#ffffff","secondary-fixed-dim":"#ffb959","on-primary-fixed-variant":"#095044","surface":"#F7F5F0","primary":"#1F5F52","on-secondary-container":"#714800","surface-dim":"#dbdad5","surface-bright":"#fbf9f4","on-secondary":"#17211E","inverse-surface":"#30312e","on-tertiary-container":"#fdbe6e","secondary":"#E9A23B","surface-variant":"#e4e2dd","on-secondary-fixed-variant":"#643f00","outline":"#8C877C","on-surface":"#17211E","error":"#B3261E","outline-variant":"#E2DDD2","on-primary-fixed":"#00201a","surface-container-high":"#eae8e3","secondary-container":"#ffb54d","on-background":"#1b1c19","on-primary-container":"#98d7c6","tertiary-container":"#784b00","tertiary":"#8A5A12","background":"#fbf9f4","tertiary-fixed-dim":"#fabb6b","primary-fixed":"#b0efde","on-tertiary-fixed":"#2a1700","surface-tint":"#2a685b","primary-fixed-dim":"#94d3c2","surface-container-highest":"#e4e2dd","inverse-primary":"#94d3c2","tertiary-fixed":"#ffddb7"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-lg":"1.5rem","margin":"1rem","gutter":"1rem","space-xl":"2rem","space-xs":"0.25rem","space-sm":"0.5rem","space-md":"1rem"},"fontFamily":{"headline-md":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"display-lg":["Plus Jakarta Sans"],"label-md":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"],"title-md":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"tabular-nums":["Plus Jakarta Sans"]},"fontSize":{"headline-md":["24px",{"lineHeight":"32px","fontWeight":"600"}],"headline-lg":["32px",{"lineHeight":"40px","fontWeight":"600"}],"headline-sm":["20px",{"lineHeight":"26px","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"display-lg":["44px",{"lineHeight":"52px","fontWeight":"700"}],"label-md":["12px",{"lineHeight":"16px","fontWeight":"500"}],"label-lg":["14px",{"lineHeight":"20px","fontWeight":"500"}],"title-md":["16px",{"lineHeight":"24px","fontWeight":"500"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"tabular-nums":["14px",{"lineHeight":"20px","fontWeight":"600"}]}}}}</script></head><body class="bg-surface font-body-md text-body-md text-on-surface select-none antialiased"><main class="w-full min-h-screen bg-surface"><div class="flex flex-col w-full h-[800px] overflow-hidden bg-surface text-on-surface select-none relative font-body-md">
+<div class="flex w-full h-full">
+<!-- 1. LEFT NAVIGATION RAIL (88px) -->
+<aside class="w-[88px] h-full flex flex-col justify-between items-center py-5 bg-surface-container-low shrink-0 z-20">
+<div class="flex flex-col items-center w-full gap-6">
+<!-- Brand Mark -->
+<div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-sm">
+<span class="material-symbols-outlined text-[28px]">point_of_sale</span>
+</div>
+<!-- Rail Destinations -->
+<nav class="flex flex-col items-center gap-3 w-full">
+<button class="w-16 h-14 flex flex-col items-center justify-center rounded-xl text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[24px]">receipt_long</span>
+<span class="font-label-md text-label-md mt-1">Kasir</span>
+</button>
+<!-- Active Meja -->
+<button class="w-16 h-14 flex flex-col items-center justify-center rounded-xl bg-primary text-on-primary shadow-sm">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">table_restaurant</span>
+<span class="font-label-md text-label-md font-semibold mt-1">Meja</span>
+</button>
+<button class="w-16 h-14 flex flex-col items-center justify-center rounded-xl text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[24px]">skillet</span>
+<span class="font-label-md text-label-md mt-1">Dapur</span>
+</button>
+<button class="w-16 h-14 flex flex-col items-center justify-center rounded-xl text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[24px]">menu_book</span>
+<span class="font-label-md text-label-md mt-1">Katalog</span>
+</button>
+<button class="w-16 h-14 flex flex-col items-center justify-center rounded-xl text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+<span class="font-label-md text-label-md mt-1">Pengaturan</span>
+</button>
+</nav>
+</div>
+<!-- Rail Footer Hardware Indicator -->
+<div class="flex flex-col items-center gap-2">
+<div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-surface-container-highest">
+<span class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
+<span class="material-symbols-outlined text-[16px] text-primary">print</span>
+</div>
+<span class="font-label-md text-[10px] text-on-surface-variant tracking-wider uppercase font-medium">Siap</span>
+</div>
+</aside>
+<!-- RIGHT WRAPPER (WORKSPACE + DETAIL PANEL) -->
+<div class="flex flex-1 h-full overflow-hidden">
+<!-- 2 & 3. WORKSPACE (68% split) -->
+<div class="w-[68%] h-full flex flex-col bg-surface shrink-0">
+<!-- Top App Bar -->
+<header class="h-[72px] px-6 bg-surface-container-lowest flex items-center justify-between shadow-sm shrink-0 z-10">
+<div class="flex items-center gap-4">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface">Gerai Kedai Cassy</span>
+<span class="px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant font-label-md text-label-md">POS-01</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant">Kasir: Siti Rahmawati</p>
+</div>
+</div>
+<!-- Floor Segment Filters & Status Pill -->
+<div class="flex items-center gap-4">
+<div class="flex items-center bg-surface-container rounded-xl p-1">
+<button class="px-3.5 py-1.5 rounded-lg bg-surface-container-lowest text-primary font-label-lg text-label-lg font-semibold shadow-sm">Semua Meja (16)</button>
+<button class="px-3.5 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg">Lantai 1 (10)</button>
+<button class="px-3.5 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg">Lantai 2 Outdoor (6)</button>
+</div>
+<div class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-secondary-fixed text-on-secondary-fixed">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-md text-label-md font-semibold tracking-wide">4 Meja Terisi | 1 Menunggu Bayar</span>
+</div>
+</div>
+</header>
+<!-- Floor Canvas Matrix -->
+<div class="flex-1 p-6 overflow-y-auto">
+<div class="grid grid-cols-3 gap-4">
+<!-- Card M-01 (Tersedia) -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col justify-between h-[184px] shadow-sm relative overflow-hidden group">
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-primary"></div>
+<div>
+<div class="flex items-start justify-between">
+<div>
+<span class="font-mono text-[22px] font-bold tracking-tight text-on-surface">M-01</span>
+<p class="font-label-md text-label-md text-on-surface-variant">Kapasitas 4 Orang</p>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-md text-label-md font-semibold">Tersedia</span>
+</div>
+<div class="mt-3 flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">table_bar</span>
+<span class="font-body-md text-body-md">Bebas Reservasi</span>
+</div>
+</div>
+<button class="w-full h-11 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[18px]">touch_app</span>
+                Pilih Meja
+              </button>
+</div>
+<!-- Card M-02 (Tersedia) -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col justify-between h-[184px] shadow-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-primary"></div>
+<div>
+<div class="flex items-start justify-between">
+<div>
+<span class="font-mono text-[22px] font-bold tracking-tight text-on-surface">M-02</span>
+<p class="font-label-md text-label-md text-on-surface-variant">Kapasitas 2 Orang</p>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-md text-label-md font-semibold">Tersedia</span>
+</div>
+<div class="mt-3 flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">table_bar</span>
+<span class="font-body-md text-body-md">Bebas Reservasi</span>
+</div>
+</div>
+<button class="w-full h-11 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[18px]">touch_app</span>
+                Pilih Meja
+              </button>
+</div>
+<!-- Card M-03 (Terisi) -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col justify-between h-[184px] shadow-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-secondary"></div>
+<div>
+<div class="flex items-start justify-between">
+<div>
+<span class="font-mono text-[22px] font-bold tracking-tight text-on-surface">M-03</span>
+<p class="font-label-md text-label-md text-on-surface-variant">Kapasitas 4 Orang</p>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-md text-label-md font-semibold">Terisi (12 mnt)</span>
+</div>
+<div class="mt-2 flex items-center justify-between">
+<span class="font-mono text-label-md text-on-surface-variant">Order #A-044</span>
+<span class="font-tabular-nums text-title-md font-bold text-on-surface">Rp 45.000</span>
+</div>
+</div>
+<div class="px-3 py-2 rounded-lg bg-surface-container text-on-surface-variant font-label-md text-label-md flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+                1 item siap antar
+              </div>
+</div>
+<!-- Card M-04 (Terisi - Active Selected State) -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col justify-between h-[184px] shadow-md relative overflow-hidden bg-gradient-to-b from-primary-fixed/20 to-surface-container-lowest ring-2 ring-primary">
+<div class="absolute top-0 left-0 right-0 h-2 bg-primary"></div>
+<div>
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-mono text-[22px] font-extrabold tracking-tight text-primary">M-04</span>
+<span class="px-1.5 py-0.5 rounded bg-primary text-on-primary font-label-md text-[10px] font-bold tracking-wider">AKTIF</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant">Kapasitas 4 Orang</p>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-md text-label-md font-semibold">Terisi (42 mnt)</span>
+</div>
+<div class="mt-2 flex items-center justify-between">
+<span class="font-mono text-label-md text-on-surface-variant font-medium">Order #A-041</span>
+<span class="font-tabular-nums text-headline-sm font-bold text-primary">Rp 84.700</span>
+</div>
+</div>
+<div class="px-3 py-2 rounded-lg bg-secondary-fixed/50 text-on-secondary-fixed font-label-md text-label-md font-medium flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-tertiary">soup_kitchen</span>
+<span>2 item diproses dapur</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-primary">arrow_forward_ios</span>
+</div>
+</div>
+<!-- Card M-05 (Terisi) -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col justify-between h-[184px] shadow-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-secondary"></div>
+<div>
+<div class="flex items-start justify-between">
+<div>
+<span class="font-mono text-[22px] font-bold tracking-tight text-on-surface">M-05</span>
+<p class="font-label-md text-label-md text-on-surface-variant">Kapasitas 2 Orang</p>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-md text-label-md font-semibold">Terisi (25 mnt)</span>
+</div>
+<div class="mt-2 flex items-center justify-between">
+<span class="font-mono text-label-md text-on-surface-variant">Order #A-042</span>
+<span class="font-tabular-nums text-title-md font-bold text-on-surface">Rp 64.000</span>
+</div>
+</div>
+<div class="px-3 py-2 rounded-lg bg-surface-container text-on-surface-variant font-label-md text-label-md flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+                Pesanan tersaji lengkap
+              </div>
+</div>
+<!-- Card M-06 (Tersedia) -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col justify-between h-[184px] shadow-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-primary"></div>
+<div>
+<div class="flex items-start justify-between">
+<div>
+<span class="font-mono text-[22px] font-bold tracking-tight text-on-surface">M-06</span>
+<p class="font-label-md text-label-md text-on-surface-variant">Kapasitas 6 Orang</p>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-md text-label-md font-semibold">Tersedia</span>
+</div>
+<div class="mt-3 flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">table_bar</span>
+<span class="font-body-md text-body-md">Meja Panjang</span>
+</div>
+</div>
+<button class="w-full h-11 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[18px]">touch_app</span>
+                Pilih Meja
+              </button>
+</div>
+<!-- Card M-07 + M-08 (Gabung Meja) -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col justify-between h-[184px] shadow-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-secondary"></div>
+<div>
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-mono text-[20px] font-bold tracking-tight text-on-surface">M-07 + M-08</span>
+<span class="material-symbols-outlined text-[18px] text-tertiary">link</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant">Kapasitas 8 Orang</p>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-md text-label-md font-semibold">Terisi (18 mnt)</span>
+</div>
+<div class="mt-2 flex items-center justify-between">
+<span class="font-mono text-label-md text-on-surface-variant">Order #A-043</span>
+<span class="font-tabular-nums text-title-md font-bold text-on-surface">Rp 142.000</span>
+</div>
+</div>
+<div class="px-3 py-2 rounded-lg bg-secondary-fixed/30 text-tertiary font-label-md text-label-md flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">call_merge</span>
+                Sesi Meja Gabungan
+              </div>
+</div>
+<!-- Card M-09 (Menunggu Bayar) -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col justify-between h-[184px] shadow-sm relative overflow-hidden bg-gradient-to-b from-secondary-fixed/40 to-surface-container-lowest">
+<div class="absolute top-0 left-0 right-0 h-2 bg-secondary animate-pulse"></div>
+<div>
+<div class="flex items-start justify-between">
+<div>
+<span class="font-mono text-[22px] font-bold tracking-tight text-on-surface">M-09</span>
+<p class="font-label-md text-label-md text-on-surface-variant">Kapasitas 2 Orang</p>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-secondary-fixed-dim text-on-secondary-fixed font-label-md text-label-md font-bold">Tagihan Dicetak</span>
+</div>
+<div class="mt-2 flex items-center justify-between">
+<span class="font-mono text-label-md text-on-surface-variant">Order #A-039</span>
+<span class="font-tabular-nums text-title-md font-bold text-tertiary">Rp 58.000</span>
+</div>
+</div>
+<button class="w-full h-11 rounded-lg bg-secondary text-on-secondary font-label-lg text-label-lg font-bold flex items-center justify-center gap-2 hover:bg-secondary-fixed-dim transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[20px]">payments</span>
+                Proses Bayar Kasir
+              </button>
+</div>
+<!-- Card M-10 (Tersedia) -->
+<div class="bg-surface-container-lowest rounded-xl p-4 flex flex-col justify-between h-[184px] shadow-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-primary"></div>
+<div>
+<div class="flex items-start justify-between">
+<div>
+<span class="font-mono text-[22px] font-bold tracking-tight text-on-surface">M-10</span>
+<p class="font-label-md text-label-md text-on-surface-variant">Kapasitas 4 Orang</p>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-label-md text-label-md font-semibold">Tersedia</span>
+</div>
+<div class="mt-3 flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">table_bar</span>
+<span class="font-body-md text-body-md">Dekat Kasir</span>
+</div>
+</div>
+<button class="w-full h-11 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[18px]">touch_app</span>
+                Pilih Meja
+              </button>
+</div>
+</div>
+</div>
+</div>
+<!-- 4. RIGHT DETAIL PANEL (32% split, 400dp width) -->
+<aside class="w-[32%] h-full bg-surface-container-lowest shadow-xl flex flex-col justify-between shrink-0 z-10">
+<!-- Header Detail Meja -->
+<div class="p-5 bg-surface-container-low shrink-0">
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2">
+<span class="font-mono text-[26px] font-bold text-on-surface">M-04</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface font-label-md text-label-md font-semibold">Lantai 1</span>
+</div>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-mono text-label-md text-primary font-semibold">Order #A-041</span>
+<span class="text-outline text-xs">â€¢</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Dine-In</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-tabular-nums text-label-lg text-label-lg font-bold text-tertiary bg-secondary-fixed/50 px-2.5 py-1 rounded-md">42 mnt</span>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-between pt-3 text-on-surface-variant font-label-md text-label-md">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">person</span>
+              Tamu: <strong class="text-on-surface">Bpk Herman</strong>
+</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">groups</span>
+              4 Orang
+            </span>
+</div>
+</div>
+<!-- Scrollable Order Item List -->
+<div class="flex-1 p-5 overflow-y-auto flex flex-col gap-3">
+<div class="flex items-center justify-between pb-1">
+<span class="font-title-md text-title-md font-bold text-on-surface">Ringkasan Tagihan</span>
+<span class="font-label-md text-label-md text-on-surface-variant">3 Pesanan</span>
+</div>
+<!-- Item 1 -->
+<div class="p-3 rounded-xl bg-surface-container-low flex flex-col gap-1.5">
+<div class="flex items-start justify-between">
+<div class="flex items-start gap-2">
+<span class="w-6 h-6 rounded bg-surface-container-highest text-on-surface font-bold text-xs flex items-center justify-center mt-0.5">1x</span>
+<div>
+<h4 class="font-body-lg text-body-lg font-semibold text-on-surface leading-snug">Nasi Goreng Spesial</h4>
+<p class="font-label-md text-label-md text-on-surface-variant">Pedas Sedang, Telur Ceplok</p>
+</div>
+</div>
+<span class="font-tabular-nums text-title-md font-semibold text-on-surface">Rp 35.000</span>
+</div>
+<div class="flex items-center justify-between text-xs text-primary font-medium mt-1">
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span>Tersaji di Meja</span>
+<button class="text-error hover:underline flex items-center gap-0.5">Void</button>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="p-3 rounded-xl bg-surface-container-low flex flex-col gap-1.5">
+<div class="flex items-start justify-between">
+<div class="flex items-start gap-2">
+<span class="w-6 h-6 rounded bg-surface-container-highest text-on-surface font-bold text-xs flex items-center justify-center mt-0.5">1x</span>
+<div>
+<h4 class="font-body-lg text-body-lg font-semibold text-on-surface leading-snug">Paket Nasi Ayam Bakar</h4>
+<p class="font-label-md text-label-md text-on-surface-variant">Tahu, Tempe, Sambal Terasi</p>
+</div>
+</div>
+<span class="font-tabular-nums text-title-md font-semibold text-on-surface">Rp 32.000</span>
+</div>
+<div class="flex items-center justify-between text-xs text-primary font-medium mt-1">
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span>Tersaji di Meja</span>
+<button class="text-error hover:underline flex items-center gap-0.5">Void</button>
+</div>
+</div>
+<!-- Item 3 (Void target candidate) -->
+<div class="p-3 rounded-xl bg-error-container/40 flex flex-col gap-1.5 relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div class="flex items-start gap-2">
+<span class="w-6 h-6 rounded bg-secondary text-on-secondary font-bold text-xs flex items-center justify-center mt-0.5">2x</span>
+<div>
+<h4 class="font-body-lg text-body-lg font-semibold text-on-surface leading-snug">Es Pandan Latte</h4>
+<p class="font-label-md text-label-md text-on-surface-variant">Less Sugar, Jelly Extra</p>
+</div>
+</div>
+<span class="font-tabular-nums text-title-md font-semibold text-on-surface">Rp 52.000</span>
+</div>
+<div class="flex items-center justify-between text-xs font-medium mt-1">
+<span class="text-tertiary flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>Sedang Diracik Barista</span>
+<span class="px-2 py-0.5 rounded bg-error/10 text-error font-semibold text-[11px]">Memerlukan Void</span>
+</div>
+</div>
+<!-- Guarded QR Rotation Box -->
+<div class="p-3.5 rounded-xl bg-surface-container text-on-surface-variant mt-2 flex flex-col gap-2">
+<div class="flex items-center gap-2 text-tertiary">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+<span class="font-label-lg text-label-lg font-bold">Rotasi QR Meja</span>
+</div>
+<p class="font-label-md text-label-md leading-relaxed text-on-surface-variant">
+              Tidak dapat rotasi saat meja terisi (Kunci Keamanan Sesi Aktif)
+            </p>
+<button class="h-10 rounded-lg bg-surface-container-highest text-outline font-label-md text-label-md font-semibold cursor-not-allowed flex items-center justify-center gap-1.5" disabled="">
+<span class="material-symbols-outlined text-[16px]">sync_lock</span>
+              Rotasi QR Baru
+            </button>
+</div>
+</div>
+<!-- Bill Calc & Actions -->
+<div class="p-5 bg-surface-container-low shrink-0 flex flex-col gap-3.5">
+<!-- Totals -->
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between font-body-md text-body-md text-on-surface-variant">
+<span>Subtotal</span>
+<span class="font-tabular-nums font-medium text-on-surface">Rp 119.000</span>
+</div>
+<div class="flex justify-between font-body-md text-body-md text-on-surface-variant">
+<span>Pajak Resto (PB1 10%)</span>
+<span class="font-tabular-nums font-medium text-on-surface">Rp 11.900</span>
+</div>
+<div class="flex justify-between items-baseline pt-2">
+<span class="font-headline-sm text-headline-sm text-on-surface">Total Tagihan</span>
+<span class="font-tabular-nums font-headline-md text-headline-md text-primary">Rp 130.900</span>
+</div>
+</div>
+<!-- Quick Action Buttons -->
+<div class="flex flex-col gap-2">
+<!-- CTA Bayar / Tambah Menu (min 64dp ergonomic height) -->
+<button class="w-full h-16 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-headline-sm text-headline-sm flex items-center justify-center gap-3 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[24px]">receipt</span>
+<span>Buka Tagihan / Tambah Menu</span>
+</button>
+<!-- Secondary Actions -->
+<div class="grid grid-cols-2 gap-2">
+<button class="h-12 rounded-xl bg-surface-container-highest hover:bg-surface-variant text-on-surface font-label-lg text-label-lg font-semibold flex items-center justify-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[18px]">alt_route</span>
+                Pindah / Gabung
+              </button>
+<button class="h-12 rounded-xl bg-surface-container-highest hover:bg-surface-variant text-on-surface font-label-lg text-label-lg font-semibold flex items-center justify-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[18px]">qr_code_2</span>
+                Cetak Poster QR
+              </button>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</div>
+<!-- 5. MODAL OVERLAY: PosTabItemVoid Modal (max-w-[540px] centered dialog) -->
+<div class="absolute inset-0 bg-on-surface/40 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
+<div class="w-full max-w-[540px] bg-surface-container-lowest rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+<!-- Dialog Header -->
+<div class="px-6 py-5 bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-full bg-error-container text-error flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">remove_shopping_cart</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Persetujuan Void Item Pesanan</h3>
+<p class="font-label-md text-label-md text-on-surface-variant">Otorisasi Supervisor Kasir</p>
+</div>
+</div>
+<button class="w-9 h-9 rounded-full hover:bg-surface-variant text-on-surface-variant flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Dialog Body -->
+<div class="p-6 flex flex-col gap-5">
+<!-- Void Target Card -->
+<div class="p-4 rounded-xl bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary font-mono font-bold">
+              M-04
+            </div>
+<div>
+<p class="font-body-lg text-body-lg font-semibold text-on-surface">1x Es Pandan Latte</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Order #A-041 â€¢ Meja M-04 Lantai 1</p>
+</div>
+</div>
+<span class="font-tabular-nums text-headline-sm text-headline-sm text-error">Rp 26.000</span>
+</div>
+<!-- Chip Alasan Void (Selectable) -->
+<div class="flex flex-col gap-2">
+<label class="font-label-lg text-label-lg font-bold text-on-surface">Alasan Void Item</label>
+<div class="grid grid-cols-2 gap-2">
+<!-- Selected -->
+<button class="h-12 px-3 rounded-xl bg-primary text-on-primary font-label-lg text-label-lg font-semibold flex items-center justify-between shadow-sm">
+<span>Salah ketik</span>
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+</button>
+<!-- Inactive -->
+<button class="h-12 px-3 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg font-medium flex items-center justify-between">
+<span>Tamu batal</span>
+</button>
+<button class="h-12 px-3 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg font-medium flex items-center justify-between">
+<span>Bahan habis</span>
+</button>
+<button class="h-12 px-3 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg font-medium flex items-center justify-between">
+<span>Kualitas kurang</span>
+</button>
+</div>
+</div>
+<!-- PIN Verification Section -->
+<div class="p-4 rounded-xl bg-surface-container flex flex-col items-center gap-3">
+<div class="flex items-center gap-1.5 text-on-surface">
+<span class="material-symbols-outlined text-[18px] text-primary">security</span>
+<span class="font-label-lg text-label-lg font-bold">Perlu Persetujuan PIN Owner</span>
+</div>
+<!-- 6-digit PIN Dots (4 terisi) -->
+<div class="flex items-center gap-3 my-1">
+<div class="w-3.5 h-3.5 rounded-full bg-primary ring-4 ring-primary-fixed"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-primary ring-4 ring-primary-fixed"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-primary ring-4 ring-primary-fixed"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-primary ring-4 ring-primary-fixed"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-outline-variant"></div>
+<div class="w-3.5 h-3.5 rounded-full bg-outline-variant"></div>
+</div>
+<div class="w-full px-3 py-2 rounded-lg bg-secondary-fixed/50 text-tertiary flex items-center gap-2 text-center justify-center">
+<span class="material-symbols-outlined text-[16px] shrink-0">info</span>
+<p class="font-label-md text-label-md font-medium text-left leading-tight">
+              Menunggu PIN Supervisor di tempat atau Otorisasi Jarak Jauh (Push Notif)
+            </p>
+</div>
+</div>
+</div>
+<!-- Dialog Actions -->
+<div class="p-6 bg-surface-container-low flex items-center gap-3">
+<button class="flex-1 h-13 py-3 rounded-xl bg-surface-container-highest hover:bg-surface-variant text-on-surface font-label-lg text-label-lg font-semibold transition-colors">
+          Batal
+        </button>
+<button class="flex-1 h-13 py-3 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 shadow-sm transition-colors">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+          Kirim Permintaan Otorisasi
+        </button>
+</div>
+</div>
+</div>
+</div></main></body></html>
